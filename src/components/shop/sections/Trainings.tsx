@@ -6,8 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { getAllTrainings } from '@/data/training';
-
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -28,10 +26,7 @@ import {
 export default function Trainings() {
   const [trainings, setTrainings] = useState<Training[]>([]);
 
-  useEffect(() => {
-    (async () => setTrainings(await getAllTrainings()))();
-  }, []);
-
+ 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {trainings?.map((training) => (
