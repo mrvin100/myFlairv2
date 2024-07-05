@@ -1,4 +1,3 @@
-'use serveur'
 import { prisma } from "@/lib/prisma";
 
 
