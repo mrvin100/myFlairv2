@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,8 @@ import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import DisplayFormations from './displayData';
+import { DateRange } from 'react-day-picker';
+import { TrashIcon } from 'lucide-react';
 
 interface Formation {
   image: string;
@@ -28,6 +30,8 @@ interface Formation {
   deposit: number;
   [key: string]: string | boolean | number | undefined;
 }
+
+
 
 const AddFormation = () => {
   const router = useRouter();
@@ -45,11 +49,12 @@ const AddFormation = () => {
     deposit: 0,
   });
   const [images, setImages] = useState<File[]>([]);
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: addDays(new Date(), 30),
   });
-  const [dates, setDates] = useState<{ from: Date; to: Date }[]>([]);
+  const [dates, setDates] = useState<DateRange[]>([]);
+
 
   const handleFormationChange = (key: keyof Formation, value: any) => {
     setFormation((prevFormation) => ({
@@ -220,54 +225,52 @@ const AddFormation = () => {
                         />
                       </div>
                       <br />
-                      <label>Date</label>
-                      <br />
-                      <br />
-                      <Popover>
-                        <div className="grid gap-2">
-                          <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
-                        </div>
-                      </Popover>
-                      <br />
-                      {dates.length > 0 && <p>Dates ajoutées:</p>}
-                      <br />
-                      {dates.map((date, index) => (
-                        <div className="flex items-center gap-2" key={index}>
-                          {date.to ? (
-                            <>
-                              {format(date.from!, 'dd LLL y', { locale: fr })} - {format(date.to!, 'dd LLL y', { locale: fr })}
-                            </>
-                          ) : (
-                            format(date.from!, 'dd LLL y', { locale: fr })
-                          )}
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            onClick={() => {
-                              const newDates = dates.filter((_, i) => i !== index);
+                      <label htmlFor="">Date</label>
+                        <Popover>
+                          <div className="grid gap-2">
+                            <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
+                          </div>
+                        </Popover>
+
+                        {dates.length > 0 && <p>Dates ajoutées:</p>}
+                        {dates.map((date, index) => (
+                          <div className="flex items-center gap-2" key={index}>
+                            {date.to ? (
+                              <>
+                                {format(date.from!, 'dd LLL y', { locale: fr })} - {format(date.to!, 'dd LLL y', { locale: fr })}
+                              </>
+                            ) : (
+                              format(date.from!, 'dd LLL y', { locale: fr })
+                            )}
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              onClick={() => {
+                                const newDates = dates.filter((_, i) => i !== index);
+                                setDates(newDates);
+                                
+                              }}
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </Button>
+                            <br />
+                          </div>
+                        ))}
+
+                        <Button
+                          className="flex justify-start"
+                          onClick={() => {
+                            if (dateRange) {
+                              const newDates = [...dates, dateRange];
                               setDates(newDates);
-                            }}
-                          >
-                            <img src="/iconWorkPlace/trash-2-3.svg" alt="Delete" className="h-4 w-4" />
-                          </Button>
-                          <br />
-                          <br />
-                        </div>
-                      ))}
-                      <br />
-                      <Button
-                        className="flex justify-start"
-                        onClick={() => {
-                          if (dateRange) {
-                            const newDates = [...dates, dateRange];
-                            setDates(newDates);
-                          }
-                        }}
-                        type="button"
-                      >
-                        Ajouter la date
-                      </Button>
-                      <br />
+                              
+                            }
+                          }}
+                          type="button"
+                        >
+                          Ajouter la date
+                        </Button>
+                        <br />
                       <div>
                         <label>Image</label>
                         <br />
