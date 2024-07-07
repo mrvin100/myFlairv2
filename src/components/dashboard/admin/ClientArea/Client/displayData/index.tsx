@@ -47,7 +47,7 @@ const DisplayClients = () => {
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`${window.location.origin}/api/clients/get`, {
+    fetch(`${window.location.origin}/api/client/get`, {
       method: 'GET',
     })
       .then(response => {
@@ -87,11 +87,10 @@ const DisplayClients = () => {
   return (
     <div>
       <AlertDialog>
-        <Table>
+        <Table className="overflow-x-auto	">
           <TableHeader>
             <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Nom & Prénom</TableHead>
+              <TableHead className="w-min-[500px]">Nom & Prénom</TableHead>
               <TableHead>Adresse</TableHead>
               <TableHead>Numéro de téléphone</TableHead>
               <TableHead>Email</TableHead>
@@ -104,8 +103,7 @@ const DisplayClients = () => {
           {clients.map((client) => (
             <TableBody key={client.id}>
               <TableRow>
-                <TableCell>n° {client.id}</TableCell>
-                <TableCell>{`${client.firstName} ${client.lastName}`}</TableCell>
+                <TableCell className="w-min-[300px] text-center flex ">{`${client.firstName} ${client.lastName}`}</TableCell>
                 <TableCell>{`${client.addressLine1}, ${client.addressLine2 || ''}, ${client.city}, ${client.postalCode}`}</TableCell>
                 <TableCell>{client.phoneNumber}</TableCell>
                 <TableCell>{client.email}</TableCell>

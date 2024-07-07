@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -21,7 +20,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { Input } from '@/components/ui/input';
 import DisplayWorkPlace from './displayData/page';
-import { secondsToMilliseconds } from 'date-fns';
+
 interface Post {
   image: string;
   title: string;
@@ -146,7 +145,6 @@ const AddPost = () => {
     }
   };
 
-  
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
@@ -157,23 +155,10 @@ const AddPost = () => {
           'Content-Type': 'application/json',
         },
       });
-  
-      const responseStripe = await fetch('/api/post/CreateStripeProduct', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
-      });
-  
-      const data = await responseStripe.json();
-      if (responseStripe.ok) {
-        console.log('Service created:', data);
-      } else {
-        console.error('Error creating service:', data.error);
-      }
-  
+
+      const data = response.data;
       if (response.status === 201) {
+        console.log('Services created:', data);
         toast.success('Poste créé avec succès');
         setTimeout(() => {
           router.push('/');
@@ -189,7 +174,7 @@ const AddPost = () => {
       setIsLoading(false);
     }
   };
-  
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
@@ -205,15 +190,16 @@ const AddPost = () => {
       console.error("Erreur lors du téléchargement de l'image:", error);
     }
   };
-  
+
   const cld = new Cloudinary({
     cloud: {
       cloudName: process.env.CLOUDINARY_CLOUDNAME,
     },
   });
-  
+
   var myImageUrl = cld.image().toURL();
-  
+
+
   return (
     <div>
     <TabsContent value="workplaces" className="space-y-4">
