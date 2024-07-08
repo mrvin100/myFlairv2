@@ -45,6 +45,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import { Popover } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 
 const Abonnement = [
     {
@@ -69,12 +70,27 @@ interface Suscribe {
     [key: string]: string | boolean | number | undefined;
 }
 
+interface createSuscribe {
+    title: string,
+    price: number,
+    nbrEssaisGratuit: number,
+    period: string,
+    [key: string]: string | boolean | number | undefined;
+}
+
 export default function SuscribeTab() {
     const [suscribe, setSuscribe] = useState<Suscribe>({
         clientId: '',
         type: '',
     });
 
+
+    const [createSuscribe, setCreateSucribe] = useState<createSuscribe>({
+        title: '',
+        price: 0,
+        nbrEssaisGratuit:0,
+        period:'',
+    });
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: new Date(),
         to: addDays(new Date(), 30),
@@ -88,8 +104,18 @@ export default function SuscribeTab() {
         }));
     };
 
+    const handleAbonnementChange = (key: keyof Suscribe, value: any) => {
+        setCreateSucribe((prevCreateSuscribe) => ({
+            ...prevCreateSuscribe,
+            [key]: value
+        }))
+    }
+
     const handleTypeChange = (value: string) => {
         handleServiceChange('type', value);
+    };
+    const handleTimeChange = (value: string) => {
+        handleAbonnementChange('period', value);
     };
 
     return (
@@ -97,6 +123,59 @@ export default function SuscribeTab() {
             <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
                 <div className="flex items-center justify-between space-y-2">
                     <h2 className="text-2xl font-bold tracking-tight">Gestion des Abonnements</h2>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button>Ajouter</Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-h-screen overflow-y-scroll">
+                            <DialogHeader>
+                                <DialogTitle>Ajouter un abonnement</DialogTitle>
+                                <DialogDescription>
+                                    <br />
+                                    <label className='mt-4' htmlFor="">Titre</label>
+                                    <br />
+                                    <Input 
+                                        type='text'
+                                        placeholder='Ex: Gestion planning MENSUEL'
+                                    />
+                                    <br />
+                                    <label htmlFor="">Prix</label>
+                                    <br />
+                                    <Input 
+                                        type='number'
+                                        placeholder='Ex: 19 €'
+                                    />
+                                    <br />
+                                    <label htmlFor="">Essai gratuit</label>
+                                    <br />
+                                    <div className='flex'>
+                                        <Input type='number' className='mr-6'/>
+                                      
+                                        <Select onValueChange={handleTimeChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Période" />
+                                            </SelectTrigger>
+                                            <SelectContent >
+                                                <SelectGroup>
+                                                    <SelectLabel>Période</SelectLabel>
+                                                        <SelectItem value='day'>Jours</SelectItem>
+                                                        <SelectItem value='week'>Semaines</SelectItem>
+                                                        <SelectItem value='month'>Mois</SelectItem>
+                                                        <SelectItem value='year'>Années</SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                        
+                                    </div>
+                                </DialogDescription>
+                                <div>
+                                    <Button></Button>
+                                </div>
+
+                            </DialogHeader>
+                        </DialogContent>
+                    </Dialog>
+
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 min-w-[400px]">
                     {Abonnement.map((abonnement) => (
@@ -141,9 +220,9 @@ export default function SuscribeTab() {
                 </div>
                 <Dialog>
                     <DialogTrigger><Button> Ajouter un Abonnement</Button></DialogTrigger>
-                    <DialogContent className="max-h-screen overflow-y-scroll rounded-md">
+                    <DialogContent className="max-h-screen overflow-y-scroll rounded-md ">
                         <DialogTitle>Ajouter un Abonnement à un Client</DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className='p-2'>
                             <Command>
                                 <CommandInput placeholder="Rechercher un Client" />
                                 <CommandList>
@@ -263,18 +342,20 @@ export default function SuscribeTab() {
                         <label htmlFor="">Type d'abonnement</label>
                         <br />
                         <br />
-                        <Select onValueChange={handleTypeChange}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Type d'abonnement" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectLabel>Type d'abonnement</SelectLabel>
-                                    <SelectItem value='month'>Gestion planning Mensuel</SelectItem>
-                                    <SelectItem value='year'>Gestion planning Annuel</SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
+                        <div style={{padding:'1px'}}>
+                            <Select onValueChange={handleTypeChange}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Type d'abonnement" />
+                                </SelectTrigger>
+                                <SelectContent >
+                                    <SelectGroup>
+                                        <SelectLabel>Type d'abonnement</SelectLabel>
+                                        <SelectItem value='month'>Gestion planning Mensuel</SelectItem>
+                                        <SelectItem value='year'>Gestion planning Annuel</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                     <br />
                     <label htmlFor="">Date</label>
@@ -325,6 +406,10 @@ export default function SuscribeTab() {
                           Ajouter la date
                         </Button>
                         <br />
+                        <div className='flex justify-end mt-5'>
+                            <Button variant={'secondary'}>Annuler</Button>
+                            <Button className='ml-4'>Enregistrer</Button>
+                        </div>
                     </Command>
                     
                     

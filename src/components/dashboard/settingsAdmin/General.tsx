@@ -82,12 +82,13 @@ export default function GeneralTab() {
           <ImageUploader
             callback={(url: string) => form.setValue('image', url)}
           />
-
+          
           <FormField
             control={form.control}
             name="lastName"
             render={({ field }) => (
               <FormItem>
+                <label htmlFor="">Nom</label>
                 <FormControl>
                   <Input {...field} className="" placeholder="Nom" />
                 </FormControl>
@@ -100,6 +101,7 @@ export default function GeneralTab() {
             name="firstName"
             render={({ field }) => (
               <FormItem>
+                <label htmlFor="">Prénom</label>
                 <FormControl>
                   <Input
                     {...field}

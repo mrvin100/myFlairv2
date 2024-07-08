@@ -7,6 +7,16 @@ import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import Link from 'next/link';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from '@/components/ui/button';
+
 interface Service {
   id: string;
   title: string;
@@ -47,23 +57,19 @@ export default function ServicesTab() {
   
     switch (selectedOption) {
       case 'recent':
-        // Ajustez le tri selon vos besoins
         break;
       case 'a-z':
         sortedServices.sort((a, b) => {
-          // Compare les titres des services
           return a.title.localeCompare(b.title);
         });
         break;
       case 'categorie':
         sortedServices.sort((a, b) => {
-          // Compare les catégories des services
           return a.category.localeCompare(b.category);
         });
         break;
       case 'prix':
         sortedServices.sort((a, b) => {
-          // Compare les prix des services, en supposant que les prix sont des nombres
           return parseFloat(a.price) - parseFloat(b.price);
         });
         break;
@@ -76,15 +82,26 @@ export default function ServicesTab() {
   
   return (
     <TabsContent value="services" className="space-y-4">
-      <div className="hidden h-full flex-1 space-y-8 p-8 md:flex items-start justify-between">
+      <div className=" h-full flex-1 space-y-8 p-8 md:flex items-start justify-between">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">Services</h2>
+          <Dialog>
+            <DialogTrigger asChild><Button>Ajouter un Service</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader></DialogHeader>
+                <DialogDescription>
+                 
+                </DialogDescription>
+              
+            </DialogContent>
+          </Dialog>
+
         </div>
-      </div>
+        <hr />
       <div className="flex items-end justify-start space-y-4">
         <div className="flex flex-col justify-start items-start">
-          <p style={{ marginRight: '4%' }}>Trier par :</p>
-          <br />
+    
+
           <div style={{ width: '150px' }}>
             <FormControl fullWidth size="small">
               <InputLabel id="demo-simple-select-label">Trier</InputLabel>
@@ -138,6 +155,7 @@ export default function ServicesTab() {
         ) : (
           <p>Aucun service disponible.</p>
         )}
+      </div>
       </div>
     </TabsContent>
   );

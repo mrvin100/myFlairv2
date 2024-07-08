@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import { useEffect, useState } from "react";
 import {
   AlertDialog,
@@ -87,38 +86,39 @@ const DisplayClients = () => {
   return (
     <div>
       <AlertDialog>
-        <Table className="overflow-x-auto	">
+        <Table className="overflow-x-auto">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-min-[500px]">Nom & Prénom</TableHead>
-              <TableHead>Adresse</TableHead>
-              <TableHead>Numéro de téléphone</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Abonnement</TableHead>
-              <TableHead>Date d'inscription</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead className="w-min-[500px] whitespace-nowrap overflow-hidden text-ellipsis">Nom & Prénom</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Adresse</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Numéro de téléphone</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Email</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Status</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Abonnement</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Date d'inscription</TableHead>
+              <TableHead className="whitespace-nowrap overflow-hidden text-ellipsis">Action</TableHead>
             </TableRow>
           </TableHeader>
           {clients.map((client) => (
             <TableBody key={client.id}>
               <TableRow>
-                <TableCell className="w-min-[300px] text-center flex ">{`${client.firstName} ${client.lastName}`}</TableCell>
-                <TableCell>{`${client.addressLine1}, ${client.addressLine2 || ''}, ${client.city}, ${client.postalCode}`}</TableCell>
-                <TableCell>{client.phoneNumber}</TableCell>
-                <TableCell>{client.email}</TableCell>
-                <TableCell>{client.status}</TableCell>
-                <TableCell>{client.subscription || '-'}</TableCell>
-                <TableCell>{client.registrationDate}</TableCell>
-                <TableCell>
+                <TableCell className="w-min-[300px] text-center whitespace-nowrap overflow-hidden text-ellipsis">{`${client.firstName} ${client.lastName}`}</TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{`${client.addressLine1}, ${client.addressLine2 || ''}, ${client.city}, ${client.postalCode}`}</TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{client.phoneNumber}</TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{client.email}</TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis"><span className="flex justify-center">{client.status || '-'}</span></TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis"><span className="flex justify-center">{client.subscription || '-'}</span></TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{client.registrationDate}</TableCell>
+                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
                   <div className="flex">
                     <Link href={`/dashboard/administrator/client/${encodeURIComponent(client.id)}`}>
-                      <img src="/iconWorkPlace/edit.svg" alt="" />
+                      <img src="/iconWorkPlace/edit.svg" alt="Edit" />
                     </Link>
-                    <AlertDialogTrigger asChild style={{ marginLeft: '20px' }}>
+                    <AlertDialogTrigger asChild>
                       <img
+                        className="ml-5"
                         src="/iconWorkPlace/trash-2.svg"
-                        alt=""
+                        alt="Delete"
                         onClick={() => {
                           setShowDialog(true);
                           setSelectedClientId(client.id);
