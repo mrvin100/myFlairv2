@@ -107,8 +107,8 @@ const DisplayWorkPlace = () => {
                 <TableCell>{workplace.stock}</TableCell>
                 <TableCell>
                   <div className="flex">
-                    <Link href={`/dashboard/administrator/workPlace/${encodeURIComponent(workplace.id)}`} ><img src="/iconWorkPlace/edit.svg" alt="" style={{minWidth:'20px'}} /></Link>
-                    <AlertDialogTrigger asChild style={{marginLeft:'20px', minWidth:'20px'}}>
+                    <Link href={`/dashboard/administrator/workPlace/${encodeURIComponent(workplace.id)}`} ><img src="/iconWorkPlace/edit.svg" alt="" /></Link>
+                    <AlertDialogTrigger asChild style={{marginLeft:'20px'}}>
                       <img src="/iconWorkPlace/trash-2.svg" alt="" onClick={() => {
                         setShowDialog(true);
                         setSelectedWorkplaceId(workplace.id);

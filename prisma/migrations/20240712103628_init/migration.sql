@@ -10,6 +10,9 @@ CREATE TYPE "ReservationStatus" AS ENUM ('CANCELED', 'PENDING', 'DONE');
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('PERSONAL', 'PROFESSIONAL', 'ADMINISTRATOR');
 
+-- CreateEnum
+CREATE TYPE "ProductType" AS ENUM ('POST', 'ADDITIONAL_SERVICE', 'FORMATION', 'BUSINESS_BOOSTER');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -58,22 +61,55 @@ CREATE TABLE "Post" (
     "alt" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "idStripe" TEXT NOT NULL,
 
     CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Training" (
+CREATE TABLE "Formation" (
     "id" TEXT NOT NULL,
     "image" TEXT NOT NULL,
     "alt" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "price" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
+    "idStripe" TEXT NOT NULL,
+
+    CONSTRAINT "Formation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Cart" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3),
 
-    CONSTRAINT "Training_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Cart_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CartItem" (
+    "id" TEXT NOT NULL,
+    "cartId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
+
+    CONSTRAINT "CartItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Product" (
+    "stripeId" TEXT NOT NULL,
+    "prodType" "ProductType" NOT NULL,
+
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("stripeId")
 );
 
 -- CreateTable
@@ -89,8 +125,16 @@ CREATE TABLE "AdditionalService" (
     "type" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "idStripe" TEXT NOT NULL,
 
     CONSTRAINT "AdditionalService_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Test" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "Test_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -104,7 +148,8 @@ CREATE TABLE "BusinessBooster" (
     "price" DOUBLE PRECISION NOT NULL,
     "dates" JSONB[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "idStripe" TEXT NOT NULL,
 
     CONSTRAINT "BusinessBooster_pkey" PRIMARY KEY ("id")
 );
@@ -143,39 +188,6 @@ CREATE TABLE "Notification" (
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Cart" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3),
-
-    CONSTRAINT "Cart_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CartItem" (
-    "id" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "productId" TEXT NOT NULL,
-    "cartId" TEXT NOT NULL,
-
-    CONSTRAINT "CartItem_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Product" (
-    "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "imageUrl" TEXT NOT NULL,
-    "price" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -241,6 +253,13 @@ CREATE TABLE "Category" (
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Try" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "Try_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
@@ -251,25 +270,52 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_forgotPassword_key" ON "User"("forgotPassword");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Review_userId_key" ON "Review"("userId");
+CREATE UNIQUE INDEX "Post_idStripe_key" ON "Post"("idStripe");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Formation_idStripe_key" ON "Formation"("idStripe");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cart_userId_key" ON "Cart"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Product_stripeId_key" ON "Product"("stripeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AdditionalService_idStripe_key" ON "AdditionalService"("idStripe");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BusinessBooster_idStripe_key" ON "BusinessBooster"("idStripe");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Review_userId_key" ON "Review"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Order_userId_key" ON "Order"("userId");
 
 -- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Post" ADD CONSTRAINT "Post_idStripe_fkey" FOREIGN KEY ("idStripe") REFERENCES "Product"("stripeId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Formation" ADD CONSTRAINT "Formation_idStripe_fkey" FOREIGN KEY ("idStripe") REFERENCES "Product"("stripeId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("stripeId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AdditionalService" ADD CONSTRAINT "AdditionalService_idStripe_fkey" FOREIGN KEY ("idStripe") REFERENCES "Product"("stripeId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BusinessBooster" ADD CONSTRAINT "BusinessBooster_idStripe_fkey" FOREIGN KEY ("idStripe") REFERENCES "Product"("stripeId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

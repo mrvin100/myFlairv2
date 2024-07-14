@@ -1,11 +1,11 @@
 'use server';
 
-import type { BusinessBooster } from '@prisma/client';
+import type { BusinessBooster } from "@prisma/client";
 
 import { prisma } from '@/lib/prisma';
 
-export const getAllBusinessBoosters = async (): Promise<BusinessBooster[]> =>
-  await prisma.businessBooster.findMany();
+//export const getAllBusinessBoosters = async (): Promise<BusinessBooster[]> =>
+  //await prisma.businessBooster.findMany();
 
 export const getBusinessBoosterById = async (
   id: string,

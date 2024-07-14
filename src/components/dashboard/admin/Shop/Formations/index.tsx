@@ -24,8 +24,6 @@ interface Formation {
   title: string;
   description: string;
   price: number;
-  type: string;
-  sales: number;
   quantity: number;
   deposit: number;
   [key: string]: string | boolean | number | undefined;
@@ -43,8 +41,6 @@ const AddFormation = () => {
     title: '',
     description: '',
     price: 0,
-    type: '',
-    sales: 0,
     quantity: 0,
     deposit: 0,
   });

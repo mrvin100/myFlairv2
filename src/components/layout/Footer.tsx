@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FacebookIcon, InstagramIcon } from 'lucide-react';
 
-import { getAllBusinessBoosters } from '@/data/business-booster';
+
 
 
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ export default async function Footer({
   }
 
 
-  const businessBoosters = (await getAllBusinessBoosters()).slice(0, 4) || [];
+  
 
   return (
     <footer className="bg-black text-white">
@@ -101,21 +101,7 @@ export default async function Footer({
               Business boosters
             </h4>
 
-            <ul className="mt-6 space-y-4 text-sm text-neutral-500">
-              {businessBoosters.map((businessBooster) => (
-                <li key={businessBooster.id}>
-                  <Link href={`/shop/steps/reservation/${businessBooster.id}`}>
-                    <Button
-                      className="p-0 text-neutral-500"
-                      role="link"
-                      variant="link"
-                    >
-                      {businessBooster.title}
-                    </Button>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            
           </div>
 
           <div>
