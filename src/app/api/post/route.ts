@@ -5,7 +5,32 @@ import { stripe } from "@/lib/stripe";
 export async function POST(req: NextRequest) {
   try {
     const postData = await req.json();
-    const { title, description, weekPrice, saturdayPrice, stock, image, durationWeekStartHour, durationWeekStartMinute, durationWeekEndHour, durationWeekEndMinute, durationSaturdayStartHour, durationSaturdayStartMinute, durationSaturdayEndHour, durationSaturdayEndMinute } = postData;
+    const { 
+      title, 
+      description, 
+      weekPrice, 
+      saturdayPrice, 
+      stock, 
+      image, 
+      durationWeekStartHour, 
+      durationWeekStartMinute, 
+      durationWeekEndHour, 
+      durationWeekEndMinute, 
+      durationSaturdayStartHour, 
+      durationSaturdayStartMinute, 
+      durationSaturdayEndHour, 
+      durationSaturdayEndMinute, 
+      valide
+    } = postData;
+
+
+    const createdRoom = await prisma.room.create({
+      data: {
+        name: title,
+        stock,
+        post: { connect: { id: createdPost.id } }
+      },
+    });
 
     const weekProduct = await stripe.products.create({
       name: `${title} - Week`,
@@ -26,13 +51,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    
     const createdPost = await prisma.post.create({
       data: {
         title,
         weekPrice,
         saturdayPrice,
         stock,
-        valide: postData.valide,
+        valide,
         description,
         durationWeekStartHour,
         durationWeekStartMinute,
@@ -43,17 +69,20 @@ export async function POST(req: NextRequest) {
         durationSaturdayEndHour,
         durationSaturdayEndMinute,
         image,
-        idStripe: createdProduct.stripeId,
+        product: { connect: { stripeId: weekProduct.id } } 
       },
+      include: {
+        room: true
+      }
     });
-
     return NextResponse.json({ 
       weekProduct, 
       weekPrice: weekPriceObj, 
-      message: 'Post créé avec succès',
+      message: 'Post et salle créés avec succès',
       postData: createdPost 
     }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Erreur lors de la création du post' }, { status: 500 });
+    console.error('Erreur lors de la création du post et de la salle:', error);
+    return NextResponse.json({ error: 'Erreur lors de la création du post et de la salle' }, { status: 500 });
   }
 }

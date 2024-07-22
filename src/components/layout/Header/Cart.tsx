@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useEffect, useState } from 'react';
 import { ShoppingBagIcon } from 'lucide-react';
 import {
@@ -15,13 +15,9 @@ import { useUserContext } from '@/contexts/user';
 import { Button } from '@/components/ui/button';
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import axios from "axios";
 
-
-
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-
-
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 type CartItemWithProduct = Prisma.CartItemGetPayload<{
   include: {
@@ -50,8 +46,6 @@ type CartItemWithProduct = Prisma.CartItemGetPayload<{
   };
 }>;
 
-
-
 export default function Cart() {
   const { user } = useUserContext();
   const [items, setItems] = useState<CartItemWithProduct[]>([]);
@@ -60,30 +54,9 @@ export default function Cart() {
 
   const [clientSecret, setClientSecret] = useState("");
 
-
   useEffect(() => {
     fetchCartItems();
   }, [user]); 
-
-  useEffect(() => {
-    // Fetch the client secret from the server
-    fetch("/api/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: [{ id: "xl-tshirt" }] }), // sent ammount or sample 
-    })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret)); // Set the received client secret in the state
-  }, []);
-
-
-  const appearance = {
-    theme: 'stripe',
-  };
-  const options = {
-    clientSecret,
-    appearance,
-  };
 
   async function fetchCartItems() {
     if (user?.id) {
@@ -105,6 +78,28 @@ export default function Cart() {
     }
   }
 
+  const createCheckOutSession = async () => {
+    setLoading(true);
+    const stripe = await stripePromise;
+    if (!stripe) {
+      console.error('Stripe.js failed to load.');
+      setLoading(false);
+      return;
+    }
+    const checkoutSession = await axios.post("/api/stripe", {
+      item: items,
+      
+    });
+console.log(items)
+    const result = await stripe.redirectToCheckout({
+      sessionId: checkoutSession.data.id,
+    });
+    if (result.error) {
+      alert(result.error.message);
+    }
+    setLoading(false);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -120,31 +115,36 @@ export default function Cart() {
           {items && items.length > 0 ? (
             items.map((item, index) => (
               <DropdownMenuItem key={index}>
-                <div className="flex items-center justify-between">
-  <div className="flex flex-col items-start justify-start">
-    <span style={{ fontWeight: '700' }}>{item.product.additionalService?.title || item.product.formation?.title || item.product.businessBooster?.title || 'Produit sans titre'}</span>
-    <div className="flex">
-      <span>{item.product.additionalService?.price || item.product.formation?.price || item.product.businessBooster?.price || '0'} € x</span>
-      {item.quantity}
-    </div>
-  </div>
-  <div className="flex items-center justify-end">
-    <img  src="/cart/trash-2-3.svg" alt="" className="flex justify-end" />
-  </div>
-</div>
-
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col">
+                    <span style={{ fontWeight: '700' }}>{item.product.additionalService?.title || item.product.formation?.title || item.product.businessBooster?.title || 'Produit sans titre'}</span>
+                    <div className="flex">
+                      <span>{item.product.additionalService?.price || item.product.formation?.price || item.product.businessBooster?.price || '0'} € x</span>
+                      {item.quantity}
+                    </div>
+                  </div>
+                  <div className="">
+                    <img src="/cart/trash-2-3.svg" alt="" className="flex justify-end" />
+                  </div>
+                </div>
+                
               </DropdownMenuItem>
             ))
           ) : (
             <DropdownMenuItem>Panier vide</DropdownMenuItem>
           )}
-           <div className='flex justify-end mt-4'>
-           {clientSecret && (
-        <Elements options={options} stripe={stripePromise}>
-        
-        </Elements>
-      )}
-</div>
+          <div className='flex justify-end mt-4'>
+            {clientSecret && (
+              <Elements stripe={stripePromise}></Elements>
+            )}
+            <Button
+                  
+                  onClick={createCheckOutSession}
+                  className=" block w-full py-2 rounded mt-2"
+                >
+                  {loading ? "Processing..." : "Buy"}
+                </Button>
+          </div>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

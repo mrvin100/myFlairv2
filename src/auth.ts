@@ -33,7 +33,6 @@ export const {
   },
   events: {
     createUser: async (message) => {
-      console.log('azertyuiophgvfcdfxsedrcyhtrdexswdfghubgfdcxsewqxdcfvgbyvfcdxswqxdcfvgbyfcdxswqxdcfgbhcfdxswdcfghnfcdxswdcfgbfcdxfrgbfcdxfgyhb vgyhufdxfcgvhjijihgfdswsxfghjyftdrs')
       const userId = message.user.id;
       const email = message.user.email;
 
