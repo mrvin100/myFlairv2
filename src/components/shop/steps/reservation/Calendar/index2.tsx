@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import { fr } from "date-fns/locale";
-import { isBefore, startOfToday, addDays, addMonths } from "date-fns";
+import { isBefore, startOfToday } from "date-fns";
 import { useDateContext } from "@/contexts/dateContext";
 import "../Calendar/style.css";
 import { error } from "@/components/toast";
@@ -33,6 +33,7 @@ const Home: React.FC = () => {
   const calendarRef = useRef<FullCalendar>(null);
   const calendarApiRef = useRef<any>(null);
 
+  // Mettre à jour le stock lorsque selectedWorkplace change
   useEffect(() => {
     if (selectedWorkplace) {
       setStock(selectedWorkplace.stock);
@@ -50,12 +51,12 @@ const Home: React.FC = () => {
   const generateAvailableDates = (stock: number) => {
     const availableDates: string[] = [];
     const today = startOfToday();
-    const threeMonthsLater = addMonths(today, 3);
     let date = today;
 
-    while (date <= threeMonthsLater && availableDates.length < stock) {
+    for (let i = 0; i < stock; i++) {
       availableDates.push(date.toISOString().split("T")[0]);
-      date = addDays(date, 1);
+      date = new Date(date);
+      date.setDate(date.getDate() + 1); // Passez au jour suivant
     }
 
     return availableDates;
@@ -81,22 +82,21 @@ const Home: React.FC = () => {
           start: date,
           backgroundColor: isBefore(new Date(date), today)
             ? "#E0E0E0"
-            : availableDates.includes(date)
-              ? "#00E02E"
-              : "#FF0000",
+            : selectedDates.includes(date) || stock <= 0
+              ? "#FF0000"
+              : "#00E02E",
           borderColor: isBefore(new Date(date), today)
             ? "#B0B0B0"
-            : availableDates.includes(date)
-              ? "#00E02E"
-              : "#FF0000",
+            : selectedDates.includes(date) || stock <= 0
+              ? "#FF0000"
+              : "#00E02E",
           className: isBefore(new Date(date), today) ? "past-date" : "",
           editable: !isBefore(new Date(date), today),
           extendedProps: {
-            description: isBefore(new Date(date), today)
-              ? "Passée"
-              : availableDates.includes(date)
-                ? "Disponible"
-                : "Indisponible",
+            description:
+              selectedDates.includes(date) || stock <= 0
+                ? "Indisponible"
+                : "Disponible",
           },
         })),
         ...selectedSaturdays.map((date) => ({
@@ -110,22 +110,21 @@ const Home: React.FC = () => {
           start: date,
           backgroundColor: isBefore(new Date(date), today)
             ? "#E0E0E0"
-            : availableDates.includes(date)
-              ? "#00E02E"
-              : "#FF0000",
+            : selectedDates.includes(date) || stock <= 0
+              ? "#FF0000"
+              : "#00E02E",
           borderColor: isBefore(new Date(date), today)
             ? "#B0B0B0"
-            : availableDates.includes(date)
-              ? "#00E02E"
-              : "#FF0000",
+            : selectedDates.includes(date) || stock <= 0
+              ? "#FF0000"
+              : "#00E02E",
           className: isBefore(new Date(date), today) ? "past-date" : "",
           editable: !isBefore(new Date(date), today),
           extendedProps: {
-            description: isBefore(new Date(date), today)
-              ? "Passée"
-              : availableDates.includes(date)
-                ? "Disponible"
-                : "Indisponible",
+            description:
+              selectedDates.includes(date) || stock <= 0
+                ? "Indisponible"
+                : "Disponible",
           },
         })),
       ];
@@ -181,8 +180,6 @@ const Home: React.FC = () => {
     const dateString = info.dateStr;
 
     if ((dayOfWeek >= 1 && dayOfWeek <= 5) || isSaturday) {
-      const currentStock = individualStock[dateString] || stock;
-
       if (selectedDates.includes(dateString)) {
         removeDate(dateString, isSaturday);
         setSelectedDates(selectedDates.filter((date) => date !== dateString));
@@ -196,31 +193,14 @@ const Home: React.FC = () => {
         });
         console.log("ajout stock", stock + 1);
       } else {
-        if (stock <= 0) {
-          error((props) => {}, {
-            title: "Erreur",
-            description: "Le stock est épuisé pour cette date.",
-          });
-          return;
-        }
-
-        // Vérifiez le stock pour cette date spécifique
-        if (currentStock <= 0) {
-          error((props) => {}, {
-            title: "Erreur",
-            description: "Le stock pour cette date est épuisé.",
-          });
-          return;
-        }
-
         addDate(dateString, isSaturday);
         setSelectedDates([...selectedDates, dateString]);
         setStock((prevStock) => {
           const newStock = prevStock - 1;
-          updateEventStock(dateString, currentStock - 1);
+          updateEventStock(dateString, newStock);
           const newIndividualStock = {
             ...individualStock,
-            [dateString]: currentStock - 1,
+            [dateString]: newStock,
           };
           setIndividualStock(newIndividualStock);
           return newStock;
@@ -254,9 +234,7 @@ const Home: React.FC = () => {
                 className={`rounded-full inline-block px-2 py-1 ${
                   event.extendedProps.description === "Indisponible"
                     ? "bg-red-500"
-                    : event.extendedProps.description === "Passée"
-                      ? "bg-gray-500"
-                      : "bg-green-500"
+                    : "bg-green-500"
                 }`}
               >
                 {event.title}
@@ -266,9 +244,7 @@ const Home: React.FC = () => {
               className={`p-2 text-center ${
                 event.extendedProps.description === "Indisponible"
                   ? "bg-red-500"
-                  : event.extendedProps.description === "Passée"
-                    ? "bg-gray-500"
-                    : "bg-green-500"
+                  : "bg-green-500"
               }`}
             >
               {event.extendedProps.description}

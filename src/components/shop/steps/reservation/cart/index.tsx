@@ -35,7 +35,7 @@ const Cart = () => {
     (workplace) => workplace.id === parseInt(lastSegment, 10)
   );
 
-  console.log(selectedWorkplace);
+  // console.log(selectedWorkplace);
 
   useEffect(() => {
     if (lastSegment) {
