@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
-import { Fragment } from 'react';
+import { Fragment } from "react";
 
-import { Header, Footer } from '@/components/layout';
+import { Header, Footer } from "@/components/layout";
 
 export const metadata: Metadata = {
-  title: 'Boutique',
+  title: "Boutique",
 };
 
 export default function ShopLayout({

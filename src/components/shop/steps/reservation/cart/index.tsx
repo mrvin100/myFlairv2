@@ -1,7 +1,18 @@
 import { useState, useEffect } from "react";
-import { usePathname } from 'next/navigation';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useDateContext } from "../../../../../../dateContext";
+import { usePathname } from "next/navigation";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useDateContext } from "@/contexts/dateContext";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale"; // Assurez-vous d'importer la locale française
+import { useWorkplaceContext } from "@/contexts/WorkplaceContext";
 
 interface Reservation {
   id: number;
@@ -13,10 +24,18 @@ interface Reservation {
 
 const Cart = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const { selectedWeekDays, selectedSaturdays } = useDateContext();
+  const { selectedWeekDays, selectedSaturdays, removeDate } = useDateContext();
+  const { workplaces } = useWorkplaceContext();
   const pathname = usePathname();
-  const segments = pathname.split('/');
+  const segments = pathname.split("/");
   const lastSegment = segments[segments.length - 1];
+
+  // Trouver le workplace correspondant à l'ID lastSegment
+  const selectedWorkplace = workplaces.find(
+    (workplace) => workplace.id === parseInt(lastSegment, 10)
+  );
+
+  console.log(selectedWorkplace);
 
   useEffect(() => {
     if (lastSegment) {
@@ -25,12 +44,12 @@ const Cart = () => {
           const res = await fetch(`/api/post/get/${lastSegment}`);
           if (res.ok) {
             const data = await res.json();
-            console.log(data)
+            setReservations(data); // Assurez-vous que les données sont formatées correctement
           } else {
-            console.error('Error fetching reservations:', res.statusText);
+            console.error("Error fetching reservations:", res.statusText);
           }
         } catch (error) {
-          console.error('Error fetching reservations:', error);
+          console.error("Error fetching reservations:", error);
         }
       };
 
@@ -38,54 +57,141 @@ const Cart = () => {
     }
   }, [lastSegment]);
 
+  // Fonction pour formater les dates
+  const formatDate = (dateString: string) => {
+    const date = parseISO(dateString); // Convertit la chaîne en objet Date
+    return format(date, "dd MMMM yyyy", { locale: fr }); // Formate la date
+  };
+
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    let newTotal = 0;
+
+    selectedWeekDays.forEach(() => {
+      newTotal += selectedWorkplace
+        ? parseFloat(selectedWorkplace.weekPrice)
+        : 0;
+    });
+
+    selectedSaturdays.forEach(() => {
+      newTotal += selectedWorkplace
+        ? parseFloat(selectedWorkplace.saturdayPrice)
+        : 0;
+    });
+
+    setTotal(newTotal);
+  }, [selectedWeekDays, selectedSaturdays, selectedWorkplace]);
+
+  const handleRemoveDate = (date: string, type: "week" | "saturday") => {
+    if (type === "week") {
+      removeDate(date, false);
+    } else {
+      removeDate(date, true);
+    }
+  };
+
   return (
     <div>
       <Table>
         <TableCaption>Vos dates de réservations</TableCaption>
         <TableHeader className="bg-black">
           <TableRow className="text-lg bg-black">
-            <TableHead className="text-center" style={{ color: '#FFFFFF' }}>Date</TableHead>
-            <TableHead className="text-center" style={{ color: '#FFFFFF' }}>Horaires</TableHead>
-            <TableHead className="text-center" style={{ color: '#FFFFFF' }}>Tarifs</TableHead>
-            <TableHead className="text-right" style={{ color: '#FFFFFF' }}>Actions</TableHead>
+            <TableHead className="text-center" style={{ color: "#FFFFFF" }}>
+              Date
+            </TableHead>
+            <TableHead className="text-center" style={{ color: "#FFFFFF" }}>
+              Horaires
+            </TableHead>
+            <TableHead className="text-center" style={{ color: "#FFFFFF" }}>
+              Tarifs
+            </TableHead>
+            <TableHead className="text-right" style={{ color: "#FFFFFF" }}>
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
-        {reservations.length > 0 ? (
-          reservations.map((reservation) => (
-            <TableBody key={reservation.id}>
-              <TableRow>
-                <TableCell><span className="flex justify-center">{}</span></TableCell>
-                <TableCell><span className="flex justify-center">{reservation.horaireDebut} à {reservation.horaireFin}</span></TableCell>
-                <TableCell><span className="flex justify-center">{reservation.tarif} €</span></TableCell>
-                <TableCell className="text-right"><span className="flex justify-end"><img src={'/iconWorkPlace/trash-2.svg'} alt="" /></span></TableCell>
-              </TableRow>
-            </TableBody>
-          ))
-        ) : (
-          <TableBody>
+        <TableBody>
+          {selectedWeekDays.length === 0 && selectedSaturdays.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center">Aucune réservation</TableCell>
+              <TableCell colSpan={4} className="text-center">
+                Aucune réservation
+              </TableCell>
             </TableRow>
-          </TableBody>
-        )}
+          ) : (
+            <>
+              {selectedWeekDays.map((date, index) => (
+                <TableRow
+                  key={date}
+                  className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}
+                >
+                  <TableCell className="text-center">
+                    <span>{formatDate(date)}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    De {selectedWorkplace?.durationWeekStartHour}h
+                    {selectedWorkplace?.durationWeekStartMinute} à
+                    {selectedWorkplace?.durationWeekEndHour}h
+                    {selectedWorkplace?.durationWeekEndMinute}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {selectedWorkplace?.weekPrice || "empty price "} €
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="flex justify-end">
+                      <img
+                        src={"/iconWorkPlace/trash-2.svg"}
+                        alt="Supprimer"
+                        onClick={() => handleRemoveDate(date, "week")}
+                        className="cursor-pointer"
+                      />
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {selectedSaturdays.map((date, index) => (
+                <TableRow
+                  key={date}
+                  className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}
+                >
+                  <TableCell className="text-center">
+                    <span>{formatDate(date)}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    De {selectedWorkplace?.durationSaturdayStartHour}h
+                    {selectedWorkplace?.durationSaturdayStartMinute} à
+                    {selectedWorkplace?.durationSaturdayEndHour}h
+                    {selectedWorkplace?.durationSaturdayEndMinute}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {selectedWorkplace?.saturdayPrice || "empty price"} €
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="flex justify-end">
+                      <img
+                        src={"/iconWorkPlace/trash-2.svg"}
+                        alt="Supprimer"
+                        onClick={() => handleRemoveDate(date, "saturday")}
+                        className="cursor-pointer"
+                      />
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          )}
+          <TableRow>
+            <TableCell className="text-center font-bold">Total</TableCell>
+            <TableCell className="text-center font-bold"></TableCell>
+            <TableCell className="text-center  font-bold">
+              {total.toFixed(2)} €
+            </TableCell>
+            <TableCell className="text-center font-bold"></TableCell>
+          </TableRow>
+        </TableBody>
       </Table>
-      <br />
-      <div>
-        <h3>Dates sélectionnées (Lundi à Vendredi) :</h3>
-        <ul>
-          {selectedWeekDays.map(date => (
-            <li key={date}>{date}</li>
-          ))}
-        </ul>
-        <h3>Dates sélectionnées (Samedi) :</h3>
-        <ul>
-          {selectedSaturdays.map(date => (
-            <li key={date}>{date}</li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
-}
+};
 
 export default Cart;
