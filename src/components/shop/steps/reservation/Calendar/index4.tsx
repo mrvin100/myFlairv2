@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import { fr } from "date-fns/locale";
-import { startOfToday, addDays, addMonths } from "date-fns";
+import { isBefore, startOfToday, addDays, addMonths } from "date-fns";
 import { useDateContext } from "@/contexts/dateContext";
 import "../Calendar/style.css";
 import { error } from "@/components/toast";
@@ -26,11 +26,10 @@ const Home: React.FC = () => {
     selectedWorkplace ? selectedWorkplace.stock : 0
   );
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [individualStock, setIndividualStock] = useState<
-    Record<string, number>
-  >({});
+  const [individualStock, setIndividualStock] = useState<{
+    [key: string]: number;
+  }>({});
   const [reservedDates, setReservedDates] = useState<string[]>([]);
-  const initialStock = selectedWorkplace ? selectedWorkplace.stock : 0;
 
   const calendarRef = useRef<FullCalendar>(null);
   const calendarApiRef = useRef<any>(null);
@@ -79,7 +78,7 @@ const Home: React.FC = () => {
 
       const events = selectedDates.map((date) => ({
         id: date,
-        title: individualStock[date]?.toString() || "Disponible",
+        title: "Disponible",
         start: date,
         backgroundColor: "#00E02E",
         borderColor: "#00E02E",
@@ -112,7 +111,7 @@ const Home: React.FC = () => {
     const calendarApi = calendarApiRef.current;
     const event = calendarApi.getEventById(dateString);
     if (event) {
-      event.setProp("title", newStock.toString());
+      event.setProp("title", newStock > 0 ? "Disponible" : "Indisponible");
       event.setExtendedProp(
         "description",
         newStock > 0 ? "Disponible" : "Indisponible"
@@ -158,30 +157,16 @@ const Home: React.FC = () => {
 
       if (selectedDates.includes(dateString)) {
         removeDate(dateString, isSaturday);
-        const updatedSelectedDates = selectedDates.filter(
-          (date) => date !== dateString
-        );
-        setSelectedDates(updatedSelectedDates);
+        setSelectedDates(selectedDates.filter((date) => date !== dateString));
         setStock((prevStock) => {
-          const newStock = Math.min(prevStock + 1, initialStock); // Ensure stock does not exceed initial stock
-          const newIndividualStock: Record<string, number> = {
-            ...individualStock,
-          };
-          delete newIndividualStock[dateString];
-
-          // Recalculer le stock des autres dates sélectionnées
-          let decrementedStock = initialStock;
-          updatedSelectedDates.forEach((date) => {
-            const recalculatedStock = decrementedStock--;
-            newIndividualStock[date] = recalculatedStock;
-            updateEventStock(date, recalculatedStock);
-          });
-
-          setIndividualStock(newIndividualStock);
+          const newStock = prevStock + 1;
           updateEventStock(dateString, newStock);
-
+          const newIndividualStock = { ...individualStock };
+          delete newIndividualStock[dateString];
+          setIndividualStock(newIndividualStock);
           return newStock;
         });
+        console.log("ajout stock", stock + 1);
       } else {
         if (stock <= 0) {
           error((props) => {}, {
@@ -203,27 +188,16 @@ const Home: React.FC = () => {
         addDate(dateString, isSaturday);
         setSelectedDates([...selectedDates, dateString]);
         setStock((prevStock) => {
-          const newStock = Math.max(prevStock - 1, 0); // Ensure stock is not negative
-          const newIndividualStock: Record<string, number> = {
+          const newStock = prevStock - 1;
+          updateEventStock(dateString, currentStock - 1);
+          const newIndividualStock = {
             ...individualStock,
-            [dateString]: Math.max(currentStock - 1, 0), // Ensure stock is not negative
+            [dateString]: currentStock - 1,
           };
-
-          // Recalculer le stock des autres dates sélectionnées
-          let decrementedStock = initialStock - 1;
-          const allSelectedDates = [...selectedDates, dateString];
-          allSelectedDates.sort(); // Tri des dates
-          allSelectedDates.forEach((date) => {
-            const recalculatedStock = decrementedStock--;
-            newIndividualStock[date] = recalculatedStock;
-            updateEventStock(date, recalculatedStock);
-          });
-
           setIndividualStock(newIndividualStock);
-          updateEventStock(dateString, newIndividualStock[dateString]);
-
           return newStock;
         });
+        console.log("réduction stock", stock - 1);
       }
     }
   };

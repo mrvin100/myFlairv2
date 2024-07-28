@@ -4,7 +4,7 @@ import type { BusinessBooster } from "@prisma/client";
 import * as z from "zod";
 import ReactQuill from "react-quill";
 import { useEffect, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { addDays, format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { fr } from "date-fns/locale";
@@ -42,9 +42,6 @@ import { TrashIcon } from "@radix-ui/react-icons";
 import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
 import DisplayBusinessBoosters from "./displayData";
 
-// Définir le type pour le formulaire
-type BusinessBoosterFormValues = z.infer<typeof businessBoosterSchema>;
-
 export default function BusinessBoostersTab() {
   const router = useRouter();
   const { toast } = useToast();
@@ -58,7 +55,7 @@ export default function BusinessBoostersTab() {
   });
   const [dates, setDates] = useState<DateRange[]>([]);
 
-  const form = useForm<BusinessBoosterFormValues>({
+  const form = useForm<z.infer<typeof businessBoosterSchema>>({
     resolver: zodResolver(businessBoosterSchema),
     defaultValues: {
       image: "",
@@ -70,38 +67,6 @@ export default function BusinessBoostersTab() {
       dates,
     },
   });
-
-  const onSubmit: SubmitHandler<BusinessBoosterFormValues> = async (data) => {
-    console.log("Submitting data:", data);
-    try {
-      const response = await fetch("/api/BusinessBoosters/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error response from API:", errorText);
-        throw new Error("Erreur lors de la création du business booster");
-      }
-
-      const result: BusinessBooster = await response.json();
-      setBusinessBoosters((prev) => [...prev, result]); // Mise à jour de l'état local avec le nouveau business booster
-      toast({
-        title: "Succès",
-        description: "Business booster créé avec succès",
-      });
-    } catch (error) {
-      console.error("Error submitting data:", error);
-      toast({
-        title: "Erreur",
-        description: (error as Error).message,
-      });
-    }
-  };
 
   return (
     <TabsContent value="business-boosters" className="space-y-4">
@@ -118,13 +83,7 @@ export default function BusinessBoostersTab() {
             <DialogContent className="max-h-screen overflow-y-scroll">
               <ScrollArea>
                 <Form {...form}>
-                  <form
-                    onSubmit={(e) => {
-                      console.log("Form submitted");
-                      form.handleSubmit(onSubmit)(e);
-                    }}
-                    style={{ marginLeft: "1%", marginRight: "1%" }}
-                  >
+                  <form style={{ marginLeft: "1%", marginRight: "1%" }}>
                     <DialogHeader>
                       <DialogTitle>Business booster</DialogTitle>
                       <DialogDescription>

@@ -62,7 +62,7 @@ const Workplaces = () => {
 
   return (
     <div className="flex items-center justify-center w-full p-10">
-      <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-2 max-w-6xl">
+      <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
         {workplaces.map((workplace) => (
           <Dialog key={workplace.id}>
             <Card
@@ -91,12 +91,17 @@ const Workplaces = () => {
                 </CardDescription>
               </CardContent>
 
-              <CardFooter className="flex justify-between pt-0">
-                <DialogTrigger>
-                  <Button variant="outline">Détails</Button>
+              <CardFooter className="flex justify-between pt-0 flex-wrap gap-3">
+                <DialogTrigger className="w-full  md:w-auto">
+                  <Button variant="outline" className="w-full">
+                    Détails
+                  </Button>
                 </DialogTrigger>
-                <Link href={`/shop/steps/reservation/${workplace.id}`}>
-                  <Button>Réserver</Button>
+                <Link
+                  href={`/shop/steps/reservation/${workplace.id}`}
+                  className="w-full md:w-auto"
+                >
+                  <Button className="w-full">Réserver</Button>
                 </Link>
               </CardFooter>
             </Card>
