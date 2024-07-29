@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useEffect, useState } from "react";
 import {
   AlertDialog,
@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -36,26 +35,32 @@ interface BusinessBooster {
 }
 
 const DisplayBusinessBoosters = () => {
-  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>([]);
+  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>(
+    []
+  );
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedBoosterId, setSelectedBoosterId] = useState<string | null>(null);
+  const [selectedBoosterId, setSelectedBoosterId] = useState<string | null>(
+    null
+  );
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`${window.location.origin}/api/businessBooster/get`, {
-      method: 'GET',
+    fetch("/api/businessBoosters/get", {
+      method: "GET",
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error status: ${response.status}`);
         }
         return response.json();
       })
       .then((data: BusinessBooster[]) => {
-        console.log('Business Boosters fetched:', data);
+        console.log("Business Boosters fetched:", data);
         setBusinessBoosters(data);
       })
-      .catch(error => console.error('Error fetching business boosters', error));
+      .catch((error) =>
+        console.error("Error fetching business boosters", error)
+      );
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -63,19 +68,22 @@ const DisplayBusinessBoosters = () => {
       await deleteBusinessBoosterById(id);
       router.refresh();
     } catch (error) {
-      console.error('Erreur lors de la suppression du Business Booster:', error);
+      console.error(
+        "Erreur lors de la suppression du Business Booster:",
+        error
+      );
     }
   };
 
   async function deleteBusinessBoosterById(id: string) {
-    const response = await fetch(`/api/businessBooster/delete/${id}/`, {
-      method: 'DELETE',
+    const response = await fetch(`/api/businessBoosters/delete/${id}`, {
+      method: "DELETE",
     });
-  
+
     if (!response.ok) {
       throw new Error(`HTTP error status: ${response.status}`);
     }
-  
+
     return response.json();
   }
 
@@ -103,7 +111,11 @@ const DisplayBusinessBoosters = () => {
                   <img
                     src={booster.image}
                     alt={booster.alt || booster.title}
-                    style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
+                    style={{
+                      width: "100px",
+                      height: "auto",
+                      marginBottom: "5px",
+                    }}
                     className="rounded-lg"
                   />
                 </TableCell>
@@ -111,10 +123,12 @@ const DisplayBusinessBoosters = () => {
                 <TableCell>{booster.quantity}</TableCell>
                 <TableCell>
                   <div className="flex">
-                    <Link href={`/dashboard/administrator/businessBooster/${encodeURIComponent(booster.id)}`}>
+                    <Link
+                      href={`/dashboard/administrator/businessBooster/${encodeURIComponent(booster.id)}`}
+                    >
                       <img src="/iconWorkPlace/edit.svg" alt="" />
                     </Link>
-                    <AlertDialogTrigger asChild style={{ marginLeft: '20px' }}>
+                    <AlertDialogTrigger asChild style={{ marginLeft: "20px" }}>
                       <img
                         src="/iconWorkPlace/trash-2.svg"
                         alt=""
@@ -128,17 +142,24 @@ const DisplayBusinessBoosters = () => {
                   {showDialog && selectedBoosterId === booster.id && (
                     <AlertDialogContent key={booster.id}>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Voulez-vous vraiment supprimer ce Business Booster ?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          Voulez-vous vraiment supprimer ce Business Booster ?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Cette action est irréversible, voulez-vous vraiment le supprimer ?
+                          Cette action est irréversible, voulez-vous vraiment le
+                          supprimer ?
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
-                          handleDelete(booster.id);
-                          setShowDialog(false);
-                        }}>
+                        <AlertDialogCancel onClick={() => setShowDialog(false)}>
+                          Annuler
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            handleDelete(booster.id);
+                            setShowDialog(false);
+                          }}
+                        >
                           Valider
                         </AlertDialogAction>
                       </AlertDialogFooter>

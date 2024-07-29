@@ -1,14 +1,14 @@
-import * as z from 'zod';
+import * as z from "zod";
 
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 /* Generic schemas */
 const emailSchema = z.string().email({
-  message: 'E-mail invalide !',
+  message: "E-mail invalide !",
 });
 
 export const passwordSchema = z.string().min(8, {
-  message: 'Mot de passe invalide !',
+  message: "Mot de passe invalide !",
 });
 
 const phoneSchema = z
@@ -16,11 +16,11 @@ const phoneSchema = z
   .refine(
     (a) =>
       a.match(
-        /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/,
+        /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/
       ),
     {
-      message: 'Numéro de téléphone invalide !',
-    },
+      message: "Numéro de téléphone invalide !",
+    }
   );
 
 const addressSchema = z.object({
@@ -28,10 +28,10 @@ const addressSchema = z.object({
   postalCode: z
     .string()
     .length(5, {
-      message: 'Code postal invalide !',
+      message: "Code postal invalide !",
     })
     .refine((a) => a.match(/^\d+$/), {
-      message: 'Code postal invalide !',
+      message: "Code postal invalide !",
     }),
   town: z.string(),
 });
@@ -49,8 +49,8 @@ export const signInSchema = z.object({
     z
       .string()
       .toLowerCase()
-      .transform((a) => a === 'true')
-      .pipe(z.boolean()),
+      .transform((a) => a === "true")
+      .pipe(z.boolean())
   ),
   redirect: z.boolean().optional(),
   callbackUrl: z.string().optional(),
@@ -86,7 +86,7 @@ export const updatePhoneSchema = z.object({
 
 /*  */
 export const businessBoosterSchema = z.object({
-  image: z.string().url(),
+  image: z.string().optional(),
   alt: z.string(),
   title: z.string(),
   description: z.string(),
@@ -103,10 +103,10 @@ export const paymentSchema = z.object({
   postalCode: z
     .string()
     .length(5, {
-      message: 'Code postal invalide !',
+      message: "Code postal invalide !",
     })
     .refine((a) => a.match(/^\d+$/), {
-      message: 'Code postal invalide !',
+      message: "Code postal invalide !",
     }),
   town: z.string(),
   email: emailSchema,

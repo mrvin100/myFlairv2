@@ -40,7 +40,7 @@ import { DateRange } from "react-day-picker";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
-import DisplayBusinessBoosters from "./displayData";
+import DisplayBusinessBoosters from "@/components/dashboard/admin/Shop/BusinessBoosters/displayData";
 
 // Définir le type pour le formulaire
 type BusinessBoosterFormValues = z.infer<typeof businessBoosterSchema>;
@@ -74,7 +74,7 @@ export default function BusinessBoostersTab() {
   const onSubmit: SubmitHandler<BusinessBoosterFormValues> = async (data) => {
     console.log("Submitting data:", data);
     try {
-      const response = await fetch("/api/BusinessBoosters/create", {
+      const response = await fetch("/api/businessBoosters/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
