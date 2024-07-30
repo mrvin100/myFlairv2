@@ -1,3 +1,4 @@
+// src/components/dashboard/admin/Shop/BusinessBoosters/displayData.tsx
 "use client";
 import { useEffect, useState } from "react";
 import {
@@ -34,10 +35,15 @@ interface BusinessBooster {
   alt?: string;
 }
 
-const DisplayBusinessBoosters = () => {
-  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>(
-    []
-  );
+interface DisplayBusinessBoostersProps {
+  businessBoosters: BusinessBooster[];
+  setBusinessBoosters: React.Dispatch<React.SetStateAction<BusinessBooster[]>>;
+}
+
+const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
+  businessBoosters,
+  setBusinessBoosters,
+}) => {
   const [showDialog, setShowDialog] = useState(false);
   const [selectedBoosterId, setSelectedBoosterId] = useState<string | null>(
     null
@@ -61,12 +67,16 @@ const DisplayBusinessBoosters = () => {
       .catch((error) =>
         console.error("Error fetching business boosters", error)
       );
-  }, []);
+  }, [setBusinessBoosters]);
 
   const handleDelete = async (id: string) => {
     try {
       await deleteBusinessBoosterById(id);
-      router.refresh();
+      // Mettre à jour l'état local en retirant le booster supprimé
+      setBusinessBoosters((prevBusinessBoosters) =>
+        prevBusinessBoosters.filter((booster) => booster.id !== id)
+      );
+      setShowDialog(false);
     } catch (error) {
       console.error(
         "Erreur lors de la suppression du Business Booster:",

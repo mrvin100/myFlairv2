@@ -44,11 +44,6 @@ const sections = [
     title: "Nos services additionels",
     value: <AdditionalServices />,
   },
-  {
-    id: "grid-cards",
-    title: "Grids Cards",
-    value: <Cards />,
-  },
 ];
 
 export default function Home() {

@@ -1,9 +1,8 @@
+// src/components/dashboard/admin/Shop/BusinessBoosters/index.tsx
 "use client";
-import React from "react";
-import type { BusinessBooster } from "@prisma/client";
+import React, { useEffect, useState } from "react";
 import * as z from "zod";
 import ReactQuill from "react-quill";
-import { useEffect, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { addDays, format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -11,7 +10,7 @@ import { fr } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { businessBoosterSchema } from "@/schemas";
-
+import { useToast } from "@/components/ui/use-toast";
 import { error, success, toastAction } from "@/components/toast";
 import { ImageUploader } from "@/components/image-uploader";
 import { Button } from "@/components/ui/button";
@@ -27,22 +26,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormItem, FormControl, FormField } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover } from "@/components/ui/popover";
 import { TabsContent } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-
-import "react-quill/dist/quill.snow.css";
 import { DateRange } from "react-day-picker";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
 import DisplayBusinessBoosters from "@/components/dashboard/admin/Shop/BusinessBoosters/displayData";
+import { BusinessBooster } from "@/components/dashboard/admin/Shop/BusinessBoosters/types";
 
-// Définir le type pour le formulaire
+import "react-quill/dist/quill.snow.css";
+
 type BusinessBoosterFormValues = z.infer<typeof businessBoosterSchema>;
 
 export default function BusinessBoostersTab() {
@@ -103,9 +97,28 @@ export default function BusinessBoostersTab() {
     }
   };
 
+  useEffect(() => {
+    fetch("/api/businessBoosters/get", {
+      method: "GET",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data: BusinessBooster[]) => {
+        console.log("Business Boosters fetched:", data);
+        setBusinessBoosters(data);
+      })
+      .catch((error) =>
+        console.error("Error fetching business boosters", error)
+      );
+  }, []);
+
   return (
     <TabsContent value="business-boosters" className="space-y-4">
-      <div className=" h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">
             Business boosters
@@ -276,7 +289,10 @@ export default function BusinessBoostersTab() {
             </DialogContent>
           </Dialog>
         </div>
-        <DisplayBusinessBoosters />
+        <DisplayBusinessBoosters
+          businessBoosters={businessBoosters}
+          setBusinessBoosters={setBusinessBoosters}
+        />
       </div>
     </TabsContent>
   );

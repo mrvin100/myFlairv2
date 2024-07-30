@@ -85,14 +85,34 @@ export const updatePhoneSchema = z.object({
 });
 
 /*  */
+// export const businessBoosterSchema = z.object({
+//   image: z.string().optional(),
+//   alt: z.string(),
+//   title: z.string(),
+//   description: z.string(),
+//   quantity: z.number(),
+//   price: z.number(),
+//   dates: dateRangeSchema.array(),
+// });
+
 export const businessBoosterSchema = z.object({
-  image: z.string().optional(),
+  id: z.string().optional(),
+  image: z.string().nullable(),
   alt: z.string(),
   title: z.string(),
   description: z.string(),
   quantity: z.number(),
   price: z.number(),
-  dates: dateRangeSchema.array(),
+  dates: z.array(
+    z.object({
+      from: z.date(),
+      to: z.date().nullable(),
+    })
+  ),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  idStripe: z.string().nullable().optional(),
+  period: z.string().optional(), // Ajoutez ce champ si nécessaire
 });
 
 export const paymentSchema = z.object({
