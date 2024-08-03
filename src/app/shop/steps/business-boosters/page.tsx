@@ -9,18 +9,19 @@ import CartGlobal from '../../Cart';
 
 export default async function BusinessBoostersPage() {
   const businessBoosters = (await getAllBusinessBoosters()) || [];
+  const defaultImage = "/nail-salon.webp"; // Remplacez par l'URL de l'image par défaut
 
   return (
     <main>
       <div className="grid grid-cols-1 gap-8 px-6 py-16 lg:px-24">
         {businessBoosters?.map((businessBooster) => (
           <div
-            className="flex w-full flex-col md:flex-row"
+            className="flex w-full flex-col md:flex-row md:max-w-[50rem] md:mx-auto"
             key={businessBooster.id}
           >
             <Image
               className="w-1/2"
-              src={businessBooster.image}
+              src={businessBooster.image || defaultImage}
               alt={businessBooster.alt}
               width={1000}
               height={1000}

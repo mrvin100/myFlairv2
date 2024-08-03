@@ -289,3 +289,60 @@ async function createBusinessBooster() {
 
   console.log(user);
 })();
+
+
+// create admin user
+
+// async function createAdminUser() {
+//   return await prisma.user.create({
+//     data: {
+//       image: '',
+//       gallery: [],
+//       service: '',
+//       role: UserRole.ADMINISTRATOR,
+//       username: 'admin-demo',
+//       firstName: 'Admin',
+//       lastName: 'Demo',
+//       address: {
+//         street: '123 Admin Street',
+//         postalCode: '75001',
+//         town: 'Paris',
+//       },
+//       enterprise: 'Admin Enterprises',
+//       homeServiceOnly: false,
+//       email: 'newvincent@myflair.fr',
+//       password: hash('admin-password'),
+//       phone: '+33123456789',
+//       website: 'https://admin-demo.myflair.fr',
+//       preferences: {
+//         dates: {
+//           from: new Date(),
+//           to: addDays(new Date(), 30),
+//         },
+//         notifications: {
+//           inApp: {
+//             general: true,
+//             reservations: true,
+//           },
+//           email: {
+//             general: true,
+//             reservations: true,
+//           },
+//         },
+//       },
+//     },
+//   });
+// }
+
+// (async () => {
+//   try {
+//     console.log(await createAdminUser());
+//   } catch (error) {
+//     console.error('Erreur lors de la création de l\'utilisateur admin:', error);
+//   } finally {
+//     await prisma.$disconnect();
+//   }
+// })();
+
+// run code using seed.ts to create admin user in data base
+// node src/lib/seed.ts
