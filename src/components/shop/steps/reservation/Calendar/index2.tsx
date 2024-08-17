@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import { fr } from "date-fns/locale";
-import { isBefore, startOfToday } from "date-fns";
+import { startOfToday, addDays, addMonths, isSunday, isBefore, isSaturday } from "date-fns";
 import { useDateContext } from "@/contexts/dateContext";
 import "../Calendar/style.css";
 import { error } from "@/components/toast";
@@ -11,8 +11,7 @@ import { useWorkplaceContext } from "@/contexts/WorkplaceContext";
 import { usePathname } from "next/navigation";
 
 const Home: React.FC = () => {
-  const { addDate, removeDate, selectedWeekDays, selectedSaturdays } =
-    useDateContext();
+  const { addDate, removeDate } = useDateContext();
   const { workplaces } = useWorkplaceContext();
   const pathname = usePathname();
   const segments = pathname.split("/");
@@ -22,21 +21,22 @@ const Home: React.FC = () => {
     (workplace) => workplace.id === parseInt(lastsegment, 10)
   );
 
-  const [stock, setStock] = useState<number>(
-    selectedWorkplace ? selectedWorkplace.stock : 0
-  );
+  const initialStock = selectedWorkplace ? selectedWorkplace.stock : 0;
+
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [individualStock, setIndividualStock] = useState<{
-    [key: string]: number;
-  }>({});
+  const [individualStock, setIndividualStock] = useState<Record<string, number>>({});
 
   const calendarRef = useRef<FullCalendar>(null);
   const calendarApiRef = useRef<any>(null);
 
-  // Mettre à jour le stock lorsque selectedWorkplace change
   useEffect(() => {
     if (selectedWorkplace) {
-      setStock(selectedWorkplace.stock);
+      setIndividualStock(
+        selectedDates.reduce((acc, date) => {
+          acc[date] = initialStock;
+          return acc;
+        }, {} as Record<string, number>)
+      );
     }
   }, [selectedWorkplace]);
 
@@ -46,17 +46,19 @@ const Home: React.FC = () => {
     if (calendarApi) {
       updateCalendarDates();
     }
-  }, [selectedWeekDays, selectedSaturdays, stock, selectedDates]);
+  }, [selectedDates, individualStock]);
 
-  const generateAvailableDates = (stock: number) => {
+  const generateAvailableDates = () => {
     const availableDates: string[] = [];
     const today = startOfToday();
+    const threeMonthsLater = addMonths(today, 3);
     let date = today;
 
-    for (let i = 0; i < stock; i++) {
-      availableDates.push(date.toISOString().split("T")[0]);
-      date = new Date(date);
-      date.setDate(date.getDate() + 1); // Passez au jour suivant
+    while (date <= threeMonthsLater) {
+      if (!isSunday(date) && !isBefore(date, today)) {
+        availableDates.push(date.toISOString().split("T")[0]);
+      }
+      date = addDays(date, 1);
     }
 
     return availableDates;
@@ -68,68 +70,44 @@ const Home: React.FC = () => {
       calendarApi.removeAllEventSources();
 
       const today = startOfToday();
-      const availableDates = generateAvailableDates(stock);
+      const availableDates = generateAvailableDates();
 
-      const events = [
-        ...selectedWeekDays.map((date) => ({
+      const events = availableDates.map((date) => {
+        const stock = individualStock[date] ?? initialStock;
+        return {
           id: date,
-          title:
-            individualStock[date] !== undefined
-              ? individualStock[date].toString()
-              : stock > 0
-                ? stock.toString()
-                : "0",
+          title: stock.toString(),
           start: date,
-          backgroundColor: isBefore(new Date(date), today)
-            ? "#E0E0E0"
-            : selectedDates.includes(date) || stock <= 0
-              ? "#FF0000"
-              : "#00E02E",
-          borderColor: isBefore(new Date(date), today)
-            ? "#B0B0B0"
-            : selectedDates.includes(date) || stock <= 0
-              ? "#FF0000"
-              : "#00E02E",
-          className: isBefore(new Date(date), today) ? "past-date" : "",
-          editable: !isBefore(new Date(date), today),
+          backgroundColor: stock > 0 ? "#00E02E" : "#FF0000",
+          borderColor: stock > 0 ? "#00E02E" : "#FF0000",
+          className: "",
+          editable: true,
           extendedProps: {
-            description:
-              selectedDates.includes(date) || stock <= 0
-                ? "Indisponible"
-                : "Disponible",
+            description: stock > 0 ? "Disponible" : "Indisponible",
           },
-        })),
-        ...selectedSaturdays.map((date) => ({
-          id: date,
-          title:
-            individualStock[date] !== undefined
-              ? individualStock[date].toString()
-              : stock > 0
-                ? stock.toString()
-                : "0",
-          start: date,
-          backgroundColor: isBefore(new Date(date), today)
-            ? "#E0E0E0"
-            : selectedDates.includes(date) || stock <= 0
-              ? "#FF0000"
-              : "#00E02E",
-          borderColor: isBefore(new Date(date), today)
-            ? "#B0B0B0"
-            : selectedDates.includes(date) || stock <= 0
-              ? "#FF0000"
-              : "#00E02E",
-          className: isBefore(new Date(date), today) ? "past-date" : "",
-          editable: !isBefore(new Date(date), today),
-          extendedProps: {
-            description:
-              selectedDates.includes(date) || stock <= 0
-                ? "Indisponible"
-                : "Disponible",
-          },
-        })),
-      ];
+        };
+      });
 
-      calendarApi.addEventSource(events);
+      const reservedDates = selectedDates.filter((date) =>
+        isBefore(new Date(date), today)
+      ).map((date) => ({
+        id: date,
+        title: "Indisponible",
+        start: date,
+        backgroundColor: "#FF0000",
+        borderColor: "#FF0000",
+        className: "",
+        editable: false,
+        extendedProps: {
+          description: "Indisponible",
+        },
+      }));
+
+      const filteredEvents = events.filter(
+        (event) => !isSunday(new Date(event.start)) && !isBefore(new Date(event.start), today)
+      );
+
+      calendarApi.addEventSource([...filteredEvents, ...reservedDates]);
       calendarApi.render();
     }
   };
@@ -138,7 +116,7 @@ const Home: React.FC = () => {
     const calendarApi = calendarApiRef.current;
     const event = calendarApi.getEventById(dateString);
     if (event) {
-      event.setProp("title", newStock > 0 ? newStock.toString() : "0");
+      event.setProp("title", newStock.toString());
       event.setExtendedProp(
         "description",
         newStock > 0 ? "Disponible" : "Indisponible"
@@ -148,65 +126,51 @@ const Home: React.FC = () => {
     }
   };
 
-  const handlePrevNextClick = (arg: any) => {
-    const { view } = arg;
-    const newDate = view.activeStart;
-    const formattedNewDate = newDate.toISOString().split("T")[0];
-    console.log("Changing month to: ", formattedNewDate);
-    if (arg.type === "prev") {
-      calendarApiRef.current.prev();
-    } else if (arg.type === "next") {
-      calendarApiRef.current.next();
-    }
-    updateCalendarDates();
-  };
-
   const handleDateClick = (info: any) => {
-    const clickedDate = new Date(info.dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    clickedDate.setHours(0, 0, 0, 0);
+    const dateString = info.dateStr;
+    const today = new Date().setHours(0, 0, 0, 0);
+    const clickedDate = new Date(dateString).setHours(0, 0, 0, 0);
 
-    if (clickedDate < today) {
+    if (isSunday(clickedDate) || clickedDate < today) {
       error((props) => {}, {
         title: "Erreur",
-        description: "Vous ne pouvez pas sélectionner une date passée.",
+        description: isSunday(clickedDate)
+          ? "Les dimanches ne peuvent pas être réservés."
+          : "Vous ne pouvez pas sélectionner une date passée.",
       });
       return;
     }
 
-    const dayOfWeek = clickedDate.getDay();
-    const isSaturday = dayOfWeek === 6;
-    const dateString = info.dateStr;
+    const currentStock = individualStock[dateString] || initialStock;
 
-    if ((dayOfWeek >= 1 && dayOfWeek <= 5) || isSaturday) {
-      if (selectedDates.includes(dateString)) {
-        removeDate(dateString, isSaturday);
-        setSelectedDates(selectedDates.filter((date) => date !== dateString));
-        setStock((prevStock) => {
-          const newStock = prevStock + 1;
-          updateEventStock(dateString, newStock);
-          const newIndividualStock = { ...individualStock };
-          delete newIndividualStock[dateString];
-          setIndividualStock(newIndividualStock);
-          return newStock;
+    if (selectedDates.includes(dateString)) {
+      removeDate(dateString);
+      setSelectedDates(selectedDates.filter((date) => date !== dateString));
+      setIndividualStock((prevStock) => {
+        const newStock = { ...prevStock };
+        delete newStock[dateString];
+        updateEventStock(dateString, initialStock);
+        return newStock;
+      });
+    } else {
+      if (currentStock <= 0) {
+        error((props) => {}, {
+          title: "Erreur",
+          description: "Le stock pour cette date est épuisé.",
         });
-        console.log("ajout stock", stock + 1);
-      } else {
-        addDate(dateString, isSaturday);
-        setSelectedDates([...selectedDates, dateString]);
-        setStock((prevStock) => {
-          const newStock = prevStock - 1;
-          updateEventStock(dateString, newStock);
-          const newIndividualStock = {
-            ...individualStock,
-            [dateString]: newStock,
-          };
-          setIndividualStock(newIndividualStock);
-          return newStock;
-        });
-        console.log("réduction stock", stock - 1);
+        return;
       }
+
+      addDate(dateString);
+      setSelectedDates([...selectedDates, dateString]);
+      setIndividualStock((prevStock) => {
+        const newStock = {
+          ...prevStock,
+          [dateString]: currentStock - 1,
+        };
+        updateEventStock(dateString, newStock[dateString]);
+        return newStock;
+      });
     }
   };
 
@@ -226,7 +190,6 @@ const Home: React.FC = () => {
         initialView="dayGridMonth"
         height={"auto"}
         dateClick={handleDateClick}
-        datesSet={handlePrevNextClick}
         eventContent={({ event }) => (
           <div className="min-h-14 border-0">
             <div className="text-right p-2">

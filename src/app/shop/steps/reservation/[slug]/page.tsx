@@ -18,7 +18,7 @@ const ReservationStep = () => {
       (async () => {
         const _businessBooster = await getBusinessBoosterById(
           lastSegment as string
-        ); // Appel à votre fonction pour récupérer les données
+        );
         if (!_businessBooster) {
         }
       })();
@@ -50,7 +50,6 @@ const ReservationStep = () => {
           </div>
         </div>
       </main>
-      {/* </DateProvider> */}
     </WorkplaceProvider>
   );
 };
