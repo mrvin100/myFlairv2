@@ -15,12 +15,21 @@ const Home: React.FC = () => {
     useDateContext();
   const { workplaces } = useWorkplaceContext();
   const pathname = usePathname();
+  
+  
   const segments = pathname.split("/");
   const lastsegment = segments[segments.length - 1];
+  
+  console.log('pathname: ', pathname);  
+  console.log('segments: ', segments);
+  console.log('lastsegment: ', lastsegment);
 
   const selectedWorkplace = workplaces.find(
     (workplace) => workplace.id === parseInt(lastsegment, 10)
   );
+
+  console.log('selectedWorkplace: ', selectedWorkplace);
+
 
   const [stock, setStock] = useState<number>(
     selectedWorkplace ? selectedWorkplace.stock : 0
@@ -38,6 +47,13 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (selectedWorkplace) {
       setStock(selectedWorkplace.stock);
+      // setIndividualStock(prevIndividualStock =>  {
+      //   const newIndividualStock:Record <string, number> = {
+      //     ...prevIndividualStock
+      //   }
+      //   newIndividualStock[''] = selectedWorkplace.stock
+      //   return newIndividualStock;
+      // });
     }
   }, [selectedWorkplace]);
 
@@ -55,13 +71,13 @@ const Home: React.FC = () => {
     reservedDates,
   ]);
 
-  const generateAvailableDates = (stock: number) => {
+  const generateAvailableDates = () => {
     const availableDates: string[] = [];
     const today = startOfToday();
     const threeMonthsLater = addMonths(today, 3);
     let date = today;
 
-    while (date <= threeMonthsLater && availableDates.length < stock) {
+    while (date <= threeMonthsLater) {
       availableDates.push(date.toISOString().split("T")[0]);
       date = addDays(date, 1);
     }
@@ -69,14 +85,21 @@ const Home: React.FC = () => {
     return availableDates;
   };
 
+  
+  const availableDates = generateAvailableDates();
+  console.log('avalaible dates: ', availableDates);
+  
+
   const updateCalendarDates = () => {
     const calendarApi = calendarApiRef.current;
     if (calendarApi) {
       calendarApi.removeAllEventSources();
 
       const today = startOfToday();
-      const availableDates = generateAvailableDates(stock);
-
+      const availableDates = generateAvailableDates();
+      console.log('avalaible dates: ', availableDates);
+      
+      
       const events = selectedDates.map((date) => ({
         id: date,
         title: individualStock[date]?.toString() || "Disponible",
@@ -162,26 +185,20 @@ const Home: React.FC = () => {
           (date) => date !== dateString
         );
         setSelectedDates(updatedSelectedDates);
-        setStock((prevStock) => {
-          const newStock = Math.min(prevStock + 1, initialStock); // Ensure stock does not exceed initial stock
-          const newIndividualStock: Record<string, number> = {
-            ...individualStock,
+        setIndividualStock((prevIndividualStock) => {
+          const newIndividualStock:Record<string, number> = {
+            ...prevIndividualStock
           };
-          delete newIndividualStock[dateString];
-
-          // Recalculer le stock des autres dates sélectionnées
-          let decrementedStock = initialStock;
-          updatedSelectedDates.forEach((date) => {
-            const recalculatedStock = decrementedStock--;
-            newIndividualStock[date] = recalculatedStock;
-            updateEventStock(date, recalculatedStock);
-          });
-
-          setIndividualStock(newIndividualStock);
-          updateEventStock(dateString, newStock);
-
-          return newStock;
-        });
+          // delete newIndividualStock[dateString]
+  
+          // Access the current value for dateString, default to 0 if it doesn't exist
+  
+          const currentStockValue = individualStock[dateString] || 0
+          newIndividualStock[dateString] = Math.min(currentStockValue + 1, initialStock) // insure stock is not greather than initial stock
+          updateEventStock(dateString, newIndividualStock[dateString])
+          return newIndividualStock
+        })
+       
       } else {
         if (stock <= 0) {
           error((props) => {}, {
@@ -202,27 +219,18 @@ const Home: React.FC = () => {
 
         addDate(dateString, isSaturday);
         setSelectedDates([...selectedDates, dateString]);
-        setStock((prevStock) => {
-          const newStock = Math.max(prevStock - 1, 0); // Ensure stock is not negative
+        setIndividualStock((prevIndividualStock) => {
           const newIndividualStock: Record<string, number> = {
-            ...individualStock,
-            [dateString]: Math.max(currentStock - 1, 0), // Ensure stock is not negative
+            ...prevIndividualStock
           };
 
-          // Recalculer le stock des autres dates sélectionnées
-          let decrementedStock = initialStock - 1;
-          const allSelectedDates = [...selectedDates, dateString];
-          allSelectedDates.sort(); // Tri des dates
-          allSelectedDates.forEach((date) => {
-            const recalculatedStock = decrementedStock--;
-            newIndividualStock[date] = recalculatedStock;
-            updateEventStock(date, recalculatedStock);
-          });
+          const currentIndividualStock = prevIndividualStock[dateString] || 0
+          newIndividualStock[dateString] = Math.max(currentIndividualStock - 1, 0); // Ensure stock is not negative
 
           setIndividualStock(newIndividualStock);
           updateEventStock(dateString, newIndividualStock[dateString]);
 
-          return newStock;
+          return newIndividualStock;
         });
       }
     }
