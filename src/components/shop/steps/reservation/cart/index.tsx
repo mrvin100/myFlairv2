@@ -29,6 +29,9 @@ const Cart = () => {
   const pathname = usePathname();
   const segments = pathname.split("/");
   const lastSegment = segments[segments.length - 1];
+  console.log("Selected week days:");
+  console.log(selectedWeekDays);
+  
 
   // Trouver le workplace correspondant à l'ID lastSegment
   const selectedWorkplace = workplaces.find(
@@ -44,7 +47,7 @@ const Cart = () => {
           const res = await fetch(`/api/post/get/${lastSegment}`);
           if (res.ok) {
             const data = await res.json();
-            setReservations(data); // Assurez-vous que les données sont formatées correctement
+            setReservations(data);
           } else {
             console.error("Error fetching reservations:", res.statusText);
           }

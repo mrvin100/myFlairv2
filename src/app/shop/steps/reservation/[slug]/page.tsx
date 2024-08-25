@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getBusinessBoosterById } from "@/data/business-booster";
 import Cart from "@/components/shop/steps/reservation/cart";
@@ -7,25 +7,68 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Home from "@/components/shop/steps/reservation/Calendar/";
 import { WorkplaceProvider } from "@/contexts/WorkplaceContext";
+import { Post, ReservationStatus } from "@prisma/client";
+import { Loader } from "lucide-react";
+import { createReservation } from "@/lib/queries";
+import { useUserContext } from "@/contexts/user";
+import { useDateContext } from "@/contexts/dateContext";
 
-const ReservationStep = () => {
+interface Props {
+  params: {
+    slug: string;
+  };
+}
+
+
+const ReservationStep = ({ params }: Props) => {
   const pathname = usePathname();
   const segments = pathname.split("/");
-  const lastSegment = segments[segments.length - 1];
-
+  const {slug: postId} = params;  // Getting the post Id
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useUserContext();
+  const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
+  const { selectedWeekDays, selectedSaturdays, removeDate } = useDateContext();
+  
   useEffect(() => {
-    if (lastSegment) {
-      (async () => {
-        const _businessBooster = await getBusinessBoosterById(
-          lastSegment as string
-        );
-        if (!_businessBooster) {
+    fetch(`/api/post/get/${postId}`, {
+      method: "GET",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      })();
-    }
-  }, [lastSegment]);
+        return response.json();
+      })
+      .then((data) => {
+        
+        console.log(data.price);
+        const {post} = data;
+        setPost(post);
+        setLoading(false);
+      })
+      .catch((error) => console.error("Error fetching services:", error));
+  }, []);
 
-  return (
+  const handleSave = async () => {
+    if (user && postId) {
+      setIsSaving(true);
+      const userId = user.id!;
+      const promises = await createReservation(userId, parseInt(postId, 10), ReservationStatus.PENDING, post?.price!, [...selectedWeekDays, ...selectedSaturdays]);
+      setIsSaving(false);
+      if (promises) {
+        router.push('/shop/steps/payment');
+      }
+    }
+  };
+  
+  if (loading) return (
+  <div className="flex items-center justify-center h-screen">
+    <Loader className="animate-spin h-5 w-5 text-gray-900" />
+  </div>);
+
+  else return (
     <WorkplaceProvider>
       {/* <DateProvider> */}
       <main className="flex flex-col items-center justify-center p-4">
@@ -35,7 +78,7 @@ const ReservationStep = () => {
         </h1>
         <div className="flex flex-col lg:flex-row w-full justify-center items-center lg:items-start">
           <div className="w-full lg:w-1/2 p-4">
-            <Home />
+            <Home postId={postId} post={post}/>
           </div>
           <div className="w-full lg:w-1/2 p-4">
             <Cart />
@@ -43,9 +86,9 @@ const ReservationStep = () => {
               <Button className="mr-4" variant="secondary">
                 Annuler
               </Button>
-              <Link href={"/shop/steps/business-boosters"}>
-                <Button>Continuer</Button>
-              </Link>
+              {/* <Link href={"/shop/steps/business-boosters"}> */}
+                <Button onClick={handleSave}>Continuer</Button>
+              {/* </Link> */}
             </div>
           </div>
         </div>
