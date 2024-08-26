@@ -153,6 +153,10 @@ export default function OverviewTab() {
               </div>
             </div>
           </div>
+          <div className="my-6 p-4 text-center">
+
+          <Button>Voir toutes les réservations</Button>
+          </div>
         </section>
       </div>
     </TabsContent>
