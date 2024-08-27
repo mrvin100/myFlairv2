@@ -106,6 +106,7 @@ export default function ServicesTab() {
       .catch(error => console.error('Error fetching services:', error));
   }, []);
 
+  
   const handleSortChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const selectedOption = event.target.value as string;
     setSortOption(selectedOption);
@@ -176,10 +177,12 @@ export default function ServicesTab() {
   };
 
   const [loading, setLoading] = useState(false);
+  
+  console.log("services a afficher: ", services);
   return (
     <TabsContent value="services" className="space-y-4">
-      <div className="h-full flex-1 space-y-8 p-8 md:flex items-start justify-between">
-        <div className="flex items-center justify-between space-y-2">
+      <div className="h-full flex-1 space-y-8 p-8 md:flex items-start justify-between  gap-4">
+        <div className="flex items-center justify-between space-y-2 gap-4">
           <h2 className="text-2xl font-bold tracking-tight">Services</h2>
           <Dialog>
             <DialogTrigger asChild><Button onClick={() => setShowAddServiceDialog(true)}>Ajouter un Service</Button></DialogTrigger>
