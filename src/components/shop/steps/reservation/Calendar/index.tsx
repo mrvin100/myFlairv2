@@ -39,6 +39,7 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
   const calendarRef = useRef<FullCalendar>(null);
   const calendarApiRef = useRef<any>(null);
 
+
   useEffect(() => {
     if (selectedWorkplace) {
       setStock(selectedWorkplace.stock);
@@ -118,8 +119,8 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
           id: date,
           title: individualStock[date]?.toString() || "Disponible",
           start: date,
-          backgroundColor: isSelected ? "#007BFF" : individualStock[date] > 0 ? "#00E02E" : "#FF0000", // Change color based on selection
-          borderColor: isSelected ? "#007BFF" : individualStock[date] > 0 ? "#00E02E" : "#FF0000", // Change color based on selection
+          backgroundColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000", // Change color based on selection
+          borderColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000", // Change color based on selection
           className: "",
           editable: true,
           extendedProps: {
@@ -152,24 +153,13 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
     const dateString = info.dateStr;
 
     if ((dayOfWeek >= 1 && dayOfWeek <= 5) || isSaturday) {
-      const currentStock = individualStock[dateString] || stock;
 
       if ([...selectedWeekDays, ...selectedSaturdays].includes(dateString)) {
         removeDate(dateString, isSaturday);
       } else {
-        if (stock <= 0) {
-          error((props) => {}, {
-            title: "Erreur",
-            description: "Le stock est épuisé pour cette date.",
-          });
-          return;
-        }
 
-        if (currentStock <= 0) {
-          error((props) => {}, {
-            title: "Erreur",
-            description: "Le stock pour cette date est épuisé.",
-          });
+        if (stock <= 0 || individualStock[dateString] <= 0) {
+          // PS: Will add a toast here 
           return;
         }
 
@@ -217,7 +207,7 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
                     ? "bg-red-500"
                     : event.extendedProps.description === "Passée"
                       ? "bg-gray-500"
-                      : "bg-green-500"
+                      : "bg-green-600"
                 }`}
               >
                 {event.title}
@@ -229,7 +219,7 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
                   ? "bg-red-500"
                   : event.extendedProps.description === "Passée"
                     ? "bg-gray-500"
-                    : "bg-green-500"
+                    : "bg-green-600"
               }`}
             >
               {event.extendedProps.description}

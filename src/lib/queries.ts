@@ -22,8 +22,6 @@ export async function createReservation(userId: string, postId: number, status: 
               if (!post) {
                 throw new Error("Post not found");
               }
-              const dayOfWeek = new Date(date).getDay();
-              const price = dayOfWeek === 6 ? parseFloat(post.saturdayPrice) : parseFloat(post.weekPrice);
     
               const reservation = await prisma.reservation.create({
                 data: {
@@ -53,4 +51,33 @@ export async function createReservation(userId: string, postId: number, status: 
       },
     });
     return count;
+  }
+
+  // Get all reservations for a user
+  export async function getAllReservationsForUser(userId: string) {
+    try {
+      const reservations = await prisma.reservation.findMany({
+        where: {
+          userId: userId,
+        },
+      });
+      return reservations;
+    } catch (error) {
+      console.log("Error fetching reservations:", error);
+      return null;
+    }
+  }
+
+  export const getPostById = async (id: number) => {
+    try {
+      const post = await prisma.post.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      return post;
+    } catch (error) {
+      console.log("Error fetching post:", error);
+      return null;
+    }
   }

@@ -8,7 +8,7 @@ import Link from "next/link";
 import Home from "@/components/shop/steps/reservation/Calendar/";
 import { WorkplaceProvider } from "@/contexts/WorkplaceContext";
 import { Post, ReservationStatus } from "@prisma/client";
-import { Loader } from "lucide-react";
+import { Loader, Loader2 } from "lucide-react";
 import { createReservation } from "@/lib/queries";
 import { useUserContext } from "@/contexts/user";
 import { useDateContext } from "@/contexts/dateContext";
@@ -52,14 +52,18 @@ const ReservationStep = ({ params }: Props) => {
   }, []);
 
   const handleSave = async () => {
-    if (user && postId) {
-      setIsSaving(true);
-      const userId = user.id!;
-      const promises = await createReservation(userId, parseInt(postId, 10), ReservationStatus.PENDING, post?.price!, [...selectedWeekDays, ...selectedSaturdays]);
-      setIsSaving(false);
-      if (promises) {
-        router.push('/shop/steps/payment');
+    try {
+      if (user && postId) {
+        setIsSaving(true);
+        const userId = user.id!;
+        const promises = await createReservation(userId, parseInt(postId, 10), ReservationStatus.PENDING, post?.price!, [...selectedWeekDays, ...selectedSaturdays]);
+        if (promises) {
+          removeDate(undefined, undefined, true);
+          router.push('/shop/steps/business-boosters');
+        }
       }
+    } catch (error) {
+      setIsSaving(false);      
     }
   };
   
@@ -81,13 +85,18 @@ const ReservationStep = ({ params }: Props) => {
             <Home postId={postId} post={post}/>
           </div>
           <div className="w-full lg:w-1/2 p-4">
-            <Cart />
+            <Cart post={post}/>
             <div className="flex items-center justify-end mt-4">
-              <Button className="mr-4" variant="secondary">
+              <Button className="mr-4" variant="secondary"disabled={isSaving}>
                 Annuler
               </Button>
               {/* <Link href={"/shop/steps/business-boosters"}> */}
-                <Button onClick={handleSave}>Continuer</Button>
+                <Button 
+                  onClick={handleSave}
+                  disabled={[...selectedWeekDays, ...selectedSaturdays].length === 0 || isSaving}
+                >
+                  {isSaving ? <Loader2 className="animate-spin h-5 w-5 text-white" /> : "Continuer"}
+                </Button>
               {/* </Link> */}
             </div>
           </div>
