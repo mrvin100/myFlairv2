@@ -3,9 +3,10 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Facebook, Instagram, Linkedin, Youtube, Share2, MessageCircle, Phone, Star, MapPin, Scissors, Image as ImageIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea";
 
 interface User {
   id: string;
@@ -247,8 +248,64 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
               ))}
               
               <Button variant="link" className="mt-2">+ Voir plus de : Coupe homme ...</Button>
+              
             </div>
           </section>
+
+          {/* reviews section */}
+          <section className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Avis</h2>
+          <div className="flex items-center space-x-4">
+            <span className="font-semibold">Score : 4 sur 5</span>
+            <span className="text-muted-foreground">255 avis client</span>
+          </div>
+        </div>
+
+        {[1, 2, 3, 4].map((index) => (
+          <Card key={index} className="border-gray-200">
+            <CardHeader className="flex flex-row justify-between items-start space-y-0">
+              <div className="flex items-start space-x-4">
+                <Avatar>
+                  <AvatarImage src={`/placeholder.svg?text=D${index}`} alt={`Dennis ${index}`} />
+                  <AvatarFallback>D{index}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold">Dennis {index}</p>
+                  <p className="text-sm text-muted-foreground">il y a 1h</p>
+                </div>
+              </div>
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-4 h-4 ${star <= 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                  />
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+                ex ea commodo consequat.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost">Répondre</Button>
+            </CardFooter>
+            {index === 2 && (
+              <CardContent className="pt-0">
+                <Textarea placeholder="Votre réponse..." className="mt-2" />
+              </CardContent>
+            )}
+          </Card>
+        ))}
+
+        <div className="flex justify-center">
+          <Button variant="outline">Voir plus d'avis</Button>
+        </div>
+      </section>
         </div>
 
         {/* Deuxième colonne (1/4 de la largeur) */}
