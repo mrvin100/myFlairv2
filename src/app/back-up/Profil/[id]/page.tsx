@@ -7,6 +7,17 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Facebook, Instagram, Linkedin, Youtube, Share2, MessageCircle, Phone, Star, MapPin, Scissors, Image as ImageIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 interface User {
   id: string;
@@ -259,6 +270,50 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
           <div className="flex items-center space-x-4">
             <span className="font-semibold">Score : 4 sur 5</span>
             <span className="text-muted-foreground">255 avis client</span>
+            <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">Laisser un avis</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="mb-4">Déposer un avis</DialogTitle>
+          <DialogDescription className="flex flex-row justify-between items-start space-y-0">
+              <div className="flex items-start space-x-4">
+                <Avatar>
+                  <AvatarImage src={`/nail-salon.webp?text=MD`} alt={`Melina Beauty`} />
+                  <AvatarFallback>MB</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold">Melina Beauty</p>
+                </div>
+              </div>
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-4 h-4 ${star <= 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                  />
+                ))}
+              </div>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+            <Label htmlFor="review">
+              Partager votre expérience *
+            </Label>
+            <Textarea
+              id="review"
+              placeholder="Type your review here." 
+            />
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+          <Button variant={'outline'}>Annuler</Button>
+          </DialogClose>
+          <Button type="submit">Publier</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
           </div>
         </div>
 
