@@ -10,7 +10,6 @@ export default function OverviewTab() {
   return (
     <TabsContent title="Tableau de bord" value="overview">
       <div>
-       
       </div>
       <div style={{lineHeight:'2'}}>
       Bonjour <b>{user?.firstName}</b> !<br/>(vous n’êtes pas Miss kitty ?  <button onClick={() =>signOut({redirect: true, callbackUrl: '/auth/sign-in'})}><u>Déconnexion</u></button>)

@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useUserContext } from '@/contexts/user';
 import { SubmitButton } from '@/components/button';
+import { Label } from '@/components/ui/label';
 
 interface Service {
   id: string;
@@ -106,6 +107,7 @@ export default function ServicesTab() {
       .catch(error => console.error('Error fetching services:', error));
   }, []);
 
+  
   const handleSortChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const selectedOption = event.target.value as string;
     setSortOption(selectedOption);
@@ -168,7 +170,7 @@ export default function ServicesTab() {
           description: 'Erreur dans la création du Service !',
         });
       }
-    } catch (error) {
+    } catch (e) {
       error(toast, {
         description: 'Erreur dans la création du Service !',
       });
@@ -176,10 +178,12 @@ export default function ServicesTab() {
   };
 
   const [loading, setLoading] = useState(false);
+  
+  console.log("services a afficher: ", services);
   return (
     <TabsContent value="services" className="space-y-4">
-      <div className="h-full flex-1 space-y-8 p-8 md:flex items-start justify-between">
-        <div className="flex items-center justify-between space-y-2">
+      <div className="h-full flex-1 space-y-8 p-8 md:flex items-start justify-between  gap-4">
+        <div className="flex items-center justify-between space-y-2 gap-4">
           <h2 className="text-2xl font-bold tracking-tight">Services</h2>
           <Dialog>
             <DialogTrigger asChild><Button onClick={() => setShowAddServiceDialog(true)}>Ajouter un Service</Button></DialogTrigger>
@@ -187,7 +191,7 @@ export default function ServicesTab() {
               <DialogHeader>Ajouter un nouveau service</DialogHeader>
               <DialogDescription className=''>
                 <div>
-                  <label>Titre</label>
+                  <label className='mb-3 inline-block'>Titre</label>
                   <Input
                     type="text"
                     value={newService.title}
@@ -200,7 +204,7 @@ export default function ServicesTab() {
                 <div className="flex">
                   <div className="flex flex-col">
                     <div>
-                      Catégorie
+                  <label className='mb-3 inline-block'>Catégorie</label>
                       <Select onValueChange={handleCategoryChange}>
                         <SelectTrigger className="w-[200px]">
                           <SelectValue placeholder="Choisir une catégorie">{newService.category || 'Sélectionner une catégorie'}</SelectValue>
@@ -214,7 +218,7 @@ export default function ServicesTab() {
                     </div>
                     <br />
                     <div>
-                      Tarifs
+                    <label className='mb-3 inline-block'>Tarifs</label>
                       <div className='flex items-end'>
                         <Input
                           type="text"
@@ -229,7 +233,7 @@ export default function ServicesTab() {
                   </div>
                   <br />
                   <div className="flex flex-col" style={{ marginLeft: '10%' }}>
-                    <div>Durée</div>
+                  <label className='mb-3 inline-block'>Durée</label>
                     <Select onValueChange={handleTimeChange}>
                       <SelectTrigger className="w-[200px]">
                         <SelectValue placeholder="Choisir une durée">{newService.dureeRDV || 'Sélectionner une durée'}</SelectValue>
@@ -258,7 +262,7 @@ export default function ServicesTab() {
                         Ce service bénéficiera des services à domicile que vous fournissez
                       </span>
                       <div style={{ marginTop: "5px" }}>
-                        <Switch checked={newService.domicile} onChange={handleDomicileChange} />
+                        <Switch checked={newService?.domicile || false} onCheckedChange={() => handleDomicileChange} />
                       </div>
                     </div>
                   </div>

@@ -81,6 +81,7 @@ model Post {
   durationSaturdayStartMinute Int
   durationSaturdayEndHour     Int
   durationSaturdayEndMinute   Int
+  price                       Int       @default(0)
   weekPrice                   String
   saturdayPrice               String
   stock                       Int
@@ -163,7 +164,7 @@ model Test {
 
 model BusinessBooster {
   id          String    @id @default(cuid())
-  image       String
+  image       String?
   alt         String
   title       String
   description String
@@ -172,15 +173,18 @@ model BusinessBooster {
   dates       Json[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  idStripe    String    @unique
-  product     Product   @relation(fields: [idStripe], references: [stripeId])
+  idStripe    String?    @unique
+  product     Product?   @relation(fields: [idStripe], references: [stripeId])
 }
 
 
 model Reservation {
   id             String            @id @default(cuid())
-  personalId     String
-  professionalId String
+  personalId     String?
+  professionalId String?
+  userId         String
+  postId         Int
+  roomId         String?
   status         ReservationStatus
   reason         String?
   price          Float

@@ -1,14 +1,14 @@
-'use server';
+"use server";
 
 import type { BusinessBooster } from "@prisma/client";
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
-//export const getAllBusinessBoosters = async (): Promise<BusinessBooster[]> =>
-  //await prisma.businessBooster.findMany();
+export const getAllBusinessBoosters = async (): Promise<BusinessBooster[]> =>
+  await prisma.businessBooster.findMany();
 
 export const getBusinessBoosterById = async (
-  id: string,
+  id: string
 ): Promise<BusinessBooster | null> =>
   await prisma.businessBooster.findFirst({
     where: { id },
@@ -16,7 +16,7 @@ export const getBusinessBoosterById = async (
 
 export const updateBusinessBoosterById = async (
   id: string,
-  data: any, // TODO: Replace by a true type
+  data: any // TODO: Replace by a true type
 ): Promise<boolean> =>
   !!(await prisma.businessBooster.update({
     where: { id },

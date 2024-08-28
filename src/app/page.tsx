@@ -1,48 +1,47 @@
-import Link from 'next/link';
-import { Fragment } from 'react';
-import { MouseIcon } from 'lucide-react';
+import Link from "next/link";
+import { Fragment } from "react";
+import { MouseIcon } from "lucide-react";
 
-import { Header, Footer } from '@/components/layout/index';
-import { HeaderSection } from '@/components/shop/layout';
+import { Header, Footer } from "@/components/layout/index";
+import { HeaderSection } from "@/components/shop/layout";
 
+import Trainings from "@/components/shop/sections/Trainings";
+import AdditionalServices from "@/components/shop/sections/AdditionalServices";
 
-import Trainings from '@/components/shop/sections/Trainings';
-import AdditionalServices from '@/components/shop/sections/AdditionalServices';
-
-import { Button } from '@/components/ui/button';
-import { DoubleArrowDownIcon } from '@radix-ui/react-icons';
-import Workplaces from '@/components/shop/sections/Workplaces';
-
+import { Button } from "@/components/ui/button";
+import { DoubleArrowDownIcon } from "@radix-ui/react-icons";
+import Workplaces from "@/components/shop/sections/Workplaces";
+import Cards from "@/components/cards";
 
 const links = [
   {
-    title: 'Réserver un poste',
-    value: '#workplaces',
+    title: "Réserver un poste",
+    value: "#workplaces",
   },
   {
-    title: 'Business boosters',
-    value: '/shop/business-boosters',
+    title: "Business boosters",
+    value: "/shop/business-boosters",
   },
   {
-    title: 'Réserver une formation',
-    value: '#trainings',
+    title: "Réserver une formation",
+    value: "#trainings",
   },
 ];
 
 const sections = [
   {
-    id: 'workplaces',
-    title: 'Nos postes à louer',
+    id: "workplaces",
+    title: "Nos postes à louer",
     value: <Workplaces />,
   },
   {
-    id: 'trainings',
-    title: 'Nos formations',
+    id: "trainings",
+    title: "Nos formations",
     value: <Trainings />,
   },
   {
-    id: 'additional-services',
-    title: 'Nos services additionels',
+    id: "additional-services",
+    title: "Nos services additionels",
     value: <AdditionalServices />,
   },
 ];
