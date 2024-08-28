@@ -6,7 +6,7 @@ const DateContext = createContext<DateContextType | null>(null); //fournir une v
 
 interface DateContextType {
   addDate: (Date: string, isSaturday: boolean) => void;
-  removeDate: (Date: string, isSaturday: boolean) => void;
+  removeDate: (Date?: string, isSaturday?: boolean, allDates?: boolean) => void;
   selectedWeekDays: string[];
   selectedSaturdays: string[];
 }
@@ -27,12 +27,18 @@ export const DateProvider = ({ children }: DateProviderProps<ReactNode>) => {
     }
   };
 
-  const removeDate = (date: string, isSaturday: boolean) => {
-    if (isSaturday) {
-      setSelectedSaturdays(selectedSaturdays.filter((d) => d !== date));
-    } else {
-      setSelectedWeekDays(selectedWeekDays.filter((d) => d !== date));
+  const removeDate = (date?: string, isSaturday?: boolean, allDates?: boolean) => {
+    if (allDates) {
+      setSelectedWeekDays([]);
+      setSelectedSaturdays([]);
+      return;
     }
+      if (isSaturday) {
+        setSelectedSaturdays(selectedSaturdays.filter((d) => d !== date));
+      } else {
+        setSelectedWeekDays(selectedWeekDays.filter((d) => d !== date));
+      }
+    
   };
 
   return (

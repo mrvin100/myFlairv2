@@ -13,6 +13,8 @@ import { useDateContext } from "@/contexts/dateContext";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale"; // Assurez-vous d'importer la locale française
 import { useWorkplaceContext } from "@/contexts/WorkplaceContext";
+import { Post } from "@prisma/client";
+import { CURRENCY } from "@/lib/constant";
 
 interface Reservation {
   id: number;
@@ -22,13 +24,20 @@ interface Reservation {
   tarif: number;
 }
 
-const Cart = () => {
+interface Props {
+  post: Post | null;
+}
+
+const Cart = ({post}: Props) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const { selectedWeekDays, selectedSaturdays, removeDate } = useDateContext();
   const { workplaces } = useWorkplaceContext();
   const pathname = usePathname();
   const segments = pathname.split("/");
   const lastSegment = segments[segments.length - 1];
+  console.log("Selected week days:");
+  console.log(selectedWeekDays);
+
 
   // Trouver le workplace correspondant à l'ID lastSegment
   const selectedWorkplace = workplaces.find(
@@ -44,7 +53,7 @@ const Cart = () => {
           const res = await fetch(`/api/post/get/${lastSegment}`);
           if (res.ok) {
             const data = await res.json();
-            setReservations(data); // Assurez-vous que les données sont formatées correctement
+            setReservations(data);
           } else {
             console.error("Error fetching reservations:", res.statusText);
           }
@@ -69,15 +78,11 @@ const Cart = () => {
     let newTotal = 0;
 
     selectedWeekDays.forEach(() => {
-      newTotal += selectedWorkplace
-        ? parseFloat(selectedWorkplace.weekPrice)
-        : 0;
+      newTotal += post?.price!
     });
 
     selectedSaturdays.forEach(() => {
-      newTotal += selectedWorkplace
-        ? parseFloat(selectedWorkplace.saturdayPrice)
-        : 0;
+      newTotal += post?.price!
     });
 
     setTotal(newTotal);
@@ -135,7 +140,7 @@ const Cart = () => {
                     {selectedWorkplace?.durationWeekEndMinute}
                   </TableCell>
                   <TableCell className="text-center">
-                    {selectedWorkplace?.weekPrice || "empty price "} €
+                    {post?.price || "empty price "} {CURRENCY}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="flex justify-end">
@@ -164,7 +169,7 @@ const Cart = () => {
                     {selectedWorkplace?.durationSaturdayEndMinute}
                   </TableCell>
                   <TableCell className="text-center">
-                    {selectedWorkplace?.saturdayPrice || "empty price"} €
+                    {post?.price} {CURRENCY}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="flex justify-end">
@@ -184,7 +189,7 @@ const Cart = () => {
             <TableCell className="text-center font-bold">Total</TableCell>
             <TableCell className="text-center font-bold"></TableCell>
             <TableCell className="text-center  font-bold">
-              {total.toFixed(2)} €
+              {total.toFixed(2)} {CURRENCY}
             </TableCell>
             <TableCell className="text-center font-bold"></TableCell>
           </TableRow>

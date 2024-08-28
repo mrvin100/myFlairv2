@@ -81,6 +81,7 @@ model Post {
   durationSaturdayStartMinute Int
   durationSaturdayEndHour     Int
   durationSaturdayEndMinute   Int
+  price                       Int       @default(0)
   weekPrice                   String
   saturdayPrice               String
   stock                       Int
@@ -179,8 +180,11 @@ model BusinessBooster {
 
 model Reservation {
   id             String            @id @default(cuid())
-  personalId     String
-  professionalId String
+  personalId     String?
+  professionalId String?
+  userId         String
+  postId         Int
+  roomId         String?
   status         ReservationStatus
   reason         String?
   price          Float
