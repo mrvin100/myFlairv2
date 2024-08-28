@@ -9,7 +9,7 @@ const {
   UserRole,
 } = require('@prisma/client');
 
-const hash = (str) => bcrypt.hashSync(str, 10);
+const hash = (str: string): string => bcrypt.hashSync(str, 10);
 
 
 
@@ -73,18 +73,19 @@ async function createUser() {
       gallery: [],
      
       role: UserRole.PROFESSIONAL,
-      username: 'demo-pro123',
+      username: 'demo-pro2',
       firstName: 'demo',
-      lastName: 'pro12',
+      lastName: 'pro',
       address: {
         city: 
           "Compiègne",
-        country: "France"
+        country: "France",
+        street: "29 rue des Albertans"
       },
       enterprise: '',
       homeServiceOnly: false,
-      email: 'demo-professional123@myflair.fr',
-      password: hash('demo-professional12'),
+      email: 'demo-professional@myflair.fr',
+      password: hash('demo-pro2'),
       phone: '+33123456789',
       website: '',
       preferences: {
@@ -103,6 +104,12 @@ async function createUser() {
           },
         },
       },
+      preferencesProWeek:{},
+      mark:4.5,
+      biography:"J'aime faire mon métier",
+      numberOfRate: 255,
+      socialMedia:{}
+
     },
   });
 
@@ -258,13 +265,13 @@ async function createBusinessBooster() {
       gallery: [],
       service: '',
       role: UserRole.PERSONAL,
-      username: 'personal-demo1',
+      username: 'personal-demo',
       firstName: 'Personal',
       lastName: 'Demo',
       location: {},
       enterprise: '',
       homeServiceOnly: false,
-      email: 'personal-demo1@myflair.fr',
+      email: 'personal-demo@myflair.fr',
       password: hash('personal-demo'),
       phone: '0123456789',
       website: '',
@@ -289,60 +296,3 @@ async function createBusinessBooster() {
 
   console.log(user);
 })();
-
-
-// create admin user
-
-async function createAdminUser() {
-  return await prisma.user.create({
-    data: {
-      image: '',
-      gallery: [],
-      service: '',
-      role: UserRole.ADMINISTRATOR,
-      username: 'admin-demo',
-      firstName: 'Admin',
-      lastName: 'Demo',
-      address: {
-        street: '123 Admin Street',
-        postalCode: '75001',
-        town: 'Paris',
-      },
-      enterprise: 'Admin Enterprises',
-      homeServiceOnly: false,
-      email: 'newvincent@myflair.fr',
-      password: hash('admin-password'),
-      phone: '+33123456789',
-      website: 'https://admin-demo.myflair.fr',
-      preferences: {
-        dates: {
-          from: new Date(),
-          to: addDays(new Date(), 30),
-        },
-        notifications: {
-          inApp: {
-            general: true,
-            reservations: true,
-          },
-          email: {
-            general: true,
-            reservations: true,
-          },
-        },
-      },
-    },
-  });
-}
-
-// (async () => {
-//   try {
-//     console.log(await createAdminUser());
-//   } catch (error) {
-//     console.error('Erreur lors de la création de l\'utilisateur admin:', error);
-//   } finally {
-//     await prisma.$disconnect();
-//   }
-// })();
-
-// run code using seed.ts to create admin user in data base
-// node src/lib/seed.ts

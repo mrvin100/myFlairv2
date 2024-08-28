@@ -45,7 +45,6 @@ model User {
   stripeCustomerId  String?
   image             String
   gallery           String[]
-  service           String?
   role              UserRole
   username          String    @unique
   firstName         String
@@ -63,6 +62,11 @@ model User {
   reviews           Review[]
   cart              Cart?
   preferences       Json
+  preferencesProWeek Json
+  mark              Float
+  numberOfRate      Int
+  socialMedia       Json
+  biography         String
   subscription      SubscriptionType?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
