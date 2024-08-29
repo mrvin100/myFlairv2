@@ -18,13 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
@@ -111,9 +105,8 @@ export default function ClientsTab() {
                       done.
                     </DialogDescription>
                   </DialogHeader>
-                  <Card className="w-full max-w-3xl mx-auto rounded-none">
                     <ScrollArea className="h-[28rem]">
-                      <CardContent className="py-4">
+                      <div className="p-4">
                         <form className="space-y-8">
                           <div className="space-y-2">
                             <Label htmlFor="profile-image">
@@ -211,19 +204,19 @@ export default function ClientsTab() {
                               <Textarea
                                 id="remarque"
                                 placeholder="Informations supplémentaires..."
+                                rows={4}
                               />
                             </div>
                           </div>
                         </form>
-                      </CardContent>
+                      </div>
                     </ScrollArea>
-                    <CardFooter className="flex justify-end space-x-4 mt-4">
+                    <div className="flex justify-end space-x-4 mt-4">
                       <DialogClose asChild>
                         <Button variant="outline">Annuler</Button>
                       </DialogClose>
                       <Button>Ajouter</Button>
-                    </CardFooter>
-                  </Card>
+                    </div>
                 </DialogContent>
               </Dialog>
             </div>
