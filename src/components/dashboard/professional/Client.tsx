@@ -8,8 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import clsx from "clsx";
 import { CircleDot, MapPin, Phone, Upload } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Client({ typeClient = "boutique" }) {
+
+  const userId = 'localhostUserIdTest'
   return (
     <div className="bg-white w-full border rounded-sm p-4">
       <div>
@@ -52,7 +55,9 @@ export default function Client({ typeClient = "boutique" }) {
       </div>
       <div className="flex gap-4 items-center flex-wrap justify-end">
         <Button variant={"outline"}>Supprimer</Button>
+        <Link href={`/dashboard/professional/Client/${userId}`}>
         <Button variant={"outline"}>Créer une réservation</Button>
+        </Link>
         <Button variant={"outline"}>Consulter ses réservations</Button>
         <Dialog>
                 <DialogTrigger asChild>
