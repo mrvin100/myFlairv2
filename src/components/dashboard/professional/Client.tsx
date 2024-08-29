@@ -62,12 +62,7 @@ export default function Client({ typeClient = "boutique" }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
-                    <DialogTitle>Modifier un client</DialogTitle>
-
-                    <DialogDescription>
-                      Make changes to your profile here. Click save when you're
-                      done.
-                    </DialogDescription>
+                    <DialogTitle className="font-normal">Modifier un client</DialogTitle>
                   </DialogHeader>
                     <ScrollArea className="h-[28rem]">
                       <div className="p-4">
@@ -91,7 +86,7 @@ export default function Client({ typeClient = "boutique" }) {
                           </div>
 
                           <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="font-normal">
                               Informations générales
                             </h3>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -131,7 +126,7 @@ export default function Client({ typeClient = "boutique" }) {
                           </div>
 
                           <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="font-normal">
                               Adresse de facturation
                             </h3>
                             <div className="space-y-2">
