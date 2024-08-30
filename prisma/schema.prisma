@@ -70,7 +70,9 @@ model User {
   subscription      SubscriptionType?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
+  reservations      ReservationServicePro[] 
 }
+
 
 model Post {
   id                          Int      @id @default(autoincrement())
@@ -99,18 +101,20 @@ model Post {
 }
 
 model Formation {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   image       String
   alt         String
   title       String
   description String
   price       Float
-  quantity    Int   
-  createdAt   DateTime  @default(now())
+  quantity    Int
+  deposit     Float   
+  createdAt   DateTime @default(now())
   updatedAt   DateTime? @updatedAt
-  idStripe    String    @unique
-  product     Product   @relation(fields: [idStripe], references: [stripeId])
+  idStripe    String   @unique
+  product     Product  @relation(fields: [idStripe], references: [stripeId])
 }
+
 
 
 model Cart {
@@ -255,7 +259,9 @@ model Service {
   dureeRDV      String
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations  ReservationServicePro[] // Ajoutez cette ligne
 }
+
 
 model Category {
   id            String    @id @default(cuid())
@@ -275,4 +281,23 @@ model Room {
   stock          Int
   postId         Int       @unique
   post           Post      @relation(fields: [postId], references: [id])
+}
+
+
+model ReservationServicePro {
+  id           String   @id @default(cuid())
+  date         String
+  time         String
+  address      String?
+  city         String?
+  postalCode   String?
+  addressComplement String?
+  note         String?
+  serviceId    String
+  service      Service  @relation(fields: [serviceId], references: [id])
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  dateOfRdv    String
 }

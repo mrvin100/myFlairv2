@@ -33,3 +33,21 @@
     --fc-today-bg-color: rgba(255, 220, 40, 0.15);
     --fc-now-indicator-color: red;
   }
+  .bubble {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: white;
+  }
+  
+  .green {
+    background-color: #22c55e;
+  }
+  
+  .red {
+    background-color: #FF0000;
+  }
+  

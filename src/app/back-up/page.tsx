@@ -234,7 +234,6 @@ export default function BackUpPage() {
 
         <Subscriptions />
       </div>
-      
     </main>
   );
 }

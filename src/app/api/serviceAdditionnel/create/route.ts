@@ -2,47 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { htmlToText } from 'html-to-text';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
-import { log } from 'console';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, description, type, alt, price, quantity, image } = body;
+    const { image, alt, title, description, price, type, quantity } = body;
 
-    let additionalService;
-    let priceObj;
-    additionalService = await stripe.products.create({
+    console.log('Données reçues:', body);
+
+    const descriptionWithoutHtml = htmlToText(description);
+
+    const additionalService = await stripe.products.create({
       name: `${title} - Service Additionnel`,
       description: description,
       images: [image],
     });
-    console.log(type)
+
+    console.log('Type de produit:', type);
+
+    let priceObj;
     if (type === 'day') {
       priceObj = await stripe.prices.create({
         unit_amount: parseInt(price) * 100,
         currency: 'eur',
         recurring: { 
-          interval: 'day'
+          interval: 'day',
         },
         product: additionalService.id,
       });
     } else {
       priceObj = await stripe.prices.create({
-        unit_amount: parseInt(price) * 100,
+        unit_amount: parseInt(price) * 100, 
         currency: 'eur',
         product: additionalService.id,
       });
     }
-
     const createdProduct = await prisma.product.create({
       data: {
         stripeId: additionalService.id,
         prodType: 'ADDITIONAL_SERVICE',
       },
     });
-
-    const descriptionWithoutHtml = htmlToText(description);
-
     const service = await prisma.additionalService.create({
       data: {
         image,
@@ -55,13 +55,18 @@ export async function POST(req: NextRequest) {
         idStripe: createdProduct.stripeId,
       },
     });
+
+    console.log('Service créé:', service);
+
     return NextResponse.json({
       additionalService,
       price: priceObj,
       service,
     }, { status: 200 });
   } catch (error: any) {
-    console.error('Error creating service:', error);
-    return NextResponse.json({ error: 'Error creating service.', details: error.message }, { status: 500 });
+    console.error('Erreur lors de la création du service:', error);
+    return NextResponse.json({ error: 'Erreur lors de la création du service.', details: error.message }, { status: 500 });
   }
 }
+
+export const runtime = 'experimental-edge';

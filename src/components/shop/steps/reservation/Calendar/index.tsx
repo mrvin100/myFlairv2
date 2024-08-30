@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -9,13 +9,13 @@ import "../Calendar/style.css";
 import { error } from "@/components/toast";
 import { useWorkplaceContext } from "@/contexts/WorkplaceContext";
 import { usePathname } from "next/navigation";
-import { Post, ReservationStatus } from "@prisma/client";
+import { Post } from "@prisma/client";
 import { useUserContext } from "@/contexts/user";
-import { createReservation, getReservationCountForPostAndDate, getReservationsForPost } from "@/lib/queries";
+import { getReservationsForPost } from "@/lib/queries";
 
 interface Props {
-  postId: string
-  post: Post | null
+  postId: string;
+  post: Post | null;
 }
 
 const Home: React.FC<Props> = ({ postId, post }: Props) => {
@@ -38,7 +38,6 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
 
   const calendarRef = useRef<FullCalendar>(null);
   const calendarApiRef = useRef<any>(null);
-
 
   useEffect(() => {
     if (selectedWorkplace) {
@@ -117,10 +116,10 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
         const isSelected = [...selectedWeekDays, ...selectedSaturdays].includes(date);
         return {
           id: date,
-          title: individualStock[date]?.toString() || "Disponible",
+          title: individualStock[date]?.toString() || "0",
           start: date,
-          backgroundColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000", // Change color based on selection
-          borderColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000", // Change color based on selection
+          backgroundColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000",
+          borderColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000",
           className: "",
           editable: true,
           extendedProps: {
@@ -153,16 +152,13 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
     const dateString = info.dateStr;
 
     if ((dayOfWeek >= 1 && dayOfWeek <= 5) || isSaturday) {
-
       if ([...selectedWeekDays, ...selectedSaturdays].includes(dateString)) {
         removeDate(dateString, isSaturday);
       } else {
-
         if (stock <= 0 || individualStock[dateString] <= 0) {
           // PS: Will add a toast here 
           return;
         }
-
         addDate(dateString, isSaturday);
       }
     }
@@ -199,31 +195,13 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
         dateClick={handleDateClick}
         datesSet={handlePrevNextClick}
         eventContent={({ event }) => (
-          <div className="min-h-14 border-0">
-            <div className="text-right p-2">
-              <span
-                className={`rounded-full inline-block px-2 py-1 ${
-                  event.extendedProps.description === "Indisponible"
-                    ? "bg-red-500"
-                    : event.extendedProps.description === "Passée"
-                      ? "bg-gray-500"
-                      : "bg-green-600"
-                }`}
-              >
+          <div className="min-h-14 border-0 relative">
+            <div className="absolute top-0 left-0 p-1">
+              <span className="rounded-full inline-block px-2 py-1 bg-white text-black">
                 {event.title}
               </span>
             </div>
-            <div
-              className={`p-2 text-center ${
-                event.extendedProps.description === "Indisponible"
-                  ? "bg-red-500"
-                  : event.extendedProps.description === "Passée"
-                    ? "bg-gray-500"
-                    : "bg-green-600"
-              }`}
-            >
-              {event.extendedProps.description}
-            </div>
+            
           </div>
         )}
       />

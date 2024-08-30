@@ -72,10 +72,10 @@ async function createUser() {
       image: '',
       gallery: [],
      
-      role: UserRole.PROFESSIONAL,
-      username: 'demo-pro2',
+      role: UserRole.ADMINISTRATOR,
+      username: 'demo-admin',
       firstName: 'demo',
-      lastName: 'pro',
+      lastName: 'admin',
       address: {
         city: 
           "Compiègne",
@@ -84,8 +84,8 @@ async function createUser() {
       },
       enterprise: '',
       homeServiceOnly: false,
-      email: 'demo-professional@myflair.fr',
-      password: hash('demo-pro2'),
+      email: 'demo-admin@myflair.fr',
+      password: hash('demo-admin'),
       phone: '+33123456789',
       website: '',
       preferences: {

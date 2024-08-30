@@ -223,12 +223,12 @@ const AddFormation = () => {
                       <br />
                       <label htmlFor="">Date</label>
                         <Popover>
-                          <div className="grid gap-2">
+                          <div className="grid gap-2 mt-6">
                             <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
                           </div>
                         </Popover>
 
-                        {dates.length > 0 && <p>Dates ajoutées:</p>}
+                        {dates.length > 0 && <p className='mt-6'>Dates ajoutées:</p>}
                         {dates.map((date, index) => (
                           <div className="flex items-center gap-2" key={index}>
                             {date.to ? (
@@ -254,7 +254,7 @@ const AddFormation = () => {
                         ))}
 
                         <Button
-                          className="flex justify-start"
+                          className="flex justify-start mt-6"
                           onClick={() => {
                             if (dateRange) {
                               const newDates = [...dates, dateRange];
@@ -308,7 +308,7 @@ const AddFormation = () => {
                                 />
                                 <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
                                   <button className="rounded-full" style={{ padding: '5px', background: 'red' }} onClick={handleDelete}>
-                                    <img src="/iconFormation/trashWhite.svg" alt="Delete" />
+                                    <img className='w-5 h-5' src="/iconService/trashWhite.svg" alt="Delete" />
                                   </button>
                                 </div>
                               </div>

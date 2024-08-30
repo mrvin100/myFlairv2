@@ -18,7 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,10 +104,16 @@ export default function ClientsTab() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
-                    <DialogTitle  className="font-normal">Ajouter un client</DialogTitle>
+                    <DialogTitle>Ajouter un client</DialogTitle>
+
+                    <DialogDescription>
+                      Make changes to your profile here. Click save when you're
+                      done.
+                    </DialogDescription>
                   </DialogHeader>
+                  <Card className="w-full max-w-3xl mx-auto rounded-none">
                     <ScrollArea className="h-[28rem]">
-                      <div className="p-4">
+                      <CardContent className="py-4">
                         <form className="space-y-8">
                           <div className="space-y-2">
                             <Label htmlFor="profile-image">
@@ -122,7 +134,7 @@ export default function ClientsTab() {
                           </div>
 
                           <div className="space-y-4">
-                            <h3 className="font-normal">
+                            <h3 className="text-lg font-semibold">
                               Informations générales
                             </h3>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -162,7 +174,7 @@ export default function ClientsTab() {
                           </div>
 
                           <div className="space-y-4">
-                            <h3  className="font-normal">
+                            <h3 className="text-lg font-semibold">
                               Adresse de facturation
                             </h3>
                             <div className="space-y-2">
@@ -199,19 +211,19 @@ export default function ClientsTab() {
                               <Textarea
                                 id="remarque"
                                 placeholder="Informations supplémentaires..."
-                                rows={4}
                               />
                             </div>
                           </div>
                         </form>
-                      </div>
+                      </CardContent>
                     </ScrollArea>
-                    <div className="flex justify-end space-x-4 mt-4">
+                    <CardFooter className="flex justify-end space-x-4 mt-4">
                       <DialogClose asChild>
                         <Button variant="outline">Annuler</Button>
                       </DialogClose>
                       <Button>Ajouter</Button>
-                    </div>
+                    </CardFooter>
+                  </Card>
                 </DialogContent>
               </Dialog>
             </div>

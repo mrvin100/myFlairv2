@@ -10,7 +10,7 @@ import { error } from "@/components/toast";
 import { useWorkplaceContext } from "@/contexts/WorkplaceContext";
 import { usePathname } from "next/navigation";
 
-const Home: React.FC = () => {
+const Home3: React.FC = () => {
   const { addDate, removeDate, selectedWeekDays, selectedSaturdays } =
     useDateContext();
   const { workplaces } = useWorkplaceContext();
@@ -249,4 +249,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Home3;

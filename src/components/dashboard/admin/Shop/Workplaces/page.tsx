@@ -158,21 +158,6 @@ const AddPost = () => {
         },
       });
   
-      const responseStripe = await fetch('/api/post/CreateStripeProduct', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
-      });
-  
-      const data = await responseStripe.json();
-      if (responseStripe.ok) {
-        console.log('Service created:', data);
-      } else {
-        console.error('Error creating service:', data.error);
-      }
-  
       if (response.status === 201) {
         toast.success('Poste créé avec succès');
         setTimeout(() => {

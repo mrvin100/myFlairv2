@@ -15,7 +15,8 @@ export async function GET(req: Request, res: NextResponse) {
       const user = await prisma.user.findUnique({
         where: {
             id: userId
-        }
+        },
+        include:{ services: true}
       });
       console.log(user)
       return NextResponse.json(user);

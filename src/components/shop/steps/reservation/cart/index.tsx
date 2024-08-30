@@ -28,7 +28,7 @@ interface Props {
   post: Post | null;
 }
 
-const Cart = ({post}: Props) => {
+const Cart = ({ post }: Props) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const { selectedWeekDays, selectedSaturdays, removeDate } = useDateContext();
   const { workplaces } = useWorkplaceContext();
@@ -38,13 +38,10 @@ const Cart = ({post}: Props) => {
   console.log("Selected week days:");
   console.log(selectedWeekDays);
 
-
   // Trouver le workplace correspondant à l'ID lastSegment
   const selectedWorkplace = workplaces.find(
     (workplace) => workplace.id === parseInt(lastSegment, 10)
   );
-
-  // console.log(selectedWorkplace);
 
   useEffect(() => {
     if (lastSegment) {
@@ -78,15 +75,15 @@ const Cart = ({post}: Props) => {
     let newTotal = 0;
 
     selectedWeekDays.forEach(() => {
-      newTotal += post?.price!
+      newTotal += post?.price || 0; // Assurez-vous d'utiliser une valeur par défaut
     });
 
     selectedSaturdays.forEach(() => {
-      newTotal += post?.price!
+      newTotal += post?.price || 0; // Assurez-vous d'utiliser une valeur par défaut
     });
 
     setTotal(newTotal);
-  }, [selectedWeekDays, selectedSaturdays, selectedWorkplace]);
+  }, [selectedWeekDays, selectedSaturdays, selectedWorkplace, post]);
 
   const handleRemoveDate = (date: string, type: "week" | "saturday") => {
     if (type === "week") {
@@ -140,7 +137,11 @@ const Cart = ({post}: Props) => {
                     {selectedWorkplace?.durationWeekEndMinute}
                   </TableCell>
                   <TableCell className="text-center">
-                    {post?.price || "empty price "} {CURRENCY}
+                    {post?.price !== undefined ? (
+                      `${post.price} ${CURRENCY}`
+                    ) : (
+                      "Prix non disponible"
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="flex justify-end">
@@ -169,7 +170,11 @@ const Cart = ({post}: Props) => {
                     {selectedWorkplace?.durationSaturdayEndMinute}
                   </TableCell>
                   <TableCell className="text-center">
-                    {post?.price} {CURRENCY}
+                    {post?.price !== undefined ? (
+                      `${post.price} ${CURRENCY}`
+                    ) : (
+                      "Prix non disponible"
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="flex justify-end">
