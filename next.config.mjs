@@ -1,15 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: '**',
-      },
-    ],
-  },
-  images: {
-    domains: ['res.cloudinary.com'],
+    domains: ['res.cloudinary.com', 'www.mobiliercoiffure.com'],
   },
   webpack(config) {
     config.resolve.fallback = {

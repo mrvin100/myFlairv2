@@ -13,6 +13,12 @@ import { ToastAction } from "@/components/ui/toast";
 import { motion } from 'framer-motion';
 import Link from "next/link";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
 interface User {
   id: string;
   stripeCustomerId: string | null;
@@ -63,6 +69,9 @@ interface Service {
 
 const ProfilPage = ({ params }: { params: { id: string } }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,6 +101,40 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
       fetchUserData();
     }
   }, [params.id]);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/review/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: params.id, rating, comment }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit review');
+      }
+
+      const result = await response.json();
+      toast({
+        title: 'Avis soumis',
+        description: 'Votre avis a été soumis avec succès.',
+      });
+
+      setRating(0);
+      setComment('');
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la soumission de votre avis.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleShare = () => {
     if (navigator.share) {
@@ -256,9 +299,41 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
               </div>
             </div>
             <div className="mt-6">
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button className="flex items-end">
                   <HeartIcon className="w-4 h-4 mr-2 mb-0.5"/> Donner un avis
                 </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+              <div>
+              <h1>Déposer un avis</h1>
+              <span className="mt-6 text-sm">Partager votre expérience</span>
+              <div className="flex items-center mt-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-6 h-6 cursor-pointer ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                    onClick={() => setRating(star)}
+                  />
+                ))}
+              </div>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Écrivez votre avis ici..."
+                className="mt-4"
+              />
+              <Button
+                className="mt-4"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? 'Envoi en cours...' : 'Envoyer'}
+              </Button>
+            </div>
+              </PopoverContent>
+              </Popover>
               </div>
             <div className="w-full mx-auto mt-8">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
