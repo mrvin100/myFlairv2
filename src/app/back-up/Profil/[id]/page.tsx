@@ -1,24 +1,22 @@
 'use client';
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Facebook, Instagram, Linkedin, Youtube, Share2, MessageCircle, HeartIcon, User2Icon, Phone, Star, MapPin, Scissors, Image as ImageIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";  
-import { ToastAction } from "@/components/ui/toast";  
-import { motion } from 'framer-motion';
-import Link from "next/link";
-
+import { useEffect, useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';  
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useUserContext } from '@/contexts/user'; 
+import Image from 'next/image';
+import { Star, MapPin, Scissors, Image as ImageIcon, Phone, MessageCircle, Facebook, Instagram, Linkedin, Youtube, Share2, HeartIcon, User2Icon } from 'lucide-react';
+import Link from 'next/link';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-
+} from '@/components/ui/popover';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
 interface User {
   id: string;
   stripeCustomerId: string | null;
@@ -68,6 +66,7 @@ interface Service {
 }
 
 const ProfilPage = ({ params }: { params: { id: string } }) => {
+  const { user: currentUser } = useUserContext(); // Utilisez le contexte pour obtenir l'utilisateur actuel
   const [user, setUser] = useState<User | null>(null);
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
@@ -89,20 +88,26 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
         }
         const data: User = await response.json();
         setUser(data);
-
-   
-  
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-  
+
     if (params.id) {
       fetchUserData();
     }
   }, [params.id]);
 
   const handleSubmit = async () => {
+    if (!currentUser) {
+      toast({
+        title: 'Erreur',
+        description: 'Vous devez être connecté pour soumettre un avis.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/review/create', {
@@ -110,7 +115,12 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: params.id, rating, comment }),
+        body: JSON.stringify({
+          userId: currentUser.id, // Utilisez l'ID de l'utilisateur actuel
+          professionalId: params.id,
+          rating,
+          comment,
+        }),
       });
 
       if (!response.ok) {
@@ -143,22 +153,22 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
         url: window.location.href,
       }).catch(() => {
         toast({
-          title: "Erreur",
-          description: "Le partage a échoué, veuillez réessayer.",
-          variant: "destructive",
+          title: 'Erreur',
+          description: 'Le partage a échoué, veuillez réessayer.',
+          variant: 'destructive',
         });
       });
     } else {
       navigator.clipboard.writeText(window.location.href).then(() => {
         toast({
-          title: "Lien copié",
-          description: "Lien copié dans le presse-papiers !",
+          title: 'Lien copié',
+          description: 'Lien copié dans le presse-papiers !',
         });
       }).catch(() => {
         toast({
-          title: "Erreur",
-          description: "Impossible de copier le lien.",
-          variant: "destructive",
+          title: 'Erreur',
+          description: 'Impossible de copier le lien.',
+          variant: 'destructive',
         });
       });
     }
@@ -193,6 +203,7 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
   if (!user) {
     return loadingAnimation;
   }
+
 
   return (
     <div className="h-full flex-1 flex-col space-y-8 pl-8 pr-2 pt-8 pb-8 md:flex">

@@ -59,7 +59,8 @@ model User {
   website           String?
   services          Service[]
   orders            Order[]
-  reviews           Review[]
+  reviewsWritten    Review[]  @relation("ReviewsWritten") // Relation à l'avis écrit par l'utilisateur
+  reviewsReceived   Review[]  @relation("ReviewsReceived") // Relation aux avis reçus par l'utilisateur
   cart              Cart?
   preferences       Json
   preferencesProWeek Json
@@ -202,14 +203,27 @@ model Reservation {
 }
 
 model Review {
+  id               String   @id @default(uuid())
+  userId           String  
+  professionalId   String   
+  rating           Int
+  comment          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  author           User     @relation("ReviewsWritten", fields: [userId], references: [id])
+  professional     User     @relation("ReviewsReceived", fields: [professionalId], references: [id])
+  responses        ReviewResponse[] 
+}
+
+model ReviewResponse {
   id         String   @id @default(uuid())
-  userId     String
-  rating     Int
-  comment    String
+  reviewId   String   
+  response   String   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  
-  user       User     @relation(fields: [userId], references: [id])
+
+  review     Review   @relation(fields: [reviewId], references: [id])
 }
 
 model Notification {
