@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import Link from "next/link";
 
 interface Service {
   title: string;
@@ -32,7 +33,7 @@ interface Service {
   [key: string]: string | boolean;
 }
 
-const AjouterUneReservation = () => {
+const AjouterUneReservation = ({params}: {params: {id: string}}) => {
   const [services, setServices] = useState<Service[]>([
     {
       title: "",
@@ -45,12 +46,13 @@ const AjouterUneReservation = () => {
     }
   ]);
 
+  const serviceId = 'serviceId-'
+
   return (
     <div style={{ paddingRight: "5%", paddingLeft: '5%', width: '100%' }}>
       <br />
         {/* Profile Info */}
       <div className="w-full max-w-3xl mx-auto mt-8  space-y-8">
-          {/* À propos */}
           <section>
             <h2 className="text-lg font-normal mb-4">Creer une Reservation pour : </h2>
             <div className="flex items-center mb-4 md:mb-0">
@@ -95,7 +97,7 @@ const AjouterUneReservation = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Badge variant="secondary" className="mb-2">Coupe femme</Badge>
-                        <h3 className="text-xl font-semibold mb-2">Lissage brésilien</h3>
+                        <h3 className="text-xl font-normal mb-2">Lissage brésilien</h3>
                         <p className="text-sm text-muted-foreground">
                           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                         </p>
@@ -103,10 +105,12 @@ const AjouterUneReservation = () => {
                       <div className="flex flex-col items-end justify-between">
                         <Badge variant="outline" className="bg-green-100 text-green-800">Service à domicile</Badge>
                         <div className="text-right mt-4">
-                          <p className="text-2xl font-bold">25 €</p>
+                          <p className="text-2xl font-semibold">25 €</p>
                           <p className="text-sm text-muted-foreground">Durée : 30 min</p>
                         </div>
+                        <Link href={`/dashboard/professional/Client/${params.id}/rendez-vous/${[serviceId + index]}`}>
                         <Button className="mt-4">Réserver</Button>
+                        </Link>
                       </div>
                     </div>
                   </CardContent>
@@ -127,7 +131,7 @@ const AjouterUneReservation = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Badge variant="secondary" className="mb-2">Coupe homme</Badge>
-                        <h3 className="text-xl font-semibold mb-2">Coupe classique</h3>
+                        <h3 className="text-xl font-normal mb-2">Coupe classique</h3>
                         <p className="text-sm text-muted-foreground">
                           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                         </p>
@@ -135,7 +139,7 @@ const AjouterUneReservation = () => {
                       <div className="flex flex-col items-end justify-between">
                         <Badge variant="outline" className="bg-green-100 text-green-800">Service à domicile</Badge>
                         <div className="text-right mt-4">
-                          <p className="text-2xl font-bold">20 €</p>
+                          <p className="text-2xl font-semibold">20 €</p>
                           <p className="text-sm text-muted-foreground">Durée : 25 min</p>
                         </div>
                         <Button className="mt-4">Réserver</Button>
