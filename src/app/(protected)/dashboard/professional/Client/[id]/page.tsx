@@ -49,17 +49,14 @@ const AjouterUneReservation = () => {
     <div style={{ paddingRight: "5%", paddingLeft: '5%', width: '100%' }}>
       <br />
         {/* Profile Info */}
-      <div className="w-full max-w-4xl mx-auto mt-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Première colonne (3/4 de la largeur) */}
-        <div className="col-span-1 md:col-span-3 space-y-8">
+      <div className="w-full max-w-3xl mx-auto mt-8  space-y-8">
           {/* À propos */}
           <section>
             <h2 className="text-lg font-normal mb-4">Creer une Reservation pour : </h2>
             <div className="flex items-center mb-4 md:mb-0">
             <Avatar className="w-16 h-16 mr-4">
-              <AvatarImage src="/placeholder.svg" alt="Melina Beauty" />
-              <AvatarFallback>MB</AvatarFallback>
+              <AvatarImage src="https://randomuser.me/api/portraits/women/84.jpg" alt="Melina Beauty" />
+              <AvatarFallback>MK</AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center text-sm text-muted-foreground mt-1">
@@ -152,8 +149,6 @@ const AjouterUneReservation = () => {
               
             </div>
           </section>
-        </div>
-      </div>
       </div>
       <br />
     </div>
