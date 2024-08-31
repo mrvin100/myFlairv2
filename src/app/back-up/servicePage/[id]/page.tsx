@@ -332,7 +332,7 @@ const DateChoice = ({ params }: { params: { id: string } }) => {
                 selected={date}
                 onSelect={(selectedDate) => {
                   
-                  if (!unavailableDates(selectedDate)) {
+                  if (selectedDate && !unavailableDates(selectedDate)) {
                     setDate(selectedDate);
                   }
                 }}
