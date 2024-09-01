@@ -613,12 +613,13 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
           </div>
         ) : null}
 
-        <Button variant="link" className="mt-2">
-          + Voir plus d'avis ...
-        </Button>
+        
       </div>
     ))
   )}
+  <Button variant="link" className="mt-2">
+          + Voir plus d'avis ...
+        </Button>
 </section>
                     </div>
 
