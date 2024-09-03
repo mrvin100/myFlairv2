@@ -1,31 +1,52 @@
-"use client";
-
+"use client"
+import { useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
 import { signOut } from "next-auth/react";
 import { TabsContent } from "@/components/tabs";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Circle, CircleDot, Dot } from "lucide-react";
 import clsx from "clsx";
 import Reservation from "./Reservation";
 
+type ReservationType = {
+  id: string;
+  service: {
+    typeClient: string;
+    title: string;
+    price: number;
+  };
+  status: string;
+  dateOfRdv: string;
+  time: string;
+  address: string;
+  note: string;
+  user: {
+    email: string;
+    phone: string;
+  };
+};
+
 export default function OverviewTab() {
   const { user } = useUserContext();
+  const [reservations, setReservations] = useState<ReservationType[]>([]);
 
-  // declaration of variables to change after linked with backend
-
-  const reservations = [
-    { typeClient: "boutique", status: "en-cours" },
-    { typeClient: "boutique", status: "annule" },
-    { typeClient: "flair", status: "complete" },
-  ];
+  useEffect(() => {
+    async function fetchReservations() {
+      const response = await fetch(`/api/dashboardPro/reservationRecente/${user?.id}`);
+      const data = await response.json();
+      setReservations(data);
+    }
+    if (user) {
+      fetchReservations();
+    }
+  }, [user]);
 
   return (
     <TabsContent title="Tableau de bord" value="overview">
       <div className="max-w-5xl w-full">
         <div>
           Bonjour <b>{user?.firstName}</b> !<br />
-          (vous n’êtes pas {user?.firstName} ? 
+          (vous n’êtes pas {user?.firstName} ?{" "}
           <button
             onClick={() =>
               signOut({ redirect: true, callbackUrl: "/auth/sign-in" })
@@ -36,7 +57,7 @@ export default function OverviewTab() {
           )<br />
           Bienvenue chez Flair !
           <br />
-          Vous pouvez dès à présent réserver votre poste de travail , vous
+          Vous pouvez dès à présent réserver votre poste de travail, vous
           inscrire à votre future formation et souscrire à notre outil de
           gestion de planning !
         </div>
@@ -60,21 +81,30 @@ export default function OverviewTab() {
             </Button>
             <Button variant={"outline"}>Mettre à niveau</Button>
           </div>
+
         </div>
 
         <h2 className="font-normal text-lg my-8">Réservations récentes</h2>
 
-        {/* section of recents resservations */}
-
+        {/* Section des réservations récentes */}
         <section className="p-4 mx-auto ">
-        {reservations.map((reservation) => (
+          {reservations.map((reservation) => (
             <Reservation
-              typeClient={reservation.typeClient}
+              key={reservation.id}
+              typeClient={reservation.service.typeClient}
               status={reservation.status}
+              date={reservation.dateOfRdv}
+              time={reservation.time}
+              address={reservation.address}
+              note={reservation.note}
+              service={reservation.service.title} // Utiliser le titre du service
+              price={reservation.service.price}
+              email={reservation.user.email} // Ajouter l'email de l'utilisateur
+              phone={reservation.user.phone} // Ajouter le numéro de téléphone de l'utilisateur
             />
           ))}
           <div className="my-6 p-4 text-center">
-          <Button>Voir toutes les réservations</Button>
+            <Button>Voir toutes les réservations</Button>
           </div>
         </section>
       </div>
