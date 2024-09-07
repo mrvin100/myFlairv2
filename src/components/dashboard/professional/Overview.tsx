@@ -41,12 +41,15 @@ export default function OverviewTab() {
     }
   }, [user]);
 
+  console.log('reservations : ', reservations);
+  
+
   return (
     <TabsContent title="Tableau de bord" value="overview">
       <div className="max-w-5xl w-full">
         <div>
           Bonjour <b>{user?.firstName}</b> !<br />
-          (vous n’êtes pas {user?.firstName} ?{" "}
+          (vous n&apos;êtes pas {user?.firstName} ?
           <button
             onClick={() =>
               signOut({ redirect: true, callbackUrl: "/auth/sign-in" })
@@ -88,7 +91,7 @@ export default function OverviewTab() {
 
         {/* Section des réservations récentes */}
         <section className="p-4 mx-auto ">
-          {reservations.map((reservation) => (
+          { reservations.length > 0 && reservations.map((reservation) => (
             <Reservation
               key={reservation.id}
               typeClient={reservation.service.typeClient}

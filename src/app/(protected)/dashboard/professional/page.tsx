@@ -9,12 +9,18 @@ import {
   Subscriptions,
   Settings,
 } from '@/components/dashboard/professional';
+import ProfileTab from '@/components/dashboard/professional/Profile';
 
 const tabs = [
   {
     title: 'Aperçu',
     value: 'overview',
     component: <Overview />,
+  },
+  {
+    title: 'Profile',
+    value: 'profile',
+    component: <ProfileTab />,
   },
   {
     title: 'Services',
