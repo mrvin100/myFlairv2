@@ -1,8 +1,4 @@
-import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
-import clsx from "clsx";
-import { CircleDot } from "lucide-react";
-import Image from "next/image";
 import Reservation from "./Reservation";
 import {
   Pagination,
@@ -14,8 +10,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
+
 export default function ReservationsTab() {
-  const reservations = [
+  interface Reservation {
+    typeClient: string
+    status: string
+  }
+
+  const reservations : Reservation[] = [
     { typeClient: "boutique", status: "en-cours" },
     { typeClient: "boutique", status: "annule" },
     { typeClient: "flair", status: "complete" },
