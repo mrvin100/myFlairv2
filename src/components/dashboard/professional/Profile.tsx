@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ReactQuill from "react-quill";
 import { SubmitButton } from "@/components/button";
+import { Trash } from "lucide-react";
 
 type ReservationType = {
   id: string;
@@ -50,26 +51,29 @@ export default function ProfileTab() {
   return (
     <TabsContent title="Mon Profile" value="profile">
       <div className="max-w-5xl w-full">
-        <div>
-          Bonjour <b>{user?.firstName}</b> !<br />
-          (vous n&apos;êtes pas {user?.firstName} ?
-          <button
-            onClick={() =>
-              signOut({ redirect: true, callbackUrl: "/auth/sign-in" })
-            }
-          >
-            <u>Déconnexion</u>
-          </button>
-          )<br />
-          Bienvenue chez Flair !
-          <br />
-          Vous pouvez dès à présent réserver votre poste de travail, vous
-          inscrire à votre future formation et souscrire à notre outil de
-          gestion de planning !
+        <h2 className="font-normal text-lg my-4">Image profil</h2>
+        <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start ">
+          <Image
+            src={"/nail-salon.webp"}
+            height={120}
+            width={120}
+            alt="client profile"
+            className="rounded-full object-cover h-24 w-24"
+          />
+          <div className="">
+            <div className="flex gap-4 my-3 justify-center md:justify-start">
+              <Button>Télécharger</Button>
+              <Button variant={"outline"}>Supprimer</Button>
+            </div>
+            <p className="text-sm text-gray-500">
+              *La taille de l'image doit être d'au moins 320px . Fichiers
+              autorisés : .png ou .jpg.
+            </p>
+          </div>
         </div>
 
         <h2 className="font-normal text-lg my-8">Informations Public</h2>
-        <div>
+        <div className="px-1">
           <label htmlFor="entreprise" className="mb-3 inline-block">
             Nom de votre entreprise
           </label>
@@ -82,7 +86,7 @@ export default function ProfileTab() {
           />
         </div>
         <br />
-        <div>
+        <div className="px-1">
           <label htmlFor="profession" className="mb-3 inline-block">
             Profession
           </label>
@@ -114,7 +118,7 @@ export default function ProfileTab() {
 
         <h2 className="font-normal text-lg my-8">Contact public</h2>
 
-        <div className="flex gap-3 flex-col md:flex-row">
+        <div className="flex gap-3 flex-col md:flex-row px-1">
           <div className="w-full">
             <label className="mb-3 inline-block">Email</label>
             <div className="flex items-end">
@@ -138,7 +142,7 @@ export default function ProfileTab() {
           </div>
         </div>
         <br />
-        <div className="flex flex-col">
+        <div className="flex flex-col px-1">
           <div className="flex flex-col">
             <span style={{ fontSize: "70%" }}>
               Mes services sont uniquement à domicile
@@ -149,7 +153,7 @@ export default function ProfileTab() {
           </div>
         </div>
         <br />
-        <div>
+        <div className="px-1">
           <label htmlFor="entreprise" className="mb-3 inline-block">
             Adresse
           </label>
@@ -163,7 +167,7 @@ export default function ProfileTab() {
         </div>
         <br />
 
-        <div className="flex gap-3 flex-col md:flex-row">
+        <div className="flex gap-3 flex-col md:flex-row px-1">
           <div className="w-full">
             <label className="mb-3 inline-block">Ville *</label>
             <div className="flex items-end">
@@ -187,7 +191,7 @@ export default function ProfileTab() {
           </div>
         </div>
         <br />
-        <div className="w-full md:w-[calc(50%-.5rem)]">
+        <div className="w-full md:w-[calc(50%-.5rem)] px-1">
           <label className="mb-3 inline-block">Pays *</label>
           <div className="flex items-end">
             <Input
@@ -199,7 +203,7 @@ export default function ProfileTab() {
           </div>
         </div>
         <br />
-        <div>
+        <div className="px-1">
           <label htmlFor="entreprise" className="mb-3 inline-block">
             Complément d&apos;adresse
           </label>
@@ -213,16 +217,40 @@ export default function ProfileTab() {
         <br />
         <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
 
-        <div>
-          <p>
-            Glisser-déposer des fichiers ou 
-            <strong className="underline">Parcourir</strong>
-            <span className="text-xs text-black/80">
-              Formats pris en charge : JPEG, PNG
-            </span>
-          </p>
+        <div className="">
+          <div className="px-1 border rounded-md grid justify-center items-center h-32 w-full p-6">
+            <p>
+              Glisser-déposer des fichiers &nbsp; ou &nbsp;
+              <strong className="underline cursor-pointer">Parcourir</strong>
+              <span className="text-xs text-black/80 block text-center">
+                Formats pris en charge : JPEG, PNG
+              </span>
+            </p>
+          </div>
           <div>
-            <h3>Sélectionner une image par défaut</h3>
+            <h3 className="my-4">Sélectionner une image par défaut</h3>
+            <div className="flex gap-3">
+              <div className="relative">
+                <Trash className="h-6 w-6 absolute top-1 right-1 bg-red-500 text-white rounded-sm p-1 cursor-pointer" />
+                <Image
+                  src={"/nail-salon.webp"}
+                  height={120}
+                  width={120}
+                  alt="client profile"
+                  className="rounded-md object-cover h-16 w-16"
+                />
+              </div>
+              <div className="relative border-red-600 border rounded-sm">
+              <Trash className="h-6 w-6 absolute top-1 right-1 bg-red-500 text-white rounded-sm p-1 cursor-pointer" />
+                <Image
+                  src={"/nail-salon.webp"}
+                  height={120}
+                  width={120}
+                  alt="client profile"
+                  className="rounded-md object-cover h-16 w-16"
+                />
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex justify-end">
