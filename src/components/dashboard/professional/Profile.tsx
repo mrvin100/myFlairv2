@@ -50,22 +50,25 @@ export default function ProfileTab() {
   return (
     <TabsContent title="Mon Profile" value="profile">
       <div className="max-w-5xl w-full">
-        <div>
-          Bonjour <b>{user?.firstName}</b> !<br />
-          (vous n&apos;êtes pas {user?.firstName} ?
-          <button
-            onClick={() =>
-              signOut({ redirect: true, callbackUrl: "/auth/sign-in" })
-            }
-          >
-            <u>Déconnexion</u>
-          </button>
-          )<br />
-          Bienvenue chez Flair !
-          <br />
-          Vous pouvez dès à présent réserver votre poste de travail, vous
-          inscrire à votre future formation et souscrire à notre outil de
-          gestion de planning !
+        <h2 className="font-normal text-lg my-4">Image profil</h2>
+        <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start ">
+          <Image
+            src={"/nail-salon.webp"}
+            height={120}
+            width={120}
+            alt="client profile"
+            className="rounded-full object-cover h-24 w-24"
+          />
+          <div className="">
+            <div className="flex gap-4 my-3 justify-center md:justify-start">
+              <Button>Télécharger</Button>
+              <Button variant={"outline"}>Supprimer</Button>
+            </div>
+            <p className="text-sm text-gray-500">
+              *La taille de l'image doit être d'au moins 320px . Fichiers
+              autorisés : .png ou .jpg.
+            </p>
+          </div>
         </div>
 
         <h2 className="font-normal text-lg my-8">Informations Public</h2>
@@ -215,7 +218,7 @@ export default function ProfileTab() {
 
         <div>
           <p>
-            Glisser-déposer des fichiers ou 
+            Glisser-déposer des fichiers ou
             <strong className="underline">Parcourir</strong>
             <span className="text-xs text-black/80">
               Formats pris en charge : JPEG, PNG
