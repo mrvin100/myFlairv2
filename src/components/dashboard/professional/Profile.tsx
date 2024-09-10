@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ReactQuill from "react-quill";
 import { SubmitButton } from "@/components/button";
-import { Trash } from "lucide-react";
+import { PlusCircle, Trash } from "lucide-react";
 
 type ReservationType = {
   id: string;
@@ -60,7 +60,7 @@ export default function ProfileTab() {
             alt="client profile"
             className="rounded-full object-cover h-24 w-24"
           />
-          <div className="">
+          <div>
             <div className="flex gap-4 my-3 justify-center md:justify-start">
               <Button>Télécharger</Button>
               <Button variant={"outline"}>Supprimer</Button>
@@ -116,6 +116,16 @@ export default function ProfileTab() {
         </div>
         <br />
 
+        <h2 className="font-normal text-lg my-8">Informations Public</h2>
+        <h3 className="text-sm">Réseaux sociaux</h3>
+        <div className="border p-3 rounded-sm my-3">
+          Instagram : https://www.instagram.com/itsabiconnick/
+        </div>
+        <Button className="text-xs">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Ajouter un réseau social
+        </Button>
+
         <h2 className="font-normal text-lg my-8">Contact public</h2>
 
         <div className="flex gap-3 flex-col md:flex-row px-1">
@@ -148,7 +158,10 @@ export default function ProfileTab() {
               Mes services sont uniquement à domicile
             </span>
             <div style={{ marginTop: "5px" }}>
-              <Switch onCheckedChange={() => "nothing"} />
+              <Switch
+                onCheckedChange={() => "nothing"}
+                className="data-[state=checked]:bg-green-500"
+              />
             </div>
           </div>
         </div>
@@ -241,7 +254,7 @@ export default function ProfileTab() {
                 />
               </div>
               <div className="relative border-red-600 border rounded-sm">
-              <Trash className="h-6 w-6 absolute top-1 right-1 bg-red-500 text-white rounded-sm p-1 cursor-pointer" />
+                <Trash className="h-6 w-6 absolute top-1 right-1 bg-red-500 text-white rounded-sm p-1 cursor-pointer" />
                 <Image
                   src={"/nail-salon.webp"}
                   height={120}
