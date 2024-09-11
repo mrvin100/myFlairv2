@@ -3,13 +3,13 @@ import {
   Overview,
   Services,
   Reservations,
+  Profile,
   Clients,
   Availabilities,
   Orders,
   Subscriptions,
   Settings,
 } from '@/components/dashboard/professional';
-import ProfileTab from '@/components/dashboard/professional/Profile';
 
 const tabs = [
   {
@@ -20,7 +20,7 @@ const tabs = [
   {
     title: 'Profile',
     value: 'profile',
-    component: <ProfileTab />,
+    component: <Profile />,
   },
   {
     title: 'Services',
