@@ -5,7 +5,6 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import resourceTimelinePlugin from "@fullcalendar/resource-timeline";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from '@fullcalendar/interaction'
-import listPlugin from '@fullcalendar/list';
 import { TabsContent } from "@/components/tabs";
 import { fr } from "date-fns/locale";
 
@@ -15,11 +14,11 @@ const CalendarTab = () => {
     <TabsContent title="Calendar" value="calendar">
       <div className="calendar-container">
         <FullCalendar
-          plugins={[resourceTimelinePlugin, dayGridPlugin, interactionPlugin, timeGridPlugin, listPlugin]}
+          plugins={[ dayGridPlugin, interactionPlugin, timeGridPlugin]}
           headerToolbar={{
             left: "prev,next today",
             center: "title",
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listDay'
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
           }}
           locale={fr}
           themeSystem={"standard"}
@@ -33,20 +32,20 @@ const CalendarTab = () => {
             { id: "b", title: "Auditorium B", eventColor: "green" },
             { id: "c", title: "Auditorium C", eventColor: "orange" },
           ]}
-          // initialEvents={[
-          //   { title: "event1", start: new Date(), resourceId: "a" },
-          //   { title: "event2", start: new Date(), resourceId: "a" },
-          //   { title: "event3", start: new Date(), resourceId: "a" },
-          //   { title: "event4", start: new Date(), resourceId: "a" },
-          //   { title: "event5", start: new Date(), resourceId: "a" },
-          //   { title: 'nice event', start: new Date(), resourceId: 'a' }
-          // ]}
+          initialEvents={[
+            { title: "event1", start: new Date(), resourceId: "a" },
+            { title: "event2", start: new Date(), resourceId: "a" },
+            { title: "event3", start: new Date(), resourceId: "a" },
+            { title: "event4", start: new Date(), resourceId: "a" },
+            { title: "event5", start: new Date(), resourceId: "a" },
+            { title: 'nice event', start: new Date(), resourceId: 'a' }
+          ]}
           eventContent={(eventInfo) => {
             return (
-              <>
-                <b>{eventInfo.timeText}</b>
+              <span className="text-center border p-2 w-full bg-gray-100/50">
+                <b className="mr-2">{eventInfo.timeText}</b>
                 <i>{eventInfo.event.title}</i>
-              </>
+              </span>
             );
           }}
         />
@@ -56,3 +55,55 @@ const CalendarTab = () => {
 };
 
 export default CalendarTab;
+
+
+const Home2: React.FC = () => {
+
+  return (
+    <div>
+      <FullCalendar
+        // ref={'calendarRef'}
+        selectable={true}
+        nowIndicator={true}
+        editable={true}
+        selectMirror={true}
+        plugins={[interactionPlugin,  timeGridPlugin, dayGridPlugin]}
+        locale={fr}
+        themeSystem={"standard"}
+        headerToolbar={{
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay",
+        }}
+        initialView="dayGridMonth"
+        height={"auto"}
+        dateClick={() => 'handleDateClick'}
+        
+        eventContent={({ event }) => (
+          <div className="min-h-14 border-0">
+            <div className="text-right p-2">
+              <span
+                className={`rounded-full inline-block px-2 py-1 ${
+                  event.extendedProps.description === "Indisponible"
+                    ? "bg-red-500"
+                    : "bg-green-500"
+                }`}
+              >
+                {event.title}
+              </span>
+            </div>
+            <div
+              className={`p-2 text-center ${
+                event.extendedProps.description === "Indisponible"
+                  ? "bg-red-500"
+                  : "bg-green-500"
+              }`}
+            >
+              {event.extendedProps.description}
+            </div>
+          </div>
+        )}
+      />
+    </div>
+  );
+};

@@ -2,13 +2,13 @@ import { Tabs } from '@/components/tabs';
 import {
   Overview,
   Services,
-  Reservations,
   Profile,
   Clients,
   Availabilities,
   Orders,
   Subscriptions,
   Settings,
+  ReservationsTabs,
 } from '@/components/dashboard/professional';
 
 const tabs = [
@@ -30,7 +30,7 @@ const tabs = [
   {
     title: 'Réservations',
     value: 'reservations',
-    component: <Reservations />,
+    component: <ReservationsTabs />,
   },
   {
     title: 'Clients',
