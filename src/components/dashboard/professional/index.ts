@@ -2,7 +2,7 @@ export { default as Overview } from '@/components/dashboard/professional/Overvie
 export { default as Availabilities } from '@/components/dashboard/professional/Availabilities';
 export { default as Clients } from '@/components/dashboard/professional/Clients';
 export { default as Orders } from '@/components/dashboard/professional/Orders';
-export { default as Reservations } from '@/components/dashboard/professional/Reservations';
+export { default as ReservationsTabs } from '@/components/dashboard/professional/ReservationsTabs';
 export { default as Services } from '@/components/dashboard/professional/Service/index';
 export { default as Profile } from '@/components/dashboard/professional/Profile';
 export { default as Subscriptions } from '@/components/dashboard/professional/Subscriptions';
