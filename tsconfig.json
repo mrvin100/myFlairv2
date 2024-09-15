@@ -29,6 +29,6 @@
     "**/*.tsx",
     "types/**/*.ts",
     ".next/types/**/*.ts"
-, "src/app/api/service/route.js", "src/components/dashboard/professional/Service/addService/page.jsx", "src/app/api/service/serveur.js", "src/app/api/workPlace/route.js", "src/app/api/workPlace/get/route.js", "src/app/api/post/edit/[id]/route.js", "src/app/api/serviceAdditionnel/delete/[id]/route.js", "src/app/api/serviceAdditionnel/get/route.js", "src/app/api/post/Stripe/Create/route.ts"  ],
+, "src/app/api/service/route.js", "src/components/dashboard/professional/Service/addService/page.jsx", "src/app/api/service/serveur.js", "src/app/api/workPlace/route.js", "src/app/api/workPlace/get/route.js", "src/app/api/post/edit/[id]/route.js", "src/app/api/serviceAdditionnel/delete/[id]/route.js", "src/app/api/serviceAdditionnel/get/route.js", "src/app/api/post/Stripe/Create/route.ts", "src/app/api/businessBoosters/getAll/route.ts"  ],
   "exclude": ["node_modules"]
 }

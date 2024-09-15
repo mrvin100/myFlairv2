@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import { useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
 import { signOut } from "next-auth/react";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import clsx from "clsx";
 import Reservation from "./Reservation";
+import Link from "next/link";
 
 type ReservationType = {
   id: string;
@@ -14,6 +15,7 @@ type ReservationType = {
     typeClient: string;
     title: string;
     price: number;
+    dureeRDV: string;
   };
   status: string;
   dateOfRdv: string;
@@ -23,6 +25,7 @@ type ReservationType = {
   user: {
     email: string;
     phone: string;
+    image: string;
   };
 };
 
@@ -32,14 +35,26 @@ export default function OverviewTab() {
 
   useEffect(() => {
     async function fetchReservations() {
-      const response = await fetch(`/api/dashboardPro/reservationRecente/${user?.id}`);
-      const data = await response.json();
-      setReservations(data);
+      try {
+        const response = await fetch(`/api/dashboardPro/reservationRecente/${user?.id}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setReservations(data);
+        } else {
+          console.error("Data is not an array", data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reservations:", error);
+      }
     }
-    if (user) {
+
+    if (user?.id) {
       fetchReservations();
     }
-  }, [user]);
+  }, [user?.id]);
 
   return (
     <TabsContent title="Tableau de bord" value="overview">
@@ -88,24 +103,27 @@ export default function OverviewTab() {
 
         {/* Section des réservations récentes */}
         <section className="p-4 mx-auto ">
-          {reservations.map((reservation) => (
-            <Reservation
-              key={reservation.id}
-              typeClient={reservation.service.typeClient}
-              status={reservation.status}
-              date={reservation.dateOfRdv}
-              time={reservation.time}
-              address={reservation.address}
-              note={reservation.note}
-              service={reservation.service.title} // Utiliser le titre du service
-              price={reservation.service.price}
-              email={reservation.user.email} // Ajouter l'email de l'utilisateur
-              phone={reservation.user.phone} // Ajouter le numéro de téléphone de l'utilisateur
-            />
-          ))}
-          <div className="my-6 p-4 text-center">
-            <Button>Voir toutes les réservations</Button>
-          </div>
+          {reservations.length > 0 ? (
+            reservations.map((reservation) => (
+              <Reservation
+                key={reservation.id}
+                typeClient={reservation.service.typeClient}
+                status={reservation.status}
+                date={reservation.dateOfRdv}
+                time={reservation.time}
+                address={reservation.address}
+                note={reservation.note}
+                service={reservation.service.title}
+                price={reservation.service.price}
+                email={reservation.user.email} 
+                phone={reservation.user.phone} 
+                image={reservation.user.image}
+                dureeRDV={reservation.service.dureeRDV}
+              />
+            ))
+          ) : (
+            <p>Aucune réservation récente</p>
+          )}
         </section>
       </div>
     </TabsContent>

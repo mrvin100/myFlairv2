@@ -216,9 +216,9 @@ export default function ClientsTab() {
             </div>
           </div>
           <div className="border-y h-full flex-1 flex-col space-y-4 md:flex py-6 my-6 w-full">
-            {[1, 2, 3].map((index) => (
-              <Client index={index} />
-            ))}
+          
+              <Client/>
+
           </div>
           {/* pagination */}
           <div className="my-6">

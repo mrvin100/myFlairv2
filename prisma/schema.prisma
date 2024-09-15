@@ -59,8 +59,8 @@ model User {
   website           String?
   services          Service[]
   orders            Order[]
-  reviewsWritten    Review[]  @relation("ReviewsWritten") // Relation à l'avis écrit par l'utilisateur
-  reviewsReceived   Review[]  @relation("ReviewsReceived") // Relation aux avis reçus par l'utilisateur
+  reviewsWritten    Review[]  @relation("ReviewsWritten")
+  reviewsReceived   Review[]  @relation("ReviewsReceived")
   cart              Cart?
   preferences       Json
   preferencesProWeek Json
@@ -71,9 +71,55 @@ model User {
   subscription      SubscriptionType?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
-  reservations      ReservationServicePro[] 
+  reservations      ReservationServicePro[]
+  clients           Client[]  @relation("ProfessionalClients")
+  clientUsers       Client[]  @relation("ClientUserRelation")
 }
 
+
+model Client {
+  id                String   @id @default(cuid())
+  proId             String   
+  clientId          String   
+  status            String?
+  
+  user              User     @relation("ProfessionalClients", fields: [userId], references: [id])
+  userId            String
+  clientUser        User     @relation("ClientUserRelation", fields: [clientId], references: [id])
+  reservations      ReservationServicePro[]
+}
+model ReservationServicePro {
+  id                String    @id @default(cuid())
+  date              String
+  time              String
+  address           String?
+  city              String?
+  postalCode        String?
+  addressComplement String?
+  note              String?
+  service           Service   @relation(fields: [serviceId], references: [id])
+  serviceId         String
+  user              User      @relation(fields: [userId], references: [id])
+  userId            String
+  client            Client?   @relation(fields: [clientId], references: [id])
+  clientId          String?
+  dateOfRdv         String
+}
+
+model Service {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  category      String
+  price         String
+  domicile      Boolean
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime? @updatedAt
+  dureeRDV      String
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations  ReservationServicePro[] 
+}
 
 model Post {
   id                          Int      @id @default(autoincrement())
@@ -179,11 +225,11 @@ model BusinessBooster {
   description String
   quantity    Int
   price       Float
-  dates       Json[]
+  dates       Json
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  idStripe    String?    @unique
-  product     Product?   @relation(fields: [idStripe], references: [stripeId])
+  idStripe    String?   @unique
+  product     Product?  @relation(fields: [idStripe], references: [stripeId])
 }
 
 
@@ -261,21 +307,6 @@ model Subscription {
   updatedAt   DateTime?        @updatedAt
 }
 
-model Service {
-  id            String    @id @default(cuid())
-  title         String
-  description   String
-  category      String
-  price         String
-  domicile      Boolean
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime? @updatedAt
-  dureeRDV      String
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservations  ReservationServicePro[] // Ajoutez cette ligne
-}
-
 
 model Category {
   id            String    @id @default(cuid())
@@ -297,21 +328,3 @@ model Room {
   post           Post      @relation(fields: [postId], references: [id])
 }
 
-
-model ReservationServicePro {
-  id           String   @id @default(cuid())
-  date         String
-  time         String
-  address      String?
-  city         String?
-  postalCode   String?
-  addressComplement String?
-  note         String?
-  serviceId    String
-  service      Service  @relation(fields: [serviceId], references: [id])
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  dateOfRdv    String
-}

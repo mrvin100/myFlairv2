@@ -5,38 +5,36 @@ import { stripe } from '@/lib/stripe';
 
 export async function POST(req: NextRequest) {
   try {
-   
     const body = await req.json();
     const { image, alt, title, description, price, quantity, type, deposit } = body;
 
     console.log('Données reçues:', body);
 
-   
     const descriptionWithoutHtml = htmlToText(description);
 
-   
     const formationProduct = await stripe.products.create({
       name: title,
       description: description,
       images: [image],
     });
 
-    console.log('Type de produit:', type);
+    console.log('Produit Stripe créé:', formationProduct);
 
-   
+    if (!formationProduct.id) {
+      throw new Error('Le produit Stripe n\'a pas été créé correctement.');
+    }
+
     let priceObj;
     if (type === 'day') {
       priceObj = await stripe.prices.create({
-        unit_amount: parseInt(price) * 100, 
+        unit_amount: parseInt(price) * 100,
         currency: 'eur',
-        recurring: { 
-          interval: 'day',
-        },
+        recurring: { interval: 'day' },
         product: formationProduct.id,
       });
     } else {
       priceObj = await stripe.prices.create({
-        unit_amount: parseInt(price) * 100, 
+        unit_amount: parseInt(price) * 100,
         currency: 'eur',
         product: formationProduct.id,
       });
@@ -51,7 +49,7 @@ export async function POST(req: NextRequest) {
         price: parseFloat(price),
         quantity: parseInt(quantity, 10),
         deposit: parseFloat(deposit),
-        idStripe: formationProduct.id, 
+        idStripe: formationProduct.id,
       },
     });
 
@@ -67,5 +65,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erreur lors de la création de la formation.', details: error.message }, { status: 500 });
   }
 }
+
 
 export const runtime = 'experimental-edge';

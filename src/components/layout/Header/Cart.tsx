@@ -51,32 +51,31 @@ export default function Cart() {
   const [items, setItems] = useState<CartItemWithProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
   const [clientSecret, setClientSecret] = useState("");
 
   useEffect(() => {
-    fetchCartItems();
-  }, [user]); 
-
-  async function fetchCartItems() {
-    if (user?.id) {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`/api/cart/get/${user.id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch cart items');
+    async function fetchCartItems() {
+      if (user?.id) {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fetch(`/api/cart/get/${user.id}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch cart items');
+          }
+          const cartItems = await response.json();
+          setItems(cartItems);
+        } catch (error) {
+          console.error('Error fetching cart items:', error);
+          setError('Error fetching cart items');
+        } finally {
+          setLoading(false);
         }
-        const cartItems = await response.json();
-        setItems(cartItems);
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-        setError('Error fetching cart items');
-      } finally {
-        setLoading(false);
       }
     }
-  }
+
+    fetchCartItems();
+  }, [user?.id]); 
 
   const createCheckOutSession = async () => {
     setLoading(true);
@@ -86,18 +85,21 @@ export default function Cart() {
       setLoading(false);
       return;
     }
-    const checkoutSession = await axios.post("/api/stripe", {
-      item: items,
-      
-    });
-console.log(items)
-    const result = await stripe.redirectToCheckout({
-      sessionId: checkoutSession.data.id,
-    });
-    if (result.error) {
-      alert(result.error.message);
+    try {
+      const checkoutSession = await axios.post("/api/stripe", {
+        item: items,
+      });
+      const result = await stripe.redirectToCheckout({
+        sessionId: checkoutSession.data.id,
+      });
+      if (result.error) {
+        alert(result.error.message);
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -112,14 +114,18 @@ console.log(items)
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {error && <DropdownMenuItem>{error}</DropdownMenuItem>}
-          {items && items.length > 0 ? (
+          {items.length > 0 ? (
             items.map((item, index) => (
               <DropdownMenuItem key={index}>
                 <div className="flex items-center justify-between w-full">
                   <div className="flex flex-col">
-                    <span style={{ fontWeight: '700' }}>{item.product.additionalService?.title || item.product.formation?.title || item.product.businessBooster?.title || 'Produit sans titre'}</span>
+                    <span style={{ fontWeight: '700' }}>
+                      {item.product.additionalService?.title || item.product.formation?.title || item.product.businessBooster?.title || 'Produit sans titre'}
+                    </span>
                     <div className="flex">
-                      <span>{item.product.additionalService?.price || item.product.formation?.price || item.product.businessBooster?.price || '0'} € x</span>
+                      <span>
+                        {item.product.additionalService?.price || item.product.formation?.price || item.product.businessBooster?.price || '0'} € x
+                      </span>
                       {item.quantity}
                     </div>
                   </div>
@@ -127,7 +133,6 @@ console.log(items)
                     <img src="/cart/trash-2-3.svg" alt="" className="flex justify-end" />
                   </div>
                 </div>
-                
               </DropdownMenuItem>
             ))
           ) : (
@@ -138,12 +143,11 @@ console.log(items)
               <Elements stripe={stripePromise}></Elements>
             )}
             <Button
-                  
-                  onClick={createCheckOutSession}
-                  className=" block w-full py-2 rounded mt-2"
-                >
-                  {loading ? "Processing..." : "Buy"}
-                </Button>
+              onClick={createCheckOutSession}
+              className=" block w-full py-2 rounded mt-2"
+            >
+              {loading ? "En cours" : "Acheter"}
+            </Button>
           </div>
         </DropdownMenuGroup>
       </DropdownMenuContent>

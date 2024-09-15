@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['res.cloudinary.com', 'www.mobiliercoiffure.com'],
+    domains: ['res.cloudinary.com', 'www.mobiliercoiffure.com', 'randomuser.me', 'img.freepik.com'],
   },
   webpack(config) {
     config.resolve.fallback = {
