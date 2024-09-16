@@ -104,6 +104,7 @@ model ReservationServicePro {
   client            Client?   @relation(fields: [clientId], references: [id])
   clientId          String?
   dateOfRdv         String
+  createdAt         DateTime  @default(now())
 }
 
 model Service {

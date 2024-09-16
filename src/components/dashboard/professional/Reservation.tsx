@@ -35,7 +35,7 @@ export default function Reservation({
   dureeRDV,
   phone,
 }: ReservationProps) {
-  // Vérifier si l'adresse est vide et afficher "Sur le lieu de travail" si nécessaire
+ 
   const displayAddress = address && address.trim() !== "" ? address : "Sur le lieu de travail";
 
   return (
