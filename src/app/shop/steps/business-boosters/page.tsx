@@ -107,7 +107,7 @@ export default function BusinessBoostersPage() {
 
       {/* Main Content Section */}
       <div className="ml-[520px] grid grid-cols-1 gap-8 px-6 py-16 lg:px-24">
-        {businessBoosters?.map((businessBooster) => (
+        {(businessBoosters && businessBoosters.length > 0 )? businessBoosters?.map((businessBooster) => (
           <div
             className="flex w-full flex-col md:flex-row md:max-w-[50rem] md:mx-auto"
             key={businessBooster.id}
@@ -149,7 +149,9 @@ export default function BusinessBoostersPage() {
               </div>
             </div>
           </div>
-        ))}
+        )): <div>No Data</div>
+  
+        }
       </div>
     </main>
   );
