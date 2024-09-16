@@ -40,11 +40,9 @@ const CartGlobal = ({
 }: CartGlobalProps) => {
   const { user } = useUserContext();
   console.log(user);
+  console.log(reservationsWithPosts);
   
-  const totalReservationPrice = reservationsWithPosts.reduce((prevTotalPrice, reservation) =>
-    prevTotalPrice + reservation.reservation.price,
-    0
-  );
+  const totalReservationPrice = 11
 
   const totalBoosterPrice = selectedBooster ? selectedBooster.reduce((total, booster) =>
     total + booster.price,
