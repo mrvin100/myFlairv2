@@ -70,6 +70,8 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
   useEffect(() => {
     const calculateAvailability = () => {
       const availableDates = generateAvailableDates();
+      console.log(" avalaibles dates : ", availableDates);
+      
       const individualStockCopy = { ...individualStock };
 
       availableDates.forEach((dateString) => {
@@ -95,12 +97,15 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
 
   const generateAvailableDates = () => {
     const availableDates: string[] = [];
-    const today = startOfToday();
+    const today = startOfToday(); // commence a partir de la date d'aujourd'hui
     const threeMonthsLater = addMonths(today, 3);
-    let date = today;
+    let date = addDays(today, 1); // Start from today
 
     while (date <= threeMonthsLater) {
-      availableDates.push(date.toISOString().split("T")[0]);
+      const dayOfWeek = date.getDay();
+      if(dayOfWeek !== 1){// Si ce n'est pas un dimanche
+        availableDates.push(date.toISOString().split("T")[0]);
+      }
       date = addDays(date, 1);
     }
 
@@ -176,6 +181,9 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
     }
     updateCalendarDates();
   };
+
+  console.log("reseved Dates : ", reservedDates);
+  
 
   return (
     <div>

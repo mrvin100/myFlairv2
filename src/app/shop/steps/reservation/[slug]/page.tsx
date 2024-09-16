@@ -19,18 +19,17 @@ interface Props {
   };
 }
 
-
 const ReservationStep = ({ params }: Props) => {
   const pathname = usePathname();
   const segments = pathname.split("/");
-  const {slug: postId} = params;  // Getting the post Id
+  const { slug: postId } = params; // Getting the post Id
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useUserContext();
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { selectedWeekDays, selectedSaturdays, removeDate } = useDateContext();
-  
+
   useEffect(() => {
     fetch(`/api/post/get/${postId}`, {
       method: "GET",
@@ -42,9 +41,8 @@ const ReservationStep = ({ params }: Props) => {
         return response.json();
       })
       .then((data) => {
-        
         console.log(data.price);
-        const {post} = data;
+        const { post } = data;
         setPost(post);
         setLoading(false);
       })
@@ -56,54 +54,71 @@ const ReservationStep = ({ params }: Props) => {
       if (user && postId) {
         setIsSaving(true);
         const userId = user.id!;
-        const promises = await createReservation(userId, parseInt(postId, 10), ReservationStatus.PENDING, post?.price!, [...selectedWeekDays, ...selectedSaturdays]);
+        const promises = await createReservation(
+          userId,
+          parseInt(postId, 10),
+          ReservationStatus.PENDING,
+          post?.price!,
+          [...selectedWeekDays, ...selectedSaturdays]
+        );
         if (promises) {
           removeDate(undefined, undefined, true);
-          router.push('/shop/steps/business-boosters');
+          router.push("/shop/steps/business-boosters");
         }
       }
     } catch (error) {
-      setIsSaving(false);      
+      setIsSaving(false);
     }
   };
-  
-  if (loading) return (
-  <div className="flex items-center justify-center h-screen">
-    <Loader className="animate-spin h-5 w-5 text-gray-900" />
-  </div>);
 
-  else return (
-    <WorkplaceProvider>
-      {/* <DateProvider> */}
-      <main className="flex flex-col items-center justify-center p-4">
-        <img src="/logos/Rectangle_21.svg" alt="" />
-        <h1 className="font-bold text-2xl flex items-center mb-4">
-          Réserver votre Poste de Travail Flair
-        </h1>
-        <div className="flex flex-col lg:flex-row w-full justify-center items-center lg:items-start">
-          <div className="w-full lg:w-1/2 p-4">
-            <Home postId={postId} post={post}/>
-          </div>
-          <div className="w-full lg:w-1/2 p-4">
-            <Cart post={post}/>
-            <div className="flex items-center justify-end mt-4">
-              <Button className="mr-4" variant="secondary"disabled={isSaving}>
-                Annuler
-              </Button>
-              {/* <Link href={"/shop/steps/business-boosters"}> */}
-                <Button 
-                  onClick={handleSave}
-                  disabled={[...selectedWeekDays, ...selectedSaturdays].length === 0 || isSaving}
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="animate-spin h-5 w-5 text-gray-900" />
+      </div>
+    );
+  else
+    return (
+      <WorkplaceProvider>
+        {/* <DateProvider> */}
+        <main className="flex flex-col items-center justify-center p-4">
+          <img src="/logos/Rectangle_21.svg" alt="" />
+          <h1 className="font-bold text-2xl flex items-center mb-4">
+            Réserver votre Poste de Travail Flair
+          </h1>
+          <div className="flex flex-col lg:flex-row w-full justify-center items-center lg:items-start">
+            <div className="w-full lg:w-1/2 p-4">
+              <Home postId={postId} post={post} />
+            </div>
+            <div className="w-full lg:w-1/2 p-4">
+              <Cart post={post} />
+              <div className="flex items-center justify-end mt-4">
+                <Button
+                  className="mr-4"
+                  variant="secondary"
+                  disabled={isSaving}
                 >
-                  {isSaving ? <Loader2 className="animate-spin h-5 w-5 text-white" /> : "Continuer"}
+                  Annuler
                 </Button>
-              {/* </Link> */}
+                <Button
+                  onClick={handleSave}
+                  disabled={
+                    [...selectedWeekDays, ...selectedSaturdays].length === 0 ||
+                    isSaving
+                  }
+                >
+                  {isSaving ? (
+                    <Loader2 className="animate-spin h-5 w-5 text-white" />
+                  ) : (
+                    "Continuer"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
-    </WorkplaceProvider>
-  );
+        </main>
+      </WorkplaceProvider>
+    );
 };
 
 export default ReservationStep;
