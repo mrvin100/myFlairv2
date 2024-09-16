@@ -56,12 +56,15 @@ export default function OverviewTab() {
     }
   }, [user?.id]);
 
+  console.log('reservations : ', reservations);
+  
+
   return (
     <TabsContent title="Tableau de bord" value="overview">
       <div className="max-w-5xl w-full">
         <div>
           Bonjour <b>{user?.firstName}</b> !<br />
-          (vous n’êtes pas {user?.firstName} ?{" "}
+          (vous n&apos;êtes pas {user?.firstName} ?
           <button
             onClick={() =>
               signOut({ redirect: true, callbackUrl: "/auth/sign-in" })
@@ -103,6 +106,7 @@ export default function OverviewTab() {
 
         {/* Section des réservations récentes */}
         <section className="p-4 mx-auto ">
+<<<<<<< HEAD
           {reservations.length > 0 ? (
             reservations.map((reservation) => (
               <Reservation
@@ -124,6 +128,26 @@ export default function OverviewTab() {
           ) : (
             <p>Aucune réservation récente</p>
           )}
+=======
+          { reservations.length > 0 && reservations.map((reservation) => (
+            <Reservation
+              key={reservation.id}
+              typeClient={reservation.service.typeClient}
+              status={reservation.status}
+              date={reservation.dateOfRdv}
+              time={reservation.time}
+              address={reservation.address}
+              note={reservation.note}
+              service={reservation.service.title} // Utiliser le titre du service
+              price={reservation.service.price}
+              email={reservation.user.email} // Ajouter l'email de l'utilisateur
+              phone={reservation.user.phone} // Ajouter le numéro de téléphone de l'utilisateur
+            />
+          ))}
+          <div className="my-6 p-4 text-center">
+            <Button>Voir toutes les réservations</Button>
+          </div>
+>>>>>>> 2847d4bf9fec0ac4dbb1952c5c51705cc2389fb7
         </section>
       </div>
     </TabsContent>

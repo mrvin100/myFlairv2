@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { CircleDot } from "lucide-react";
 import Image from "next/image";
-import { title } from "process";
 
 type ReservationProps = {
   status: string;
