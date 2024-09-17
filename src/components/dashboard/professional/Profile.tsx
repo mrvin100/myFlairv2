@@ -11,7 +11,19 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ReactQuill from "react-quill";
 import { SubmitButton } from "@/components/button";
-import { PlusCircle, Trash, Facebook, Instagram, Twitter, Youtube, Linkedin, FacebookIcon, LucideIcon, ChevronsUpDown } from "lucide-react";
+import {
+  PlusCircle,
+  Trash,
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Linkedin,
+  FacebookIcon,
+  LucideIcon,
+  ChevronsUpDown,
+  Bell,
+} from "lucide-react";
 
 type ReservationType = {
   id: string;
@@ -299,85 +311,143 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 type Social = {
-  value: string,
-  label: string,
-  icon: LucideIcon
-}
-const socials:Social[] = [
-  {value:"facebook", label: "Facebook", icon: Facebook},
-  {value:"instagram", label: "Instagram", icon: Instagram},
-  {value:"twitter", label: "Twitter", icon: Twitter},
-  {value:"youtube", label: "Youtube", icon: Youtube},
-  {value:"linkedin", label: "Linkedin", icon: Linkedin},
+  value: string;
+  label: string;
+  icon: LucideIcon;
+};
+
+const socials: Social[] = [
+  { value: "facebook", label: "Facebook", icon: Facebook },
+  { value: "instagram", label: "Instagram", icon: Instagram },
+  { value: "twitter", label: "Twitter", icon: Twitter },
+  { value: "youtube", label: "Youtube", icon: Youtube },
+  { value: "linkedin", label: "Linkedin", icon: Linkedin },
 ];
+
+type SocialNetwork = {
+  name: string;
+  link: string;
+};
 
 function SocialsProfiles() {
   const [open, setOpen] = React.useState(false);
-  const [selectedSocial, setSelectedSocial] = React.useState<Social>(socials[0]);
+  const [selectedSocial, setSelectedSocial] = React.useState<Social>(
+    socials[0]
+  );
+  const [socialLink, setSocialLink] = React.useState<string>("");
+  const [socialsNetworks, setSocialsNetworks] = useState<SocialNetwork[]>([]);
+  const handleInputAddSocial = (social: string, value: string) => {
+    console.log("social name : ", social);
+    console.log("social input value : ", value);
+    const updatedSocialsNetworks = [
+      ...socialsNetworks,
+      { name: social, link: value },
+    ];
+    setSocialsNetworks(updatedSocialsNetworks);
+  };
   return (
-    <div className="flex w-full gap-4 flex-col items-start justify-between sm:flex-row sm:items-center px-1">
-      <div className="w-full">
-        <Input
-          type="text-muted-foreground"
-          onChange={() => "lorem"}
-          placeholder="Ex: https://www.instagram.com/itsabiconnick/"
-        />
-      </div>
-      <div className="flex justify-between md:justify-center gap-4">
-        <div className="text-sm font-medium leading-none">
-          <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <selectedSocial.icon className="h-4 w-4 text-black" />
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder="Filter label..." autoFocus={true} />
-                <CommandList>
-                  <CommandEmpty>No label found.</CommandEmpty>
-                  <CommandGroup>
-                    {socials.map((social) => (
-                      <CommandItem
-                        key={social.label}
-                        value={social.value}
-                        onSelect={(value) => {
-                          setSelectedSocial(() => {
-                            const foundedSocial = socials.find(social => social.value === value)
-                            if(foundedSocial){
-                              return foundedSocial
-                            }
-                            return socials[0]
-                          });
-                          setOpen(false);
-                        }}
-                      >
-                        {social.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
+    <div>
+      <div className="flex w-full gap-4 flex-col items-start justify-between sm:flex-row sm:items-center px-1">
+        <div className="w-full">
+          <Input
+            type="text-muted-foreground"
+            onChange={(e) => setSocialLink(e.target.value)}
+            placeholder="Ex: https://www.instagram.com/itsabiconnick/"
+          />
         </div>
-        <Button variant="secondary" size="sm">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <PlusCircle className="h-4 w-4" />
-              </TooltipTrigger>
-              <TooltipContent>
-              <p>Ajouter un réseau social</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </Button>
+        <div className="flex justify-between md:justify-center gap-4">
+          <div className="text-sm font-medium leading-none">
+            <DropdownMenu open={open} onOpenChange={setOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <selectedSocial.icon className="h-4 w-4 text-black" />
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px] p-0">
+                <Command>
+                  <CommandInput
+                    placeholder="Filter label..."
+                    autoFocus={true}
+                  />
+                  <CommandList>
+                    <CommandEmpty>No label found.</CommandEmpty>
+                    <CommandGroup>
+                      {socials.map((social) => (
+                        <CommandItem
+                          key={social.label}
+                          value={social.value}
+                          onSelect={(value) => {
+                            setSelectedSocial(() => {
+                              const foundedSocial = socials.find(
+                                (social) => social.value === value
+                              );
+                              if (foundedSocial) {
+                                return foundedSocial;
+                              }
+                              return socials[0];
+                            });
+                            setOpen(false);
+                          }}
+                        >
+                          {social.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() =>
+              handleInputAddSocial(selectedSocial.value, socialLink)
+            }
+          >
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <PlusCircle className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Ajouter un réseau social</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </Button>
+        </div>
+      </div>
+      <div>
+        {socialsNetworks && socialsNetworks.length > 0 ? (
+          socialsNetworks.map((socialNetwork, index) => (
+            <div className="my-4 mx-1 flex gap-4 justify-between items-center">
+              <Badge className="inline-block">{socialNetwork.name}</Badge>
+              <Input
+                type="text-muted-foreground"
+                // onChange={(e) => setSocialLink(e.target.value)}
+                placeholder="Ex: https://www.instagram.com/itsabiconnick/"
+                value={socialNetwork.link}
+              />
+            </div>
+          ))
+        ) : (
+          <div>
+            <Alert className="text-center my-4">
+              <Bell className="h-6 w-6 text-muted" />
+              <AlertTitle className="ml-4 mb-2">Oups!</AlertTitle>
+              <AlertDescription className="ml-4">
+                Veuillez configurer vos réseaux soiaux.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
       </div>
     </div>
   );
