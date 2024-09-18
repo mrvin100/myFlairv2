@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
 import { signOut } from "next-auth/react";
 import { TabsContent } from "@/components/tabs";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ReactQuill from "react-quill";
 import { SubmitButton } from "@/components/button";
+import axios from "axios";
 import {
   PlusCircle,
   Trash,
@@ -45,21 +46,67 @@ type ReservationType = {
 };
 
 export default function ProfileTab() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUserContext();
-  const [reservations, setReservations] = useState<ReservationType[]>([]);
+  const [images, setImages] = useState<File[]>([]);
 
-  useEffect(() => {
-    async function fetchReservations() {
-      const response = await fetch(
-        `/api/dashboardPro/reservationRecente/${user?.id}`
+  const handleDelete = () => {
+    setImages([]);
+  };
+  const uploadImage = async (file: File): Promise<string> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error(
+        "Cloudinary environment variables are not properly configured."
       );
-      const data = await response.json();
-      setReservations(data);
     }
-    if (user) {
-      fetchReservations();
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
     }
-  }, [user]);
+  };
+
+  const handleFileInputChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      try {
+        const imageUrl = await uploadImage(files[0]);
+        setImages([files[0]]);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 1) {
+      console.log("Vous ne pouvez sélectionner qu'une seule image.");
+      return;
+    }
+    try {
+      const imageUrl = await uploadImage(files[0]);
+      setImages(files);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
 
   return (
     <TabsContent title="Mon Profile" value="profile">
@@ -122,7 +169,7 @@ export default function ProfileTab() {
           <div>Description</div>
           <br />
           <ReactQuill
-            value={"lorem ipsum dolor sit amet consetur ita est..."}
+            value={""}
             onChange={() => "lorem onchange"}
             placeholder="Décrivez votre entreprise ici..."
           />
@@ -234,43 +281,75 @@ export default function ProfileTab() {
           />
         </div>
         <br />
-        <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
 
-        <div className="">
-          <div className="px-1 border rounded-md grid justify-center items-center h-32 w-full p-6">
-            <p>
-              Glisser-déposer des fichiers &nbsp; ou &nbsp;
-              <strong className="underline cursor-pointer">Parcourir</strong>
-              <span className="text-xs text-black/80 block text-center">
-                Formats pris en charge : JPEG, PNG
-              </span>
+        <div>
+        <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            style={{
+              cursor: "pointer",
+              width: "100%",
+              height: "100px",
+              border: "2px dashed #aaa",
+              borderRadius: "5px",
+              textAlign: "center",
+              padding: "20px",
+              marginBottom: "20px",
+            }}
+          >
+            <p className="flex items-center justify-center">
+              Cliquez ou glissez et déposez des fichiers ici
+            </p>
+            <p className="text-sm">
+              Formats pris en charge: JPEG, PNG, JPG et SVG
             </p>
           </div>
-          <div>
-            <h3 className="my-4">Sélectionner une image par défaut</h3>
-            <div className="flex gap-3">
-              <div className="relative">
-                <Trash className="h-6 w-6 absolute top-1 right-1 bg-red-500 text-white rounded-sm p-1 cursor-pointer" />
-                <Image
-                  src={"/nail-salon.webp"}
-                  height={120}
-                  width={120}
-                  alt="client profile"
-                  className="rounded-md object-cover h-16 w-16"
-                />
-              </div>
-              <div className="relative border-red-600 border rounded-sm">
-                <Trash className="h-6 w-6 absolute top-1 right-1 bg-red-500 text-white rounded-sm p-1 cursor-pointer" />
-                <Image
-                  src={"/nail-salon.webp"}
-                  height={120}
-                  width={120}
-                  alt="client profile"
-                  className="rounded-md object-cover h-16 w-16"
-                />
-              </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg, image/png, image/jpg, image/svg"
+            style={{ display: "none" }}
+            onChange={handleFileInputChange}
+          />
+          {images.length > 0 && (
+            <div>
+              <h3 className="my-4">Sélectionner une image par défaut</h3>
+              {images.map((file, index) => (
+                <div
+                  key={index}
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                    marginRight: "10px",
+                  }}
+                >
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    style={{
+                      width: "100px",
+                      height: "auto",
+                      marginBottom: "5px",
+                    }}
+                    className="rounded-lg"
+                  />
+                  <div
+                    style={{ position: "absolute", top: "5px", right: "5px" }}
+                  >
+                    <button
+                      className="rounded-full"
+                      style={{ padding: "5px", background: "red" }}
+                      onClick={handleDelete}
+                    >
+                      <img src="/iconService/trashWhite.svg" alt="Delete" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
         <div className="flex justify-end">
           <SubmitButton pending={false} onClick={() => "handleSubmit"}>
@@ -283,7 +362,6 @@ export default function ProfileTab() {
 }
 
 import { Calendar, MoreHorizontal, Tags, User } from "lucide-react";
-import * as React from "react";
 
 import {
   Command,
@@ -337,13 +415,15 @@ type SocialNetwork = {
 };
 
 function SocialsProfiles() {
-  const [open, setOpen] = React.useState(false);
-  const [selectedSocial, setSelectedSocial] = React.useState<Social>(
-    socials[0]
-  );
-  const [socialLink, setSocialLink] = React.useState<string>("");
+  const [open, setOpen] = useState(false);
+  const [selectedSocial, setSelectedSocial] = useState<Social>(socials[0]);
+  const [socialLink, setSocialLink] = useState<string>("");
   const [socialsNetworks, setSocialsNetworks] = useState<SocialNetwork[]>([]);
-  const handleInputAddSocial = (social: string, value: string, icon: LucideIcon) => {
+  const handleInputAddSocial = (
+    social: string,
+    value: string,
+    icon: LucideIcon
+  ) => {
     const updatedSocialsNetworks = [
       ...socialsNetworks,
       { name: social, link: value, icon: icon },
@@ -351,9 +431,11 @@ function SocialsProfiles() {
     setSocialsNetworks(updatedSocialsNetworks);
   };
   const removeSocialNetwork = (index: number) => {
-    const updatedSocialsNetworks = socialsNetworks.filter((_, i) => i !== index)
-    setSocialsNetworks(updatedSocialsNetworks)
-  }
+    const updatedSocialsNetworks = socialsNetworks.filter(
+      (_, i) => i !== index
+    );
+    setSocialsNetworks(updatedSocialsNetworks);
+  };
   return (
     <div>
       <div className="flex w-full gap-4 flex-col items-start justify-between sm:flex-row sm:items-center px-1">
@@ -412,7 +494,11 @@ function SocialsProfiles() {
             variant="secondary"
             size="sm"
             onClick={() =>
-              handleInputAddSocial(selectedSocial.value, socialLink, selectedSocial.icon)
+              handleInputAddSocial(
+                selectedSocial.value,
+                socialLink,
+                selectedSocial.icon
+              )
             }
           >
             <TooltipProvider>
@@ -432,9 +518,9 @@ function SocialsProfiles() {
         {socialsNetworks && socialsNetworks.length > 0 ? (
           socialsNetworks.map((socialNetwork, index) => (
             <div className="my-4 mx-1 flex gap-4 justify-between items-center">
-                <Button variant="outline" size="sm">
-                  <socialNetwork.icon className="h-4 w-4 text-black" />
-                </Button>
+              <Button variant="outline" size="sm">
+                <socialNetwork.icon className="h-4 w-4 text-black" />
+              </Button>
               <Input
                 type="text-muted-foreground"
                 placeholder="Ex: https://www.instagram.com/itsabiconnick/"
@@ -442,7 +528,7 @@ function SocialsProfiles() {
               />
               <Button
                 variant="secondary"
-                 size="sm"
+                size="sm"
                 onClick={() => removeSocialNetwork(index)}
               >
                 <CircleMinus className="h-4 w-4 text-red-500" />
