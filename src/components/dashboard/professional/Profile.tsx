@@ -23,6 +23,7 @@ import {
   LucideIcon,
   ChevronsUpDown,
   Bell,
+  CircleMinus,
 } from "lucide-react";
 
 type ReservationType = {
@@ -332,6 +333,7 @@ const socials: Social[] = [
 type SocialNetwork = {
   name: string;
   link: string;
+  icon: LucideIcon;
 };
 
 function SocialsProfiles() {
@@ -341,15 +343,17 @@ function SocialsProfiles() {
   );
   const [socialLink, setSocialLink] = React.useState<string>("");
   const [socialsNetworks, setSocialsNetworks] = useState<SocialNetwork[]>([]);
-  const handleInputAddSocial = (social: string, value: string) => {
-    console.log("social name : ", social);
-    console.log("social input value : ", value);
+  const handleInputAddSocial = (social: string, value: string, icon: LucideIcon) => {
     const updatedSocialsNetworks = [
       ...socialsNetworks,
-      { name: social, link: value },
+      { name: social, link: value, icon: icon },
     ];
     setSocialsNetworks(updatedSocialsNetworks);
   };
+  const removeSocialNetwork = (index: number) => {
+    const updatedSocialsNetworks = socialsNetworks.filter((_, i) => i !== index)
+    setSocialsNetworks(updatedSocialsNetworks)
+  }
   return (
     <div>
       <div className="flex w-full gap-4 flex-col items-start justify-between sm:flex-row sm:items-center px-1">
@@ -408,7 +412,7 @@ function SocialsProfiles() {
             variant="secondary"
             size="sm"
             onClick={() =>
-              handleInputAddSocial(selectedSocial.value, socialLink)
+              handleInputAddSocial(selectedSocial.value, socialLink, selectedSocial.icon)
             }
           >
             <TooltipProvider>
@@ -428,13 +432,21 @@ function SocialsProfiles() {
         {socialsNetworks && socialsNetworks.length > 0 ? (
           socialsNetworks.map((socialNetwork, index) => (
             <div className="my-4 mx-1 flex gap-4 justify-between items-center">
-              <Badge className="inline-block">{socialNetwork.name}</Badge>
+                <Button variant="outline" size="sm">
+                  <socialNetwork.icon className="h-4 w-4 text-black" />
+                </Button>
               <Input
                 type="text-muted-foreground"
-                // onChange={(e) => setSocialLink(e.target.value)}
                 placeholder="Ex: https://www.instagram.com/itsabiconnick/"
                 value={socialNetwork.link}
               />
+              <Button
+                variant="secondary"
+                 size="sm"
+                onClick={() => removeSocialNetwork(index)}
+              >
+                <CircleMinus className="h-4 w-4 text-red-500" />
+              </Button>
             </div>
           ))
         ) : (
