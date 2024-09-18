@@ -66,7 +66,7 @@ const CartGlobal = ({
           </TableHeader>
 
           {/* Reservation Section */}
-          {reservationsWithPosts.map((reservationPost) => (
+          {reservationsWithPosts && reservationsWithPosts.length > 0 && reservationsWithPosts.map((reservationPost) => (
             <TableBody key={reservationPost.reservation.id} className="bg-white">
               <TableRow className="border-b border-gray-300">
                 <TableCell className="px-2 py-1">{reservationPost.post?.title || ""}</TableCell>
@@ -96,7 +96,7 @@ const CartGlobal = ({
       </div>
 
       {/* New Section for Business Boosters */}
-      {selectedBooster && (
+      {selectedBooster && selectedBooster.length > 0 && (
         <div className="shadow-md rounded-xl overflow-hidden border border-gray-300 mt-6">
           <Table className="min-w-full">
             <TableCaption className="bg-gray-100 font-bold">Vos Business Boosters</TableCaption>
