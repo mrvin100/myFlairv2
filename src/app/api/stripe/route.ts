@@ -30,10 +30,8 @@ export async function POST(req: Request) {
       transformedItems.push(transformedItem);
     }
 
-    // Log les items transformés pour déboguer leur structure
     console.log('Items transformés :', transformedItems);
 
-    // Utilisation de Stripe pour créer une session de paiement
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: transformedItems,

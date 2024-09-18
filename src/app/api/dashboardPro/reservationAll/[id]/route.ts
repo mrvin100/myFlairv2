@@ -23,7 +23,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
       orderBy: {
         dateOfRdv: 'desc',
       },
-      take: 3,
     });
     
     return NextResponse.json(reservations, { status: 200 });

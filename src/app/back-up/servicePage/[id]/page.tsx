@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import {
   Facebook,
   Instagram,
@@ -19,23 +18,19 @@ import {
   Star,
   Youtube,
 } from "lucide-react";
-import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
+import { AvatarImage, Avatar } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 
+import { useUserContext } from '@/contexts/user'
 interface Service {
   id: string;
   title: string;
@@ -73,7 +68,7 @@ const DateChoice = ({ params }: { params: { id: string } }) => {
   const [note, setNote] = useState<string>('');
   const { toast } = useToast();
   const router = useRouter();
-
+  const { user } = useUserContext(); 
   useEffect(() => {
     const fetchService = async () => {
       try {
@@ -135,6 +130,7 @@ const DateChoice = ({ params }: { params: { id: string } }) => {
           note,
           serviceId: service.id,
           userId: service.user.id,
+          clientId: user?.id,
         }),
       });
 

@@ -14,6 +14,8 @@ type ReservationProps = {
   price: number;
   email: string;
   phone: string;
+  image: string;
+  dureeRDV: string;
 
 };
 
@@ -21,6 +23,7 @@ type ReservationProps = {
 export default function Reservation({
   status = "en-cours",
   typeClient = "boutique",
+  image,
   date,
   time,
   address,
@@ -28,8 +31,12 @@ export default function Reservation({
   service,
   price,
   email,
+  dureeRDV,
   phone,
 }: ReservationProps) {
+ 
+  const displayAddress = address && address.trim() !== "" ? address : "Sur le lieu de travail";
+
   return (
     <div className="bg-white flex md:justify-between justify-start md:flex-row flex-col gap-2 mb-4">
       {/* Profil du client */}
@@ -45,7 +52,7 @@ export default function Reservation({
           Client {typeClient === "boutique" ? "en boutique" : "flair"}
         </div>
         <Image
-          src={"/nail-salon.webp"}
+          src={image}
           height={120}
           width={120}
           alt="client profile"
@@ -61,6 +68,7 @@ export default function Reservation({
         </ul>
         <Button>Modifier</Button>
       </div>
+
       {/* Détails du profil */}
       <div className="p-8 shadow-md w-full rounded-sm border">
         <div
@@ -85,10 +93,13 @@ export default function Reservation({
             <strong>Service réservé :</strong> {service}
           </li>
           <li>
-            <strong>Date de réservation :</strong> {date} de {time}
+            <strong>Date de réservation :</strong> {date} à partir de {time}
           </li>
           <li>
-            <strong>Lieu :</strong> {address}
+            <strong>Durée :</strong> {dureeRDV}
+          </li>
+          <li>
+            <strong>Lieu :</strong> {displayAddress}
           </li>
           <li>
             <strong>Tarifs :</strong> {price} €
@@ -98,21 +109,22 @@ export default function Reservation({
           </li>
         </ul>
         <div className="flex gap-4 items-center flex-wrap">
-          <Button
-            variant={status === "en-cours" ? "destructive" : "secondary"}
-            className={clsx(
-              status !== "en-cours" && status !== "annule" ? "hidden" : ""
-            )}
-          >
-            {status === "en-cours"
-              ? "Annuler la réservation"
-              : status === "annule"
-              ? "Raison"
-              : ""}
-          </Button>
-          <Button>Supprimer</Button>
+          {/* Affichage des boutons selon le statut */}
+          {status === "en-cours" && (
+            <Button variant="destructive">Annuler la réservation</Button>
+          )}
+          {status === "annule" && (
+            <>
+              <Button variant="secondary">Raison</Button>
+              <Button variant="destructive">Supprimer</Button>
+            </>
+          )}
+          {status === "termine" && (
+            <Button variant="destructive">Supprimer</Button>
+          )}
         </div>
       </div>
     </div>
   );
 }
+

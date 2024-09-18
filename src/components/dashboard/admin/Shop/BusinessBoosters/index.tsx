@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import * as z from "zod";
 import ReactQuill from "react-quill";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { addDays, format } from "date-fns";
+import { addDays } from "date-fns";
 import { useRouter } from "next/navigation";
 import { fr } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,8 @@ import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
 import DisplayBusinessBoosters from "@/components/dashboard/admin/Shop/BusinessBoosters/displayData";
 import { BusinessBooster } from "@/components/dashboard/admin/Shop/BusinessBoosters/types";
 
+import { format, eachDayOfInterval } from "date-fns";
+
 import "react-quill/dist/quill.snow.css";
 
 type BusinessBoosterFormValues = z.infer<typeof businessBoosterSchema>;
@@ -50,7 +52,7 @@ export default function BusinessBoostersTab() {
     from: new Date(),
     to: addDays(new Date(), 30),
   });
-  const [dates, setDates] = useState<DateRange[]>([]);
+  const [dates, setDates] = useState<any[]>([]);
 
   const form = useForm<BusinessBoosterFormValues>({
     resolver: zodResolver(businessBoosterSchema),
@@ -61,12 +63,30 @@ export default function BusinessBoostersTab() {
       description: "",
       quantity: 0,
       price: 0,
-      dates,
+      dates: [],
     },
   });
 
+  function generateDatesWithAvailability(from: Date, to: Date, quantity: number) {
+    const days = eachDayOfInterval({ start: from, end: to });
+  
+    return days.map((day) => ({
+      date: format(day, 'yyyy-MM-dd'),
+      available: quantity, 
+    }));
+  }
+  
   const onSubmit: SubmitHandler<BusinessBoosterFormValues> = async (data) => {
-    console.log("Submitting data:", data);
+
+    if (dateRange) {
+      const generatedDates = generateDatesWithAvailability(
+        dateRange.from!,
+        dateRange.to!,
+        data.quantity
+      );
+      data.dates = generatedDates; // Ajoute les dates générées avec disponibilité
+    }
+
     try {
       const response = await fetch("/api/businessBoosters/create", {
         method: "POST",
