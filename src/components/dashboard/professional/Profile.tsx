@@ -1,12 +1,9 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
-import { signOut } from "next-auth/react";
 import { TabsContent } from "@/components/tabs";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import clsx from "clsx";
-import Reservation from "./Reservation";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ReactQuill from "react-quill";
@@ -14,13 +11,11 @@ import { SubmitButton } from "@/components/button";
 import axios from "axios";
 import {
   PlusCircle,
-  Trash,
   Facebook,
   Instagram,
   Twitter,
   Youtube,
   Linkedin,
-  FacebookIcon,
   LucideIcon,
   ChevronsUpDown,
   Bell,

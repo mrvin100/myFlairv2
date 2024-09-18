@@ -51,6 +51,19 @@ const initialAvailabilitiesPeriods = [
   },
 ];
 
+const formatTime = (input: string) => {
+  // Remove any non-digit characters
+  const cleanedInput = input.replace(/\D/g, "");
+
+  // Format the time
+  if (cleanedInput.length <= 2) {
+    return cleanedInput;
+  } else {
+    const hours = cleanedInput.slice(0, 2);
+    const minutes = cleanedInput.slice(2, 4);
+    return `${hours}:${minutes}`;
+  }
+};
 export default function AvailabilitiesTab() {
   const [selectedDay, setSelectedDay] = useState("Tous les jours");
   const [availabilities, setAvailabilities] = useState(initialAvailabilities);
@@ -98,13 +111,37 @@ export default function AvailabilitiesTab() {
     setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
   };
 
+  // const handleInputChange = (
+  //   index: number,
+  //   field: "from" | "to",
+  //   value: string
+  // ) => {
+  //   const updatedAvailabilities = availabilities[selectedDay].map((time, i) =>
+  //     i === index ? { ...time, [field]: value } : time
+  //   );
+  //   setAvailabilities({
+  //     ...availabilities,
+  //     [selectedDay]: updatedAvailabilities,
+  //   });
+  // };
+  // const handleInputChangePeriod = (
+  //   index: number,
+  //   field: "from" | "to" | "timeFrom" | "timeTo",
+  //   value: string
+  // ) => {
+  //   const updatedAvailabilitiesPeriods = availabilitiesPeriods.map(
+  //     (period, i) => (i === index ? { ...period, [field]: value } : period)
+  //   );
+  //   setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
+  // };
   const handleInputChange = (
     index: number,
     field: "from" | "to",
     value: string
   ) => {
+    const formattedValue = formatTime(value);
     const updatedAvailabilities = availabilities[selectedDay].map((time, i) =>
-      i === index ? { ...time, [field]: value } : time
+      i === index ? { ...time, [field]: formattedValue } : time
     );
     setAvailabilities({
       ...availabilities,
@@ -116,8 +153,11 @@ export default function AvailabilitiesTab() {
     field: "from" | "to" | "timeFrom" | "timeTo",
     value: string
   ) => {
+    const formattedValue =
+      field === "timeFrom" || field === "timeTo" ? formatTime(value) : value;
     const updatedAvailabilitiesPeriods = availabilitiesPeriods.map(
-      (period, i) => (i === index ? { ...period, [field]: value } : period)
+      (period, i) =>
+        i === index ? { ...period, [field]: formattedValue } : period
     );
     setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
   };
@@ -168,6 +208,7 @@ export default function AvailabilitiesTab() {
                       onChange={(e) =>
                         handleInputChange(index, "from", e.target.value)
                       }
+                      maxLength={5}
                     />
                   </div>
                   <div>
@@ -178,6 +219,7 @@ export default function AvailabilitiesTab() {
                       onChange={(e) =>
                         handleInputChange(index, "to", e.target.value)
                       }
+                      maxLength={5}
                     />
                   </div>
                   <Button
@@ -254,6 +296,7 @@ export default function AvailabilitiesTab() {
                           e.target.value
                         )
                       }
+                      maxLength={5}
                     />
                   </div>
                   <div>
@@ -264,6 +307,7 @@ export default function AvailabilitiesTab() {
                       onChange={(e) =>
                         handleInputChangePeriod(index, "timeTo", e.target.value)
                       }
+                      maxLength={5}
                     />
                   </div>
                   <Button
