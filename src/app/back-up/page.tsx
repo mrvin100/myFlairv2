@@ -38,7 +38,6 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckIcon, ChevronsUpDown } from 'lucide-react';
 
-// PARTEI PRO 
 interface Publication {
   id: string;
   name: string;
@@ -49,47 +48,41 @@ interface Publication {
   starRating: number;
   category: string;
   isAtHome: boolean;
+  idUser: string; 
 }
 
 const ProfessionalDiscoverCard = () => {
-  const publicationData: Publication[] = [
-    {
-      id: '1',
-      name: 'Milani Beauty',
-      ville: 'Paris',
-      pays: 'France',
-      prix: 35,
-      starRating: 4,
-      imageProfil: 'https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI=',
-      category: 'Bien-être',
-      isAtHome: false,
-    },
-    {
-      id: '2',
-      name: 'Milani Beauty',
-      ville: 'Paris',
-      pays: 'France',
-      prix: 35,
-      starRating: 4,
-      imageProfil: '',
-      category: '',
-      isAtHome: true,
-    },
-    {
-      id: '3',
-      name: 'Milani Beauty',
-      ville: 'Paris',
-      pays: 'France',
-      prix: 35,
-      starRating: 4,
-      imageProfil: '',
-      category: 'Bien-être',
-      isAtHome: false,
-    },
-  ];
+  const [publication, setPublication] = useState<Publication[]>([]);
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/serviceProfessional/getAlea', {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
+        const data = await response.json();
+        const mappedData = data.map((item) => ({
+          id: item.id,
+          name: item.title,
+          imageProfil: item.user.image,
+          ville: item.user.address.city,
+          pays: item.user.address.country,
+          prix: parseFloat(item.price),
+          category: item.category,
+          isAtHome: item.domicile,
+          idUser: item.user.id, 
+        }));
+        setPublication(mappedData);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
 
-  const [publication, setPublication] = useState<Publication[]>(publicationData);
-
+    fetchServices();
+  }, []);
   function ModelPublication({ publication }: { publication: Publication }) {
     return (
       <Card style={{ margin: 0 }} className='min-w-[330px] rounded-md'>
@@ -164,23 +157,7 @@ export default function BackUpPage() {
   return (
     <main>
       <HeaderSection title="Trouvez le professionnel parfait">
-        <Select onValueChange={(service: string) => setService(service)}>
-          <SelectTrigger className="bg-white">
-            <SelectValue placeholder="Sélectionner un service" />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((service) => (
-              <SelectItem key={service.id} value={service.id}>{service.title}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          onClick={() =>
-            (window.location.href = `/back-up/explore?service=${service}`)
-          }
-        >
-          Explorer
-        </Button>
+        
       </HeaderSection>
 
       <div className="py-8">

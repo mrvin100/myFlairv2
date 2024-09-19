@@ -5,6 +5,7 @@ export async function POST(req: NextRequest) {
   if (req.method === 'POST') {
     try {
       const body = await req.json();
+      console.log(body);
       const { date, address, city, postalCode, addressComplement, note, serviceId, userId, clientId, time } = body;
 
       if (!date || !time || !serviceId || !userId || !clientId) {
@@ -32,37 +33,41 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
       }
 
-      // Assurez-vous que le client existe avant de créer la réservation
       let existingClient = await prisma.client.findFirst({
         where: {
           clientId,
-          proId: service.user.id, // Make sure to include `proId` here
+          proId: service.user.id,
         },
       });
 
       if (!existingClient) {
-        // Create the client and handle errors
-        try {
-          existingClient = await prisma.client.create({
-            data: {
-              clientId,
-              proId: service.user.id, // Include the `proId` field
-              status: "flair",
-              user: {
-                connect: { id: userId } // Connect to an existing User
-              },
+        existingClient = await prisma.client.create({
+          data: {
+            proId: service.user.id,
+            status: "flair",
+            user: {
+              connect: { id: userId },
             },
-          });
-        } catch (error) {
-          console.error('Erreur lors de la création du client:', error);
-          return NextResponse.json({ error: 'Erreur lors de la création du client' }, { status: 500 });
-        }
+            clientUser: {
+              connect: { id: clientId },
+            },
+          },
+        });
+        
       }
 
-      // Créez la réservation maintenant que le client existe
+      const currentDate = new Date();
+      const reservationDate = new Date(dateOfRdv);
+      let status = "en-cours"; // Statut par défaut
+      if (reservationDate < currentDate) {
+        status = "termine";
+      } else if (status === "annule") {
+        status = "annule";
+      }
+
       const reservation = await prisma.reservationServicePro.create({
         data: {
-          date: new Date(date).toISOString(), // Utilisez la date fournie
+          date: new Date(date).toISOString(),
           time,
           address,
           city,
@@ -70,16 +75,17 @@ export async function POST(req: NextRequest) {
           addressComplement,
           note,
           service: {
-            connect: { id: serviceId }
+            connect: { id: serviceId },
           },
           user: {
-            connect: { id: userId }
+            connect: { id: userId },
           },
           client: {
-            connect: { id: existingClient.id } // Ensure you use the correct client ID
+            connect: { id: existingClient.id },
           },
-          dateOfRdv: new Date(dateOfRdv).toISOString()
-        }
+          dateOfRdv: new Date(dateOfRdv).toISOString(),
+          status,
+        },
       });
 
       return NextResponse.json(reservation, { status: 201 });
@@ -92,5 +98,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Méthode ${req.method} non autorisée` }, { status: 405 });
   }
 }
-
-export const runtime = 'experimental-edge';

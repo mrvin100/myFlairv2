@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       payment_method_types: ['card'],
       line_items: transformedItems,
       mode: 'payment',
-      success_url: `${redirectURL}/success`,
+      success_url: 'dashboard',
       cancel_url: `${redirectURL}/cancel`,
     });
 

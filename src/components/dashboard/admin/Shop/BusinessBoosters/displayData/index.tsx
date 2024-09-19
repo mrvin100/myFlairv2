@@ -1,6 +1,7 @@
-// src/components/dashboard/admin/Shop/BusinessBoosters/displayData.tsx
+
 "use client";
 import { useEffect, useState } from "react";
+import { format, parseISO } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,16 +24,21 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { fr } from 'date-fns/locale'; 
+
 
 interface BusinessBooster {
   id: string;
   image: string;
+  alt?: string;
   title: string;
   description: string;
-  price: number;
-  period: string;
   quantity: number;
-  alt?: string;
+  price: number;
+  dates: { date: string; available: number }[];
+  createdAt: string;
+  updatedAt: string;
+  idStripe?: string;
 }
 
 interface DisplayBusinessBoostersProps {
@@ -40,14 +46,27 @@ interface DisplayBusinessBoostersProps {
   setBusinessBoosters: React.Dispatch<React.SetStateAction<BusinessBooster[]>>;
 }
 
+const formatDates = (dates: { date: string; available: number }[]) => {
+  if (!dates || dates.length === 0) return 'No dates available';
+
+  const sortedDates = dates
+    .map(({ date }) => ({
+      date: parseISO(date),
+    }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const startDate = format(sortedDates[0].date, 'dd MMMM yyyy');
+  const endDate = format(sortedDates[sortedDates.length - 1].date, 'dd MMMM yyyy');
+
+  return `Du ${startDate} au ${endDate}`;
+};
+
 const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
   businessBoosters,
   setBusinessBoosters,
 }) => {
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedBoosterId, setSelectedBoosterId] = useState<string | null>(
-    null
-  );
+  const [selectedBoosterId, setSelectedBoosterId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -64,24 +83,18 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
         console.log("Business Boosters fetched:", data);
         setBusinessBoosters(data);
       })
-      .catch((error) =>
-        console.error("Error fetching business boosters", error)
-      );
+      .catch((error) => console.error("Error fetching business boosters", error));
   }, [setBusinessBoosters]);
 
   const handleDelete = async (id: string) => {
     try {
       await deleteBusinessBoosterById(id);
-      // Mettre à jour l'état local en retirant le booster supprimé
       setBusinessBoosters((prevBusinessBoosters) =>
         prevBusinessBoosters.filter((booster) => booster.id !== id)
       );
       setShowDialog(false);
     } catch (error) {
-      console.error(
-        "Erreur lors de la suppression du Business Booster:",
-        error
-      );
+      console.error("Erreur lors de la suppression du Business Booster:", error);
     }
   };
 
@@ -96,91 +109,104 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
 
     return response.json();
   }
-
+  const formatDates = (dates: { date: string; available: number }[]) => {
+    if (!dates || dates.length === 0) return 'Aucune date disponible';
+  
+    const sortedDates = dates
+      .map(({ date }) => ({
+        date: parseISO(date),
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  
+    const startDate = format(sortedDates[0].date, 'dd MMMM yyyy', { locale: fr });
+    const endDate = format(sortedDates[sortedDates.length - 1].date, 'dd MMMM yyyy', { locale: fr });
+  
+    return `Du ${startDate} au ${endDate}`;
+  };
+  
   return (
     <div>
-      <AlertDialog>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Business Booster</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Tarif</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Id</TableHead>
+            <TableHead>Business Booster</TableHead>
+            <TableHead>Image</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Tarif</TableHead>
+            <TableHead>Stock</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {businessBoosters.map((booster) => (
-            <TableBody key={booster.id}>
-              <TableRow>
-                <TableCell>n° {booster.id}</TableCell>
-                <TableCell>{booster.title}</TableCell>
-                <TableCell>
-                  <img
-                    src={booster.image}
-                    alt={booster.alt || booster.title}
-                    style={{
-                      width: "100px",
-                      height: "auto",
-                      marginBottom: "5px",
-                    }}
-                    className="rounded-lg"
-                  />
-                </TableCell>
-                <TableCell>{booster.price} €</TableCell>
-                <TableCell>{booster.quantity}</TableCell>
-                <TableCell>
-                  <div className="flex">
-                    <Link
-                      href={`/dashboard/administrator/businessBooster/${encodeURIComponent(booster.id)}`}
-                    >
-                      <img src="/iconWorkPlace/edit.svg" alt="" />
-                    </Link>
-                    <AlertDialogTrigger asChild style={{ marginLeft: "20px" }}>
+            <TableRow key={booster.id}>
+              <TableCell>n° {booster.id}</TableCell>
+              <TableCell>{booster.title}</TableCell>
+              <TableCell>
+                <img
+                  src={booster.image || '/default-image.jpg'}
+                  alt={booster.alt || booster.title}
+                  style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
+                  className="rounded-lg"
+                />
+              </TableCell>
+              <TableCell>{formatDates(booster.dates)}</TableCell>
+              <TableCell>{booster.price} €</TableCell>
+              <TableCell>{booster.quantity}</TableCell>
+              <TableCell>
+                <div className="flex">
+                  <Link
+                    href={`/dashboard/administrator/businessBooster/${encodeURIComponent(
+                      booster.id
+                    )}`}
+                  >
+                    <img src="/iconWorkPlace/edit.svg" alt="Edit" />
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
                       <img
                         src="/iconWorkPlace/trash-2.svg"
-                        alt=""
+                        alt="Delete"
                         onClick={() => {
                           setShowDialog(true);
                           setSelectedBoosterId(booster.id);
                         }}
+                        style={{ marginLeft: '20px' }}
                       />
                     </AlertDialogTrigger>
-                  </div>
-                  {showDialog && selectedBoosterId === booster.id && (
-                    <AlertDialogContent key={booster.id}>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Voulez-vous vraiment supprimer ce Business Booster ?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Cette action est irréversible, voulez-vous vraiment le
-                          supprimer ?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowDialog(false)}>
-                          Annuler
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            handleDelete(booster.id);
-                            setShowDialog(false);
-                          }}
-                        >
-                          Valider
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  )}
-                </TableCell>
-              </TableRow>
-            </TableBody>
+                    {showDialog && selectedBoosterId === booster.id && (
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Voulez-vous vraiment supprimer ce Business Booster ?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible. Voulez-vous vraiment le supprimer ?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setShowDialog(false)}>
+                            Annuler
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              handleDelete(booster.id);
+                              setShowDialog(false);
+                            }}
+                          >
+                            Valider
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    )}
+                  </AlertDialog>
+                </div>
+              </TableCell>
+            </TableRow>
           ))}
-        </Table>
-      </AlertDialog>
+        </TableBody>
+      </Table>
     </div>
   );
 };

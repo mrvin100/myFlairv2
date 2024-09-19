@@ -1,10 +1,11 @@
-import Workplaces from './Workplaces/page';
-import BusinessBoosters from './BusinessBoosters';
-import Services from './Services';
-
-
+"use client"
+import dynamic from 'next/dynamic';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Formations from './Formations';
+
+const Workplaces = dynamic(() => import('./Workplaces/page'), { ssr: false });
+const BusinessBoosters = dynamic(() => import('./BusinessBoosters'), { ssr: false });
+const Services = dynamic(() => import('./Services'), { ssr: false });
+const Formations = dynamic(() => import('./Formations'), { ssr: false });
 
 const tabs = [
   {

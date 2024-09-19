@@ -1,20 +1,20 @@
-// src/components/dashboard/admin/Shop/BusinessBoosters/index.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useRef, useState } from "react";
 import * as z from "zod";
 import ReactQuill from "react-quill";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { addDays } from "date-fns";
 import { useRouter } from "next/navigation";
 import { fr } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 
 import { businessBoosterSchema } from "@/schemas";
 import { useToast } from "@/components/ui/use-toast";
-import { error, success, toastAction } from "@/components/toast";
-import { ImageUploader } from "@/components/image-uploader";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/calendar";
+import { addDays, format, eachDayOfInterval } from "date-fns";
+
 import {
   Dialog,
   DialogContent,
@@ -26,16 +26,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormItem, FormControl, FormField } from "@/components/ui/form";
-import { Popover } from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { TabsContent } from "@/components/ui/tabs";
 import { DateRange } from "react-day-picker";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { TrashIcon } from "@radix-ui/react-icons";
-import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
 import DisplayBusinessBoosters from "@/components/dashboard/admin/Shop/BusinessBoosters/displayData";
 import { BusinessBooster } from "@/components/dashboard/admin/Shop/BusinessBoosters/types";
-
-import { format, eachDayOfInterval } from "date-fns";
 
 import "react-quill/dist/quill.snow.css";
 
@@ -43,16 +40,14 @@ type BusinessBoosterFormValues = z.infer<typeof businessBoosterSchema>;
 
 export default function BusinessBoostersTab() {
   const router = useRouter();
-  const { toast } = useToast();
-
-  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>(
-    []
-  );
+  const fileInputRef = useRef<HTMLInputElement>(null); 
+  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: addDays(new Date(), 30),
   });
-  const [dates, setDates] = useState<any[]>([]);
+  const [image, setImage] = useState<File | null>(null); 
+  const [availabilityDates, setAvailabilityDates] = useState<DateRange[]>([]);
 
   const form = useForm<BusinessBoosterFormValues>({
     resolver: zodResolver(businessBoosterSchema),
@@ -67,24 +62,72 @@ export default function BusinessBoostersTab() {
     },
   });
 
-  function generateDatesWithAvailability(from: Date, to: Date, quantity: number) {
-    const days = eachDayOfInterval({ start: from, end: to });
-  
-    return days.map((day) => ({
-      date: format(day, 'yyyy-MM-dd'),
-      available: quantity, 
-    }));
-  }
-  
-  const onSubmit: SubmitHandler<BusinessBoosterFormValues> = async (data) => {
+  const uploadImage = async (file: File): Promise<string> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
+    if (!cloudName || !uploadPreset) {
+      throw new Error('Cloudinary environment variables are not properly configured.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileInputChange({ target: { files } as any });
+    }
+  };
+  
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      try {
+        const imageUrl = await uploadImage(files[0]);
+        setImage(files[0]);
+        form.setValue("image", imageUrl);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    }
+  };
+  
+  const removeImage = () => {
+    setImage(null);
+    form.setValue("image", "");
+  };
+
+  const generateDatesWithAvailability = (from: Date, to: Date, quantity: number) => {
+    const interval = eachDayOfInterval({ start: from, end: to });
+    return interval.map((date) => ({
+      date: format(date, "yyyy-MM-dd"),
+      available: quantity,
+    }));
+  };
+
+  const onSubmit: SubmitHandler<BusinessBoosterFormValues> = async (data) => {
     if (dateRange) {
       const generatedDates = generateDatesWithAvailability(
         dateRange.from!,
         dateRange.to!,
         data.quantity
       );
-      data.dates = generatedDates; // Ajoute les dates générées avec disponibilité
+      data.dates = generatedDates;
     }
 
     try {
@@ -103,17 +146,11 @@ export default function BusinessBoostersTab() {
       }
 
       const result: BusinessBooster = await response.json();
-      setBusinessBoosters((prev) => [...prev, result]); // Mise à jour de l'état local avec le nouveau business booster
-      toast({
-        title: "Succès",
-        description: "Business booster créé avec succès",
-      });
+      setBusinessBoosters((prev) => [...prev, result]);
+      
     } catch (error) {
       console.error("Error submitting data:", error);
-      toast({
-        title: "Erreur",
-        description: (error as Error).message,
-      });
+     
     }
   };
 
@@ -152,10 +189,7 @@ export default function BusinessBoostersTab() {
               <ScrollArea>
                 <Form {...form}>
                   <form
-                    onSubmit={(e) => {
-                      console.log("Form submitted");
-                      form.handleSubmit(onSubmit)(e);
-                    }}
+                    onSubmit={form.handleSubmit(onSubmit)}
                     style={{ marginLeft: "1%", marginRight: "1%" }}
                   >
                     <DialogHeader>
@@ -174,7 +208,6 @@ export default function BusinessBoostersTab() {
                                 <FormControl>
                                   <Input
                                     {...field}
-                                    className=""
                                     placeholder="Titre"
                                   />
                                 </FormControl>
@@ -193,7 +226,6 @@ export default function BusinessBoostersTab() {
                                     {...form.register("quantity", {
                                       valueAsNumber: true,
                                     })}
-                                    className=""
                                     placeholder="Quantité"
                                     type="number"
                                   />
@@ -202,7 +234,7 @@ export default function BusinessBoostersTab() {
                             )}
                           />
                           <br />
-                          <label htmlFor="">Prix</label>
+                          <label>Prix</label>
                           <FormField
                             control={form.control}
                             name="price"
@@ -213,7 +245,6 @@ export default function BusinessBoostersTab() {
                                     {...form.register("price", {
                                       valueAsNumber: true,
                                     })}
-                                    className=""
                                     placeholder="Prix"
                                     type="number"
                                   />
@@ -222,41 +253,41 @@ export default function BusinessBoostersTab() {
                             )}
                           />
                           <br />
-                          <label htmlFor="">Date</label>
+                          <label>Date</label>
                           <Popover>
-                            <div className="grid gap-2">
-                              <CalendarBusinessBooster
-                                dateRange={dateRange}
-                                setDateRange={setDateRange}
-                              />
-                            </div>
+                            <PopoverTrigger asChild>
+                              <div className="grid gap-2">
+                                <Calendar
+                                  dateRange={dateRange}
+                                  setDateRange={setDateRange}
+                                />
+                              </div>
+                            </PopoverTrigger>
                           </Popover>
-
-                          {dates.length > 0 && <p>Dates ajoutées:</p>}
-                          {dates.map((date, index) => (
+                          {availabilityDates.length > 0 && <p>Dates ajoutées:</p>}
+                          {availabilityDates.map((date, index) => (
                             <div
                               className="flex items-center gap-2"
                               key={index}
                             >
                               {date.to ? (
                                 <>
-                                  {format(date.from!, "dd LLL y", {
-                                    locale: fr,
-                                  })}{" "}
+                          
+                                  {format(date.from, "dd LLL y", { locale: fr })}{" "}
                                   -{" "}
-                                  {format(date.to!, "dd LLL y", { locale: fr })}
+                                  {format(date.to, "dd LLL y", { locale: fr })}
                                 </>
                               ) : (
-                                format(date.from!, "dd LLL y", { locale: fr })
+                                format(date.from, "dd LLL y", { locale: fr })
                               )}
                               <Button
                                 size="icon"
                                 variant="destructive"
                                 onClick={() => {
-                                  const newDates = dates.filter(
+                                  const newDates = availabilityDates.filter(
                                     (_, i) => i !== index
                                   );
-                                  setDates(newDates);
+                                  setAvailabilityDates(newDates);
                                   form.setValue("dates", newDates);
                                 }}
                               >
@@ -270,8 +301,8 @@ export default function BusinessBoostersTab() {
                             className="flex justify-start"
                             onClick={() => {
                               if (dateRange) {
-                                const newDates = [...dates, dateRange];
-                                setDates(newDates);
+                                const newDates = [...availabilityDates, dateRange];
+                                setAvailabilityDates(newDates);
                                 form.setValue("dates", newDates);
                               }
                             }}
@@ -280,7 +311,7 @@ export default function BusinessBoostersTab() {
                             Ajouter la date
                           </Button>
                           <br />
-                          <label htmlFor="">Description</label>
+                          <label>Description</label>
                           <FormField
                             control={form.control}
                             name="description"
@@ -296,12 +327,49 @@ export default function BusinessBoostersTab() {
                               </FormItem>
                             )}
                           />
+<br />
+                          <label>Image</label>
+                          <div
+                            onClick={() => fileInputRef.current?.click()}
+                            onDrop={handleDrop}
+                            onDragOver={(e) => e.preventDefault()}
+                            className="cursor-pointer border-2 border-dashed border-gray-300 p-4 text-center"
+                          >
+                            <p className="text-sm">Cliquez ou glissez et déposez des fichiers ici</p>
+                            <p className="text-xs">Formats: JPEG, PNG, JPG et SVG</p>
+                          </div>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg, image/png, image/jpg, image/svg+xml"
+                            style={{ display: 'none' }}
+                            onChange={handleFileInputChange}
+                          />
+
+                          {image && (
+                            <div style={{ position: 'relative', display: 'inline-block', marginRight: '10px' }}>
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt="Uploaded"
+                                style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
+                                className="rounded-lg"
+                              />
+                              <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
+                                <button
+                                  className="rounded-full p-1 bg-red-600"
+                                  onClick={removeImage}
+                                >
+                                  <TrashIcon className="h-4 w-4 text-white" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </DialogDescription>
-                      <br />
                     </DialogHeader>
-
-                    <Button type="submit">Ajouter</Button>
+                    <DialogFooter>
+                      <Button type="submit">Ajouter</Button>
+                    </DialogFooter>
                   </form>
                 </Form>
                 <ScrollBar orientation="vertical" />
