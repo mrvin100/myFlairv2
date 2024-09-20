@@ -1,4 +1,3 @@
-"use client"
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -11,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import ReactQuill from 'react-quill';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover } from '@/components/ui/popover';
-import { format, addDays } from 'date-fns';
+import { format, addDays, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import DisplayFormations from './displayData';
@@ -26,15 +25,14 @@ interface Formation {
   price: number;
   quantity: number;
   deposit: number;
-  [key: string]: string | boolean | number | undefined;
+  dates: { date: string; available: number }[]; // Ajout de dates ici
 }
-
-
 
 const AddFormation = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const [formation, setFormation] = useState<Formation>({
     image: '',
     alt: '',
@@ -43,6 +41,7 @@ const AddFormation = () => {
     price: 0,
     quantity: 0,
     deposit: 0,
+    dates: []
   });
   const [images, setImages] = useState<File[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -50,7 +49,6 @@ const AddFormation = () => {
     to: addDays(new Date(), 30),
   });
   const [dates, setDates] = useState<DateRange[]>([]);
-
 
   const handleFormationChange = (key: keyof Formation, value: any) => {
     setFormation((prevFormation) => ({
@@ -105,19 +103,27 @@ const AddFormation = () => {
     handleFormationChange('type', value);
   };
 
+  const formatDates = (dates: DateRange[]): { date: string; available: number }[] => {
+    return dates.flatMap(({ from, to }) => {
+      if (!from || !to) return [];
+      return eachDayOfInterval({ start: from, end: to }).map(date => ({
+        date: format(date, 'yyyy-MM-dd'),
+        available: formation.quantity
+      }));
+    });
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/formation/create', formation, {
+      const formattedDates = formatDates(dates);
+      const response = await axios.post('/api/formation/create', { ...formation, dates: formattedDates }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
       if (response.status === 200) {
         toast.success('Formation ajoutée avec succès');
-        setTimeout(() => {
-          router.push('/dashboard/professional');
-        }, 2000);
       } else {
         toast.error('Erreur lors de l\'ajout de la formation');
         console.log('Erreur lors de l\'ajout de la formation :', response.data);
@@ -244,7 +250,6 @@ const AddFormation = () => {
                               onClick={() => {
                                 const newDates = dates.filter((_, i) => i !== index);
                                 setDates(newDates);
-                                
                               }}
                             >
                               <TrashIcon className="h-4 w-4" />
@@ -259,7 +264,6 @@ const AddFormation = () => {
                             if (dateRange) {
                               const newDates = [...dates, dateRange];
                               setDates(newDates);
-                              
                             }
                           }}
                           type="button"

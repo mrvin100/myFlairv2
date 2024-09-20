@@ -1,3 +1,5 @@
+// app/api/formation/create/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { htmlToText } from 'html-to-text';
 import { prisma } from '@/lib/prisma';
@@ -6,24 +8,17 @@ import { stripe } from '@/lib/stripe';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { image, alt, title, description, price, quantity, type, deposit } = body;
-
-    console.log('Données reçues:', body);
-
+    const { image, alt, title, description, price, quantity, deposit, type, dates } = body;
     const descriptionWithoutHtml = htmlToText(description);
-
+    
+    // Create the Stripe product
     const formationProduct = await stripe.products.create({
       name: title,
       description: description,
       images: [image],
     });
 
-    console.log('Produit Stripe créé:', formationProduct);
-
-    if (!formationProduct.id) {
-      throw new Error('Le produit Stripe n\'a pas été créé correctement.');
-    }
-
+    // Create the Stripe price
     let priceObj;
     if (type === 'day') {
       priceObj = await stripe.prices.create({
@@ -40,6 +35,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const createdProduct = await prisma.product.create({
+      data: {
+        stripeId: formationProduct.id,
+        prodType: 'FORMATION',
+      },
+    });
+    
     const formation = await prisma.formation.create({
       data: {
         image,
@@ -49,11 +51,10 @@ export async function POST(req: NextRequest) {
         price: parseFloat(price),
         quantity: parseInt(quantity, 10),
         deposit: parseFloat(deposit),
-        idStripe: formationProduct.id,
+        dates,
+        idStripe: createdProduct.stripeId,
       },
     });
-
-    console.log('Formation créée:', formation);
 
     return NextResponse.json({
       formationProduct,
@@ -65,6 +66,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erreur lors de la création de la formation.', details: error.message }, { status: 500 });
   }
 }
-
 
 export const runtime = 'experimental-edge';

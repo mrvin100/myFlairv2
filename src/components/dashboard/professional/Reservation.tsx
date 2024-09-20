@@ -1,8 +1,31 @@
+'use client'
+import { useState, useEffect } from "react";
+import { useUserContext } from "@/contexts/user";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { CircleDot } from "lucide-react";
 import Image from "next/image";
 
+
+type ReservationType = {
+  id: string;
+  service: {
+    typeClient: string;
+    title: string;
+    price: number;
+    dureeRDV: string;
+  };
+  status: string;
+  dateOfRdv: string;
+  time: string;
+  address: string;
+  note: string;
+  user: {
+    email: string;
+    phone: string;
+    image: string;
+  };
+};
 type ReservationProps = {
   status: string;
   typeClient: string;
@@ -21,8 +44,8 @@ type ReservationProps = {
 
 
 export default function Reservation({
-  status = "en-cours",
-  typeClient = "boutique",
+  status,
+  typeClient,
   image,
   date,
   time,
@@ -34,6 +57,8 @@ export default function Reservation({
   dureeRDV,
   phone,
 }: ReservationProps) {
+
+
  
   const displayAddress = address && address.trim() !== "" ? address : "Sur le lieu de travail";
 
@@ -42,12 +67,11 @@ export default function Reservation({
       {/* Profil du client */}
       <div className="shadow-md rounded-sm md:max-w-[16rem] w-full p-4 text-center border flex flex-col gap-3 justify-center items-center">
         <div
-          className={clsx(
-            typeClient === "boutique"
-              ? "bg-blue-100 text-blue-600"
-              : "text-black-500 bg-gray-300",
-            "rounded-sm py-2 px-3 text-[.7rem]"
-          )}
+         className={`${
+          status === "boutique"
+          ? "text-[#4C40ED] bg-[#F7F7FF]" 
+          : "text-[#FFA500] bg-[#FFF4E5]" 
+        } py-2 px-3 rounded-md text-[.7rem]`}
         >
           Client {typeClient === "boutique" ? "en boutique" : "flair"}
         </div>

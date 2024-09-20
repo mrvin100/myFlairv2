@@ -50,6 +50,7 @@ model User {
   firstName         String
   lastName          String
   address           Json
+  billingAddress    Json?
   enterprise        String?
   homeServiceOnly   Boolean   @default(false)
   email             String    @unique
@@ -57,17 +58,18 @@ model User {
   forgotPassword    String    @unique @default(uuid())
   phone             String
   website           String?
+  nameOfSociety     String?
   services          Service[]
   orders            Order[]
   reviewsWritten    Review[]  @relation("ReviewsWritten")
   reviewsReceived   Review[]  @relation("ReviewsReceived")
   cart              Cart?
-  preferences       Json
-  preferencesProWeek Json
-  mark              Float
-  numberOfRate      Int
-  socialMedia       Json
-  biography         String
+  preferences       Json?
+  preferencesProWeek Json?
+  mark              Float?
+  numberOfRate      Int?
+  socialMedia       Json?
+  biography         String?
   subscription      SubscriptionType?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
@@ -82,7 +84,6 @@ model Client {
   proId             String   
   clientId          String   
   status            String?
-  
   user              User     @relation("ProfessionalClients", fields: [userId], references: [id])
   userId            String
   clientUser        User     @relation("ClientUserRelation", fields: [clientId], references: [id])
@@ -97,6 +98,7 @@ model ReservationServicePro {
   postalCode        String?
   addressComplement String?
   note              String?
+  status            String?
   service           Service   @relation(fields: [serviceId], references: [id])
   serviceId         String
   user              User      @relation(fields: [userId], references: [id])
@@ -156,6 +158,7 @@ model Formation {
   description String
   price       Float
   quantity    Int
+  dates       Json
   deposit     Float   
   createdAt   DateTime @default(now())
   updatedAt   DateTime? @updatedAt
@@ -192,7 +195,7 @@ model Product {
   prodType        ProductType
   post            Post?
   additionalService AdditionalService?
-  formation       Formation?
+  formation       Formation[]
   businessBooster BusinessBooster?
   cartItems       CartItem[]
 }
@@ -310,9 +313,11 @@ model Subscription {
 
 
 model Category {
-  id            String    @id @default(cuid())
-  image         String
-  title         String
+
+  id          Int      @id @default(autoincrement())
+  title       String
+  imageLogo   String
+  imageMinia  String
   createdAt     DateTime   @default(now())
   updatedAt     DateTime?  @updatedAt
 }
@@ -329,3 +334,13 @@ model Room {
   post           Post      @relation(fields: [postId], references: [id])
 }
 
+model Abonnement {
+  id             Int      @id @default(autoincrement())
+  title          String
+  price          Int
+  nbrEssaisGratuit Int
+  period         String
+  functions      Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
