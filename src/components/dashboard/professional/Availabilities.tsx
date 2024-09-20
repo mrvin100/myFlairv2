@@ -110,30 +110,6 @@ export default function AvailabilitiesTab() {
     );
     setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
   };
-
-  // const handleInputChange = (
-  //   index: number,
-  //   field: "from" | "to",
-  //   value: string
-  // ) => {
-  //   const updatedAvailabilities = availabilities[selectedDay].map((time, i) =>
-  //     i === index ? { ...time, [field]: value } : time
-  //   );
-  //   setAvailabilities({
-  //     ...availabilities,
-  //     [selectedDay]: updatedAvailabilities,
-  //   });
-  // };
-  // const handleInputChangePeriod = (
-  //   index: number,
-  //   field: "from" | "to" | "timeFrom" | "timeTo",
-  //   value: string
-  // ) => {
-  //   const updatedAvailabilitiesPeriods = availabilitiesPeriods.map(
-  //     (period, i) => (i === index ? { ...period, [field]: value } : period)
-  //   );
-  //   setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
-  // };
   const handleInputChange = (
     index: number,
     field: "from" | "to",
