@@ -1,47 +1,15 @@
 'use client';
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
+import { useEffect, useState } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    CardFooter
+    Card, CardContent, CardHeader, CardTitle, CardFooter
 } from "@/components/ui/card";
-
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover } from '@/components/ui/popover';
-import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import { TrashIcon } from 'lucide-react';
-
-interface Suscribe {
-    clientId: string;
-    type: string;
-    [key: string]: string | boolean | number | undefined;
-}
 
 interface createSuscribe {
     title: string;
@@ -50,7 +18,6 @@ interface createSuscribe {
     period: string;
     functions?: { name: string }[];
 }
-
 
 export default function SuscribeTab() {
     const [createSuscribe, setCreateSuscribe] = useState<createSuscribe>({
@@ -61,9 +28,7 @@ export default function SuscribeTab() {
         functions: [],
     });
 
-    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date } | null>(null);
-    const [dates, setDates] = useState<{ from?: Date; to?: Date }[]>([]);
-    const [abonnement, setAbonnement] = useState<any[]>([]); // Assuming this will be fetched or passed as props
+    const [abonnement, setAbonnement] = useState<any[]>([]);
 
     const handleAbonnementChange = (field: string, value: any) => {
         setCreateSuscribe((prev) => ({
@@ -83,20 +48,14 @@ export default function SuscribeTab() {
         setCreateSuscribe((prev) => {
             const functions = [...(prev.functions || [])];
             functions[index] = { name: value };
-            return {
-                ...prev,
-                functions,
-            };
+            return { ...prev, functions };
         });
     };
 
     const handleRemoveFunction = (index: number) => {
         setCreateSuscribe((prev) => {
             const functions = (prev.functions || []).filter((_, i) => i !== index);
-            return {
-                ...prev,
-                functions,
-            };
+            return { ...prev, functions };
         });
     };
 
@@ -105,9 +64,6 @@ export default function SuscribeTab() {
             ...prev,
             functions: [...(prev.functions || []), { name: '' }],
         }));
-    };
-
-    const handleTypeChange = (value: string) => {
     };
 
     const handleCreateAbonnement = async () => {
@@ -121,9 +77,7 @@ export default function SuscribeTab() {
 
         const response = await fetch('/api/abonnement/create', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(abonnementData),
         });
 
@@ -132,6 +86,25 @@ export default function SuscribeTab() {
             console.log('Abonnement créé avec succès:', data);
         } else {
             console.error('Erreur lors de la création de l\'abonnement');
+        }
+    };
+
+    useEffect(() => {
+        const fetchAbonnements = async () => {
+            const response = await fetch('/api/abonnement/get');
+            const abonnements = await response.json();
+            setAbonnement(abonnements);
+        };
+        fetchAbonnements();
+    }, []);
+
+    const handleDeleteAbonnement = async (id: string) => {
+        const response = await fetch(`/api/abonnement/delete/${id}`, { method: 'DELETE' });
+
+        if (response.ok) {
+            setAbonnement((prevAbonnement) => prevAbonnement.filter((abonnement) => abonnement.id !== id));
+        } else {
+            console.error('Erreur lors de la suppression de l\'abonnement');
         }
     };
 
@@ -147,11 +120,10 @@ export default function SuscribeTab() {
                         <DialogContent className="max-h-screen overflow-y-scroll">
                             <DialogHeader>
                                 <DialogTitle>Ajouter un abonnement</DialogTitle>
+                                <br />
                                 <DialogDescription>
-                                    <br />
-                                    <label className="mt-4">Titre</label>
-                                    <br />
-                                    <br />
+                                    <label>Titre</label>
+                                    <br /><br />
                                     <Input
                                         type="text"
                                         placeholder="Ex: Gestion planning MENSUEL"
@@ -159,10 +131,8 @@ export default function SuscribeTab() {
                                         onChange={(e) => handleAbonnementChange('title', e.target.value)}
                                     />
                                     <br />
-
                                     <label>Prix</label>
-                                    <br />
-                                    <br />
+                                    <br /><br />
                                     <Input
                                         type="number"
                                         placeholder="Ex: 19 €"
@@ -170,10 +140,8 @@ export default function SuscribeTab() {
                                         onChange={(e) => handleAbonnementChange('price', e.target.value)}
                                     />
                                     <br />
-
                                     <label>Essai gratuit</label>
-                                    <br />
-                                    <br />
+                                    <br /><br />
                                     <div className="flex">
                                         <Input
                                             type="number"
@@ -197,10 +165,8 @@ export default function SuscribeTab() {
                                         </Select>
                                     </div>
                                     <br />
-                             
                                     <label>Fonctionnalités</label>
-                                    <br />
-                                    <br />
+                                    <br /><br />
                                     {createSuscribe.functions?.map((func, index) => (
                                         <div key={index} className="flex items-center space-x-2 mt-2">
                                             <Input
@@ -209,70 +175,72 @@ export default function SuscribeTab() {
                                                 value={func.name}
                                                 onChange={(e) => handleFunctionChange(index, e.target.value)}
                                             />
-                                            {index >= 0 && (
-                                                <Button variant="destructive" onClick={() => handleRemoveFunction(index)}>
-                                                    Supprimer
-                                                </Button>
-                                            )}
+                                            <Button variant="destructive" onClick={() => handleRemoveFunction(index)}>Supprimer</Button>
                                         </div>
                                     ))}
-                                    <span onClick={handleAddFunction} className="mt-4 flex">
-                                        Ajouter Fonction+
-                                    </span>
-                                    <br />
-                                    <Button onClick={handleCreateAbonnement} className="mt-4">
-                                        Enregistrer
-                                    </Button>
+                                    <span onClick={handleAddFunction} className="mt-4 flex cursor-pointer"><u>Ajouter une nouvelle fonction+</u></span>
+                                    <Button onClick={handleCreateAbonnement} className="mt-4">Enregistrer</Button>
                                 </DialogDescription>
                             </DialogHeader>
                         </DialogContent>
                     </Dialog>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 min-w-[400px]">
-                    {abonnement.map((abonnement) => (
-                        <Card key={abonnement.id}>
-                            <CardHeader>
-                                <CardTitle className="flex justify-center" style={{ fontWeight: '700' }}>
-                                    {abonnement.title}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <span className="flex justify-center" style={{ fontWeight: 700, fontSize: '40px' }}>
-                                    {abonnement.price}€
-                                </span>
-                                <span className="flex justify-center">Essai gratuit :</span>
-                                       <span className="flex justify-center" style={{ fontWeight: 700, fontSize: '40px' }}>
-                                    {abonnement.freePeriod} {abonnement.type === 'day' && abonnement.freePeriod === 1 ? (
-                                        'Jour'
-                                    ) : abonnement.type === 'day' && abonnement.freePeriod > 1 ? (
-                                        'Jours'
-                                    ) : abonnement.type === 'week' && abonnement.freePeriod === 1 ? (
-                                        'Semaine'
-                                    ) : abonnement.type === 'week' && abonnement.freePeriod > 1 ? (
-                                        'Semaines'
-                                    ) : abonnement.type === 'month' && abonnement.freePeriod === 1 ? (
-                                        'Mois'
-                                    ) : abonnement.type === 'year' && abonnement.freePeriod === 1 ? (
-                                        'Année'
-                                    ) : 'Années'}
-                                </span>
-                                <p className="text-center mt-2">
-                                    {abonnement.functions?.map((func, idx) => (
-                                        <div key={idx}>
-                                            <span>{func.name}</span>
-                                        </div>
-                                    ))}
-                                </p>
-                            </CardContent>
-                            <CardFooter className="flex justify-center">
-                                <Button variant="destructive" onClick={() => handleRemoveFunction(abonnement.id)}>
-                                    <TrashIcon className="mr-2" />
-                                    Supprimer
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
+                {abonnement.map((abonnement) => (
+                    <Card key={abonnement.id}>
+                        <CardHeader>
+                            <CardTitle className="flex justify-center" style={{ fontWeight: '700' }}>
+                            <span className="flex justify-center" style={{ fontWeight: 700 }}>
+                        {abonnement.title}
+                    </span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                        
+                    <span className="flex justify-center" style={{ fontSize: '40px' }}>
+                        {abonnement.price}€
+                    </span>
+                    <span className="flex justify-center">Essai gratuit :</span>
+                    <span className="flex justify-center" style={{ fontWeight: 700, fontSize: '40px' }}>
+                    {abonnement.nbrEssaisGratuit !== null && abonnement.nbrEssaisGratuit !== '' && (
+                        <>
+                        {abonnement.nbrEssaisGratuit}{' '}
+                        {(() => {
+                        const { period, nbrEssaisGratuit } = abonnement;
+
+                        if (period === 'day') {
+                            return nbrEssaisGratuit === 1 ? 'Jour' : 'Jours';
+                        }
+                        if (period === 'week') {
+                        return nbrEssaisGratuit === 1 ? 'Semaine' : 'Semaines';
+                        }
+                        if (period === 'month') {
+                        return 'Mois';
+                    }
+                    if (period === 'year') {
+                         return nbrEssaisGratuit === 1 ? 'Année' : 'Années';
+                        }
+
+                        return ''; // Cas par défaut si aucun match
+                    })()}
+                </>
+            )}
+            </span>
+
+                    
+                </CardContent>
+                <CardFooter className="flex justify-center">
+                <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteAbonnement(abonnement.id)}
+                >
+                    <TrashIcon className="mr-2" /> Supprimer
+                </Button>
+            </CardFooter>
+            </Card>
+            ))}
+        </div>
+
             </div>
         </TabsContent>
     );

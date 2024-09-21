@@ -45,7 +45,7 @@ interface NewClient {
   email: string;
   password: string;
   role: string;
-  homeServiceOnly: boolean; 
+  homeServiceOnly: boolean;
   billingAddress?: {
     street?: string;
     city?: string;
@@ -75,7 +75,7 @@ const AddClient = () => {
     email: '',
     password: '',
     role: '',
-    homeServiceOnly: false, 
+    homeServiceOnly: false,
     billingAddress: {
       street: '',
       city: '',
@@ -159,9 +159,6 @@ const AddClient = () => {
       });
       if (response.status === 200) {
         toast.success('Nouveau client ajouté avec succès');
-        setTimeout(() => {
-          router.push('/dashboard/clients');
-        }, 2000);
       } else {
         toast.error("Erreur lors de l'ajout du client");
         console.log('Error adding client:', response.data);
@@ -221,7 +218,7 @@ const AddClient = () => {
                         }
                         placeholder="Prénom du client"
                         required
-                      /> 
+                      />
                       <br />
                       <label>
                         Nom du client <span className="text-red-500">*</span>
@@ -239,7 +236,7 @@ const AddClient = () => {
                         required
                       />
                       <br />
-                  
+
 
                       <label>
                         Adresse <span className="text-red-500">*</span>
@@ -315,75 +312,75 @@ const AddClient = () => {
                       />
                       <br />
                       <label>
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <br />
-                        <br />
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <br />
+                      <br />
+                      <Input
+                        type="email"
+                        onChange={(e) =>
+                          handleClientChange('email', e.target.value)
+                        }
+                        value={newClient.email}
+                        placeholder="Adresse email"
+                        required
+                      />
+                      <br />
+                      <label>
+                        Mot de passe <span className="text-red-500">*</span>
+                      </label>
+                      <br />
+                      <br />
+                      <div className="flex items-center border rounded-md">
+                        <div className="flex items-center justify-center border-r px-3 py-1">
+                          {hidden ? (
+                            <EyeClosedIcon
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() => setHidden(false)}
+                            />
+                          ) : (
+                            <EyeOpenIcon
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() => setHidden(true)}
+                            />
+                          )}
+                        </div>
                         <Input
-                          type="email"
+                          className="rounded-none rounded-br-md rounded-tr-md border-none px-3 py-1 pl-1.5"
+                          type={hidden ? 'password' : 'text'}
+                          value={newClient.password}
                           onChange={(e) =>
-                            handleClientChange('email', e.target.value)
+                            handleClientChange('password', e.target.value)
                           }
-                          value={newClient.email}
-                          placeholder="Adresse email"
+                          placeholder="Mot de passe"
                           required
                         />
-                        <br />
-                        <label>
-                          Mot de passe <span className="text-red-500">*</span>
-                        </label>
-                        <br />
-                        <br />
-                        <div className="flex items-center border rounded-md">
-                          <div className="flex items-center justify-center border-r px-3 py-1">
-                            {hidden ? (
-                              <EyeClosedIcon
-                                className="h-4 w-4 cursor-pointer"
-                                onClick={() => setHidden(false)}
-                              />
-                            ) : (
-                              <EyeOpenIcon
-                                className="h-4 w-4 cursor-pointer"
-                                onClick={() => setHidden(true)}
-                              />
-                            )}
-                          </div>
-                          <Input
-                            className="rounded-none rounded-br-md rounded-tr-md border-none px-3 py-1 pl-1.5"
-                            type={hidden ? 'password' : 'text'}
-                            value={newClient.password}
-                            onChange={(e) =>
-                              handleClientChange('password', e.target.value)
-                            }
-                            placeholder="Mot de passe"
-                            required
-                          />
-                        </div>
-                        <br />
-                        <label>
-                          Rôle <span className="text-red-500">*</span>
-                        </label>
-                        <br />
-                        <br />
-                        <Select
-                          value={newClient.role}
-                          onValueChange={(value) => handleClientChange('role', value)}
-                          required
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionnez un rôle" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Rôles</SelectLabel>
-                              <SelectItem value="ADMINISTRATOR">Administrateur</SelectItem>
-                              <SelectItem value="PROFESSIONAL">Professionel</SelectItem>
-                              <SelectItem value="PERSONAL">Particulier</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <br />
-                        {newClient.role === 'PROFESSIONAL' && (
+                      </div>
+                      <br />
+                      <label>
+                        Rôle <span className="text-red-500">*</span>
+                      </label>
+                      <br />
+                      <br />
+                      <Select
+                        value={newClient.role}
+                        onValueChange={(value) => handleClientChange('role', value)}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionnez un rôle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Rôles</SelectLabel>
+                            <SelectItem value="ADMINISTRATOR">Administrateur</SelectItem>
+                            <SelectItem value="PROFESSIONAL">Professionel</SelectItem>
+                            <SelectItem value="PERSONAL">Particulier</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <br />
+                      {newClient.role === 'PROFESSIONAL' && (
                         <div>
                           <label htmlFor="">Nom de la société</label>
                           <br />
@@ -432,36 +429,36 @@ const AddClient = () => {
                             Services à domicile uniquement
                           </label>
                           <br />
-                      <br />
-                      <Switch
-                        checked={newClient.homeServiceOnly}
-                        onCheckedChange={(checked) =>
-                          handleClientChange('homeServiceOnly', checked)
-                        }
-                      />
-                      <br />
+                          <br />
+                          <Switch
+                            checked={newClient.homeServiceOnly}
+                            onCheckedChange={(checked) =>
+                              handleClientChange('homeServiceOnly', checked)
+                            }
+                          />
+                          <br />
                         </div>
                       )}
-                        <Button
-                          className="mt-4"
-                          onClick={handleSubmit}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? 'Enregistrement...' : 'Ajouter Client'}
-                        </Button>
-                        
-                      </div>
-                    </DialogDescription>
-                  </DialogHeader>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <DisplayClients />
+                      <Button
+                        className="mt-4"
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Enregistrement...' : 'Ajouter Client'}
+                      </Button>
+
+                    </div>
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
           </div>
-          </TabsContent>
+          <DisplayClients />
         </div>
-      
-  
+      </TabsContent>
+    </div>
+
+
   );
 };
 

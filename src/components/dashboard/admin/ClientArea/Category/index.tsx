@@ -30,6 +30,7 @@ export default function Category() {
             title: '',
             imageLogo: '',
             imageMinia: '',
+            key: '',
         },
     ]);
 
@@ -41,7 +42,7 @@ export default function Category() {
     const handleSubmit = async () => {
         try {
             const categoryData = categories[0];
-            const response = await axios.post('/api/category/create', categories, {
+            const response = await axios.post('/api/category/create', categoryData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -57,6 +58,7 @@ export default function Category() {
             console.error('Error:', error);
         }
     };
+
 
     const handleCategoryChange = (index: number, key: keyof Category, value: any) => {
         const newCategories = [...categories];
@@ -266,46 +268,46 @@ export default function Category() {
                                                 </p>
                                             </div>
                                             <input
-                                                                                               ref={fileInputRefMiniature}
-                                                                                               type="file"
-                                                                                               accept="image/jpeg, image/png, image/jpg, image/svg, image/webp"
-                                                                                               style={{ display: 'none' }}
-                                                                                               onChange={handleFileInputChangeMiniature}
-                                                                                           />
-                                               
-                                                                                           {miniatureImages.length > 0 && (
-                                                                                               <div>
-                                                                                                   {miniatureImages.map((file, index) => (
-                                                                                                       <div key={index} style={{ position: 'relative', display: 'inline-block', marginRight: '10px' }}>
-                                                                                                           <img
-                                                                                                               src={URL.createObjectURL(file)}
-                                                                                                               alt={file.name}
-                                                                                                               style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
-                                                                                                               className="rounded-lg"
-                                                                                                           />
-                                               
-                                                                                                           <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
-                                                                                                               <button className="rounded-full" style={{ padding: '5px', background: 'red' }} onClick={handleDeleteMiniature}>
-                                                                                                                   <img src="/iconService/trashWhite.svg" alt="Delete" />
-                                                                                                               </button>
-                                                                                                           </div>
-                                                                                                       </div>
-                                                                                                   ))}
-                                                                                               </div>
-                                                                                           )}
-                                                                                       </div>
-                                                                                   ))}
-                                                                               </DialogDescription>
-                                                                           </DialogHeader>
-                                                                           <Button className='flex items-end justify-end' type="submit" onClick={handleSubmit}>Ajouter</Button>
-                                                                       </DialogContent>
-                                                                   </Dialog>
-                                                               </div>
-                                                           </div>
-                                                           <div className="max-h-[400px] overflow-y-auto">
-                                                               <DisplayCategory />
-                                                           </div>
-                                                       </TabsContent>
-                                                   );
-                                               }
-                                               
+                                                ref={fileInputRefMiniature}
+                                                type="file"
+                                                accept="image/jpeg, image/png, image/jpg, image/svg, image/webp"
+                                                style={{ display: 'none' }}
+                                                onChange={handleFileInputChangeMiniature}
+                                            />
+
+                                            {miniatureImages.length > 0 && (
+                                                <div>
+                                                    {miniatureImages.map((file, index) => (
+                                                        <div key={index} style={{ position: 'relative', display: 'inline-block', marginRight: '10px' }}>
+                                                            <img
+                                                                src={URL.createObjectURL(file)}
+                                                                alt={file.name}
+                                                                style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
+                                                                className="rounded-lg"
+                                                            />
+
+                                                            <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
+                                                                <button className="rounded-full" style={{ padding: '5px', background: 'red' }} onClick={handleDeleteMiniature}>
+                                                                    <img src="/iconService/trashWhite.svg" alt="Delete" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Button className='flex items-end justify-end' type="submit" onClick={handleSubmit}>Ajouter</Button>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </div>
+            <div className="max-h-[400px] overflow-y-auto">
+                <DisplayCategory />
+            </div>
+        </TabsContent>
+    );
+}
+
