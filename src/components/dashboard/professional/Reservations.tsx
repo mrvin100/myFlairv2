@@ -57,7 +57,6 @@ export default function Reservations() {
         }
         const data = await response.json();
         if (Array.isArray(data)) {
-          // Mettre à jour le statut pour chaque réservation
           const updatedReservations = data.map((reservation: ReservationType) => ({
             ...reservation,
             status: getReservationStatus(reservation.dateOfRdv),
@@ -82,7 +81,7 @@ export default function Reservations() {
         <div className="flex items-center justify-between space-y-2 flex-col gap-4">
           <h2 className="text-2xl font-bold tracking-tight">Réservations</h2>
           <section className="p-4 mx-auto">
-            {reservations.length > 0 ? (
+            {(reservations && reservations.length > 0) ? (
               reservations.map((reservation) => (
                 <Reservation
                   key={reservation.id}
