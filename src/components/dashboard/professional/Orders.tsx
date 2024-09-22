@@ -135,25 +135,6 @@ const columns: ColumnDef<Order>[] = [
   },
 ]
 
-
-// Commande
-// Date
-// État
-// Total
-// Actions
-
-// n°23074
-// 23 février 2024
-// En cours
-// 119,94 € pour 6 articles
-// Voir
-
-// n°23061
-// 26 janvier 2024
-// Annulée
-// 129,94 € pour 6 articles
-// Voir
-
 export default function OrdersTab() {
   return (
     <TabsContent value="orders" className="space-y-4">
