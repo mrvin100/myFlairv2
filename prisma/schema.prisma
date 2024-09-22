@@ -253,6 +253,7 @@ model Review {
   status         String
   professionalId String
   rating         Int
+  archived       Boolean?
   comment        String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

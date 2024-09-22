@@ -75,7 +75,6 @@ export default function Comments() {
         return <Skeleton active />;
     }
 
-    // Trier les avis pour afficher ceux non approuvés en premier
     const sortedReviews = reviews.sort((a, b) => {
         if (a.status === 'await' && b.status === 'approved') {
             return -1;
@@ -137,7 +136,9 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
                 ) : (
                     <>
                         <Button variant="secondary">Supprimer</Button>
-                        <Button className="ml-3">Voir</Button>
+                        <Link href={`/back-up/Profil/${review.professional.id}`}>
+                            <Button variant="secondary">Voir</Button>
+                        </Link>
                     </>
                 )}
             </div>

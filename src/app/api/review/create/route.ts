@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
         professionalId,
         rating,
         comment,
+        archived:false,
         status: 'await',
       },
     });
