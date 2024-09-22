@@ -129,12 +129,6 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
     
     useEffect(() => {
       const fetchReviews = async () => {
-        const cachedReviews = localStorage.getItem(`reviews_${params.id}`);
-        if (cachedReviews) {
-          setReviews(JSON.parse(cachedReviews));
-          return;
-        }
-      
         try {
           const response = await fetch(`/api/review/get/${params.id}`);
           if (!response.ok) {

@@ -250,12 +250,12 @@ model Reservation {
 model Review {
   id             String   @id @default(uuid())
   userId         String
+  status         String
   professionalId String
   rating         Int
   comment        String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
   author       User             @relation("ReviewsWritten", fields: [userId], references: [id])
   professional User             @relation("ReviewsReceived", fields: [professionalId], references: [id])
   responses    ReviewResponse[]

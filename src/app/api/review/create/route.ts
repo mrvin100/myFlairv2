@@ -6,20 +6,22 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, professionalId, rating, comment } = body;
+    const { userId, professionalId, rating, comment } = body; 
 
-    // Validation des données
-    if (typeof userId !== 'string' || typeof professionalId !== 'string' || typeof rating !== 'number' || (comment !== undefined && typeof comment !== 'string')) {
+    if (typeof userId !== 'string' || 
+        typeof professionalId !== 'string' ||
+        typeof rating !== 'number' || 
+        (comment !== undefined && typeof comment !== 'string')) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
-    // Création de la review
     const review = await prisma.review.create({
       data: {
         userId,
         professionalId,
         rating,
         comment,
+        status: 'await',
       },
     });
 
