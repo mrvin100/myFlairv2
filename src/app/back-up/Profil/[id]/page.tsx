@@ -122,56 +122,50 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
   const [responseContent, setResponseContent] = useState<string>("");
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`/api/ProfilPro/${params.id}`, {
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+    useEffect(() => {
+      const fetchUserData = async () => {
+        try {
+          const response = await fetch(`/api/ProfilPro/${params.id}`, {
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Expires': '0',
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          const data: User = await response.json();
+          setUser(data);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
-        const data: User = await response.json();
-        setUser(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+      };
+    
+      if (params.id) {
+        fetchUserData();
       }
-    };
-
-    if (params.id) {
-      fetchUserData();
-    }
-  }, [params.id]);
-
-  useEffect(() => {
-    const fetchReviews = async () => {
-      const cachedReviews = localStorage.getItem(`reviews_${params.id}`);
-      if (cachedReviews) {
-        setReviews(JSON.parse(cachedReviews));
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/review/get/${params.id}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+    }, [params.id]);
+    
+    useEffect(() => {
+      const fetchReviews = async () => {
+        try {
+          const response = await fetch(`/api/review/get/${params.id}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          const data = await response.json();
+          setReviews(data);
+          localStorage.setItem(`reviews_${params.id}`, JSON.stringify(data));
+        } catch (error) {
+          console.error('Error fetching reviews:', error);
         }
-        const data = await response.json();
-        setReviews(data);
-        localStorage.setItem(`reviews_${params.id}`, JSON.stringify(data));
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
+      };
+    
+      if (params.id) {
+        fetchReviews();
       }
-    };
-
-    if (params.id) {
-      fetchReviews();
-    }
-  }, [params.id]);
+    }, [params.id]);
 
   const handleSubmit = async () => {
     if (!currentUser) {
