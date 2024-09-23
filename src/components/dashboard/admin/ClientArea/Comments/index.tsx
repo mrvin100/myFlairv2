@@ -99,6 +99,7 @@ export default function Comments() {
     );
 }
 
+
 function ModelComment({ review, setReviews }: { review: Review; setReviews: React.Dispatch<React.SetStateAction<Review[]>> }) {
     async function handleApprove(reviewId: string) {
         const res = await fetch(`/api/review/updateStatus/${review.id}`, {
@@ -108,7 +109,7 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
             },
             body: JSON.stringify({ reviewId }),
         });
-    
+
         if (res.ok) {
             const updatedReview = await res.json();
             setReviews((prev) => prev.map(review => review.id === reviewId ? updatedReview : review));
@@ -117,27 +118,45 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
         }
     }
 
+    async function handleDelete(reviewId: string) {
+        const res = await fetch(`/api/review/archive`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reviewId }),
+        });
+
+        if (res.ok) {
+            const updatedReview = await res.json();
+            setReviews((prev) => prev.map((r) => (r.id === reviewId ? updatedReview : r)));
+        } else {
+            console.error("Erreur lors de la suppression de l'avis");
+        }
+    }
+
     return (
         <Card className='p-5'>
+            {/* Render the professional and client details */}
             <ModelSkeletonPro review={review} />
             <ModelSkeletonClient review={review} />
             <div className="mt-4">
-                <Rate allowHalf disabled value={review.rating} /> {/* Ajout des étoiles */}
+                <Rate allowHalf disabled value={review.rating} />
             </div>
             <br />
             <div className="flex justify-end">
                 {review?.status === 'await' ? (
                     <>
-                        <Link href={`/back-up/Profil/${review.professional.id}`}>
+                        <Link href={`/back-up/Profil/${review?.professional.id}`}>
                             <Button variant="secondary">Voir</Button>
                         </Link>
                         <Button className="ml-3" onClick={() => handleApprove(review.id)}>Approuver</Button>
                     </>
                 ) : (
                     <>
-                        <Button variant="secondary">Supprimer</Button>
+                        <Button variant="destructive" onClick={() => handleDelete(review.id)}>Supprimer</Button>
                         <Link href={`/back-up/Profil/${review.professional.id}`}>
-                            <Button variant="secondary">Voir</Button>
+                            <Button className='ml-4'>Voir</Button>
                         </Link>
                     </>
                 )}
@@ -151,16 +170,16 @@ function ModelSkeletonPro({ review }: { review: Review }) {
         <div className="flex flex-col">
             <div className='flex justify-between items-center'>
                 <div className='flex items-center'>
-                    {review.professional ? (
+                    {review?.professional ? (
                         <>
                             <img
                                 style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
                                 className='rounded-full object-cover'
-                                src={review.professional.image || '/default-image.png'}
+                                src={review?.professional?.image || '/default-image.png'}
                                 alt={`Image Of The Professional`}
                             />
-                            <span style={{ fontSize: '130%' }} className='m-3'>{review.professional.firstName || 'Inconnu'}</span>
-                            <span style={{ fontSize: '130%' }}>{review.professional.lastName || 'Inconnu'}</span>
+                            <span style={{ fontSize: '130%' }} className='m-3'>{review?.professional?.firstName || 'Inconnu'}</span>
+                            <span style={{ fontSize: '130%' }}>{review?.professional?.lastName || 'Inconnu'}</span>
                         </>
                     ) : (
                         <span>Informations du professionnel non disponibles</span>
@@ -189,8 +208,8 @@ function ModelSkeletonPro({ review }: { review: Review }) {
             <div className="flex items-center">
                 <img className="ml-4" src="/iconService/map-pin-3.svg" alt="Pin icon" />
                 <span className="ml-2" style={{ color: '#74788D' }}>
-                    {review.professional?.address ? (
-                        `${review.professional.address.street} ${review.professional.address.city}`
+                    {review?.professional?.address ? (
+                        `${review?.professional?.address?.street} ${review?.professional?.address?.city}`
                     ) : (
                         'Adresse non disponible'
                     )}
@@ -211,19 +230,20 @@ function ModelSkeletonClient({ review }: { review: Review }) {
                     <img
                         style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
                         className='rounded-full object-cover'
-                        src={review.author?.image || '/default-image.png'} 
-                        alt={`Image of Client ${review.author?.firstName || ''}`}
+                        src={review?.author?.image || '/default-image.png'} 
+                        alt={`Image of Client ${review?.author?.firstName || ''}`}
                     />
                     <div className="ml-4 flex flex-col">
-                        <span>{review.author?.firstName} {review.author?.lastName}</span>
+                        <span>{review?.author?.firstName} {review?.author?.lastName}</span>
                         <span style={{ color: '#74788D' }}>
-                            {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true, locale: fr })}
+                            {formatDistanceToNow(new Date(review?.createdAt), { addSuffix: true, locale: fr })}
                         </span>
                     </div>
                 </div>
             </div>
             <br />
-            <span style={{ color: '#A6A6A6' }}>{review.comment}</span>
+            <span style={{ color: '#A6A6A6' }}>{review?.comment}</span>
         </div>
     );
 }
+
