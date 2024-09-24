@@ -14,10 +14,10 @@ const hash = (str: string): string => bcrypt.hashSync(str, 10);
 
 
 const prisma = new PrismaClient();
-const { DateTime } = require('luxon');  
+const { DateTime } = require('luxon');
 
 async function createService() {
-  
+
   return await prisma.service.create({
     data: {
       image: 'h',
@@ -26,7 +26,7 @@ async function createService() {
       createdAt: DateTime.now().toJSDate(),
       updatedAt: DateTime.now().toJSDate(),
       description: 'Lorem ipsum dolor sit amet, consectetur adipicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqa. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat',
-      
+
     },
   });
 }
@@ -49,7 +49,7 @@ async function main() {
         durationSaturdayEndHour: 10,
         durationSaturdayEndMinute: 1,
         image: 'https://res.cloudinary.com/dqgxjbltt/image/upload/v1717710952/pahv29bejimucv5rarb2.png',
-        alt: 'Description de l\'image'  
+        alt: 'Description de l\'image'
       },
     });
 
@@ -66,18 +66,19 @@ main().catch((e) => {
   process.exit(1);
 });
 async function createUser() {
-  
+
   return await prisma.user.create({
     data: {
       image: '',
       gallery: [],
-     
+
+
       role: UserRole.ADMINISTRATOR,
       username: 'demo-admin',
       firstName: 'demo',
       lastName: 'admin',
       address: {
-        city: 
+        city:
           "Compiègne",
         country: "France",
         street: "29 rue des Albertans"
@@ -104,11 +105,11 @@ async function createUser() {
           },
         },
       },
-      preferencesProWeek:{},
-      mark:4.5,
-      biography:"J'aime faire mon métier",
+      preferencesProWeek: {},
+      mark: 4.5,
+      biography: "J'aime faire mon métier",
       numberOfRate: 255,
-      socialMedia:{}
+      socialMedia: {}
 
     },
   });
@@ -182,10 +183,10 @@ async function createBusinessBooster() {
 
 (async () => {
   console.log(await createUser());
- //console.log(await main());
+  //console.log(await main());
   //console.log(await createService())
 
- 
+
   return;
 
   for (let i = 0; i < 5; i++) {

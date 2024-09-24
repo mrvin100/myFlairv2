@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/cart-global";
+import { useUserContext } from "@/contexts/user";
+import { CURRENCY } from "@/lib/constant";
+import { Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,147 +14,123 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useUserContext } from "@/contexts/user";
-import { CURRENCY } from "@/lib/constant";
-import { getAllReservationsForUser, getPostById } from "@/lib/queries";
-import { Tab } from "@mui/material";
-import { BusinessBooster, Post, Reservation } from "@prisma/client";
-import { Loader2, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
 
-interface ReservationWithPost {
-  reservation: Reservation;
-  post: Post | null;
-}
-
-// CartGlobalProps interface
-interface CartGlobalProps {
-  reservationsWithPosts: ReservationWithPost[];
-  setReservationsWithPosts: React.Dispatch<React.SetStateAction<ReservationWithPost[]>>;
-  selectedBooster: BusinessBooster[];
-  setSelectedBooster: React.Dispatch<React.SetStateAction<BusinessBooster[]>>;
-}
-
-const CartGlobal = ({
-  reservationsWithPosts,
-  setReservationsWithPosts,
-  selectedBooster,
-  setSelectedBooster,
-}: CartGlobalProps) => {
+const CartGlobal = () => {
   const { user } = useUserContext();
-  console.log(user);
-  console.log(reservationsWithPosts);
-  
-  const totalReservationPrice = 11
+  const {
+    reservationsWithPosts,
+    selectedBoosters,
+    handleDeleteReservation,
+    removeBooster,
+    totalReservationPrice,
+    totalBoosterPrice,
+    totalPrice,
+    selectedAdditionalServices,
+    totalAdditionalPrice,
+    addAdditionalService,
+    removeAdditionalService,
+  } = useCart();
 
-  const totalBoosterPrice = selectedBooster ? selectedBooster.reduce((total, booster) =>
-    total + booster.price,
-    0
-  ) : 0;
-
-  const totalPrice = totalReservationPrice + totalBoosterPrice;
+  if (!user) return null;
 
   return (
-    <div className="container mx-auto px-4 py-6 w-[580px]"> {/* Adjusted width */}
-      <div className="shadow-md rounded-xl overflow-hidden border border-gray-300">
-        <Table className="min-w-full">
-          <TableCaption className="bg-gray-100 font-bold">Vos dates de réservations</TableCaption>
-          <TableHeader className="bg-black text-white">
-            <TableRow className="text-md">
-              <TableHead className="px-2 py-1">Salle</TableHead>
-              <TableHead className="px-2 py-1 text-center">Date reservée</TableHead>
-              <TableHead className="px-2 py-1 text-center">Prix</TableHead>
-              <TableHead className="px-2 py-1 text-right">Actions</TableHead>
+    <div className="container mx-auto px-4 py-6 w-[580px]">
+      <h2 className="text-2xl font-bold mb-4">Votre panier</h2>
+      <Table>
+        <TableCaption>Liste de vos réservations et boosters</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">Type</TableHead>
+            <TableHead>Nom</TableHead>
+            <TableHead className="text-right">Prix</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {reservationsWithPosts.map((reservationWithPost) => (
+            <TableRow key={reservationWithPost.reservation.id}>
+              <TableCell className="font-medium">Réservation</TableCell>
+              <TableCell>{reservationWithPost.post?.title}</TableCell>
+              <TableCell className="text-right">
+                {reservationWithPost.reservation.price} {CURRENCY}
+              </TableCell>
+              <TableCell className="text-right">
+                <button
+                  onClick={() => handleDeleteReservation(reservationWithPost.reservation.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-
-          {/* Reservation Section */}
-          {reservationsWithPosts && reservationsWithPosts.length > 0 && reservationsWithPosts.map((reservationPost) => (
-            <TableBody key={reservationPost.reservation.id} className="bg-white">
-              <TableRow className="border-b border-gray-300">
-                <TableCell className="px-2 py-1">{reservationPost.post?.title || ""}</TableCell>
-                <TableCell className="px-2 py-1 text-center">
-                  {reservationPost.reservation.date.toDateString()}
-                </TableCell>
-                <TableCell className="px-2 py-1 text-center">
-                  {reservationPost.reservation.price} {CURRENCY}
-                </TableCell>
-                <TableCell className="px-2 py-1 text-right">
-                  <span className="flex justify-end">
-                    <Trash2 className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700 duration-150" />
-                  </span>
-                </TableCell>
-              </TableRow>
-            </TableBody>
           ))}
-          <TableBody className="bg-gray-200">
-            <TableRow>
-              <TableCell className="px-2 py-1 font-semibold">Total</TableCell>
-              <TableCell className="px-2 py-1"></TableCell>
-              <TableCell className="px-2 py-1 text-center font-semibold">{totalReservationPrice} {CURRENCY}</TableCell>
-              <TableCell className="px-2 py-1"></TableCell>
+          {selectedBoosters.map((booster) => (
+            <TableRow key={booster.id}>
+              <TableCell className="font-medium">Booster</TableCell>
+              <TableCell>{booster.title}</TableCell>
+              <TableCell className="text-right">
+                {booster.price} {CURRENCY}
+              </TableCell>
+              <TableCell className="text-right">
+                <button
+                  onClick={() => removeBooster(booster.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </TableCell>
             </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* New Section for Business Boosters */}
-      {selectedBooster && selectedBooster.length > 0 && (
-        <div className="shadow-md rounded-xl overflow-hidden border border-gray-300 mt-6">
-          <Table className="min-w-full">
-            <TableCaption className="bg-gray-100 font-bold">Vos Business Boosters</TableCaption>
-            <TableHeader className="bg-black text-white">
-              <TableRow>
-                <TableHead className="px-2 py-1">Booster</TableHead>
-                <TableHead className="px-2 py-1 text-center">Description</TableHead>
-                <TableHead className="px-2 py-1 text-center">Prix</TableHead>
-                <TableHead className="px-2 py-1 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            {selectedBooster.map((booster, index) => (
-              <TableBody key={index} className="bg-white">
-                <TableRow className="border-b border-gray-300">
-                  <TableCell className="px-2 py-1">{booster.title}</TableCell>
-                  <TableCell className="px-2 py-1 text-center">{booster.description}</TableCell>
-                  <TableCell className="px-2 py-1 text-center">{booster.price} {CURRENCY}</TableCell>
-                  <TableCell className="px-2 py-1 text-right">
-                    <span 
-                        className="flex justify-end"
-                        onClick={() => {
-                            setSelectedBooster((prevSelectedBooster) => prevSelectedBooster.filter(b => b.id !== booster.id));
-                        }}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700 duration-150" />
-                    </span>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            ))}
-            <TableBody className="bg-gray-200">
-              <TableRow>
-                <TableCell className="px-2 py-1 font-semibold">Total</TableCell>
-                <TableCell className="px-2 py-1"></TableCell>
-                <TableCell className="px-2 py-1 text-center font-semibold">{totalBoosterPrice} {CURRENCY}</TableCell>
-                <TableCell className="px-2 py-1"></TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      {/* Combined Total Section */}
-      <div className="shadow-md rounded-xl overflow-hidden border border-gray-300 mt-6">
-        <Table>
-          <TableBody className="bg-gray-200">
-            <TableRow>
-              <TableCell className="px-2 py-1 font-semibold">Total Général</TableCell>
-              <TableCell className="px-2 py-1"></TableCell>
-              <TableCell className="px-2 py-1 text-center font-semibold">{totalPrice} {CURRENCY}</TableCell>
-              <TableCell className="px-2 py-1"></TableCell>
+          ))}
+          {selectedAdditionalServices.map((service) => (
+            <TableRow key={service.id}>
+              <TableCell className="font-medium">Service Additionnel</TableCell>
+              <TableCell>{service.title}</TableCell>
+              <TableCell className="text-right">
+                {service.price * service.quantity} {CURRENCY}
+              </TableCell>
+              <TableCell className="text-right">
+                <button
+                  onClick={() => removeAdditionalService(service.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </TableCell>
             </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+          ))}
+          
+        </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={2}>Total Réservations</TableCell>
+            <TableCell className="text-right">
+              {totalReservationPrice} {CURRENCY}
+            </TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell colSpan={2}>Total Boosters</TableCell>
+            <TableCell className="text-right">
+              {totalBoosterPrice} {CURRENCY}
+            </TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell colSpan={2}>Total Services Additionnels</TableCell>
+            <TableCell className="text-right">
+              {totalAdditionalPrice} {CURRENCY}
+            </TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell colSpan={2}>Total</TableCell>
+            <TableCell className="text-right">
+              {totalPrice} {CURRENCY}
+            </TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableFooter>
+      </Table>
     </div>
   );
 };

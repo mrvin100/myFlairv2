@@ -4,9 +4,13 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const items = body.item;
+    const items = body.items;
 
-    // Correcting the ternary operator logic for redirectURL
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Aucun article dans le panier' }, { status: 400 });
+    }
+
+    console.log('Items reçus :', items);
     const redirectURL =
       process.env.NODE_ENV === 'development'
         ? 'http://127.0.0.1:3001'
@@ -21,7 +25,7 @@ export async function POST(req: Request) {
           product_data: {
             name: element.title,
           },
-          unit_amount: element.price * 100, // Stripe expects the price in cents
+          unit_amount: element.price * 100,
         },
         quantity: element.quantity,
       };
@@ -29,6 +33,17 @@ export async function POST(req: Request) {
     }
 
     console.log('Transformed Items:', transformedItems);
+    const transformedItems = items.map(item => ({
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.title,
+        },
+        unit_amount: Math.round(item.price * 100),
+      },
+      quantity: item.quantity,
+    }));
+
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -37,8 +52,8 @@ export async function POST(req: Request) {
       success_url: `${redirectURL}/dashboard`,
       cancel_url: `${redirectURL}/cancel`,
     });
-
     console.log('Stripe session ID created:', session.id);
+
 
     return NextResponse.json({ id: session.id });
   } catch (error) {

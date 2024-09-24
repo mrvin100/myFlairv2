@@ -26,3 +26,8 @@ export const updateReservationById = async (
     where: { id },
     data,
   });
+
+export const deleteReservationById = async (id: string) =>
+  await prisma.reservation.delete({
+    where: { id },
+  });

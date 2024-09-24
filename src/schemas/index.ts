@@ -131,6 +131,9 @@ export const paymentSchema = z.object({
   town: z.string(),
   email: emailSchema,
   phone: z.string(),
+  cardNumber: z.string(),
+  cardExpirationDate: z.string(),
+  cardCvv: z.string(),
 });
 
 export const notificationsSchema = z.object({

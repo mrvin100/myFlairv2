@@ -1,12 +1,20 @@
 "use server";
 
-import type { BusinessBooster } from "@prisma/client";
-
+import type { BusinessBooster, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export const getAllBusinessBoosters = async (): Promise<BusinessBooster[]> =>
-  await prisma.businessBooster.findMany();
+export const getAllBusinessBoosters = async () => {
+  const boosters = await prisma.businessBooster.findMany();
 
+  return boosters.map(booster => ({
+    ...booster,
+    dates: typeof booster.dates === 'string' 
+      ? JSON.parse(booster.dates) 
+      : Array.isArray(booster.dates) 
+        ? booster.dates 
+        : Object.values(booster.dates)
+  }));
+};
 export const getBusinessBoosterById = async (
   id: string
 ): Promise<BusinessBooster | null> =>
