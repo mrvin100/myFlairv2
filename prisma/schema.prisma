@@ -157,7 +157,7 @@ model Formation {
   description String
   price       Float
   quantity    Int
-  dates       Json
+  dates       String
   deposit     Float
   createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
@@ -218,7 +218,7 @@ model Test {
 }
 
 model BusinessBooster {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   image       String?
   alt         String
   title       String
@@ -226,10 +226,10 @@ model BusinessBooster {
   quantity    Int
   price       Float
   dates       String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  idStripe    String?   @unique
-  product     Product?  @relation(fields: [idStripe], references: [stripeId])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  idStripe    String?  @unique
+  product     Product? @relation(fields: [idStripe], references: [stripeId])
 }
 
 model Reservation {
@@ -248,18 +248,18 @@ model Reservation {
 }
 
 model Review {
-  id             String   @id @default(uuid())
+  id             String           @id @default(uuid())
   userId         String
   status         String
   professionalId String
   rating         Int
   archived       Boolean?
   comment        String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  author       User             @relation("ReviewsWritten", fields: [userId], references: [id])
-  professional User             @relation("ReviewsReceived", fields: [professionalId], references: [id])
-  responses    ReviewResponse[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  author         User             @relation("ReviewsWritten", fields: [userId], references: [id])
+  professional   User             @relation("ReviewsReceived", fields: [professionalId], references: [id])
+  responses      ReviewResponse[]
 }
 
 model ReviewResponse {
@@ -334,9 +334,8 @@ model Abonnement {
   nbrEssaisGratuit Int
   period           String
   functions        Json
-  stripeProductId  String?  
-  stripePriceId    String?  
+  stripeProductId  String?
+  stripePriceId    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
-

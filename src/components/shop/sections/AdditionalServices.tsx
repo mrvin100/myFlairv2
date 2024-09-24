@@ -93,8 +93,8 @@ export default function AdditionalServices() {
           idStripe: service.idStripe,
         }),
       });
-      const response2 = await fetch("/api/cart/get", {
-        method: "POST",
+      const response2 = await fetch(`/api/cart/get/${user?.id}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
@@ -165,16 +165,16 @@ export default function AdditionalServices() {
                   />
                   {quantity[additionalService.id] ===
                     additionalService.quantity && (
-                    <span style={{ color: "orange" }}>
-                      Limite disponible atteinte
-                    </span>
-                  )}
+                      <span style={{ color: "orange" }}>
+                        Limite disponible atteinte
+                      </span>
+                    )}
                   {quantity[additionalService.id] >
                     additionalService.quantity && (
-                    <span style={{ color: "#d50000" }}>
-                      Demande supérieure aux stocks
-                    </span>
-                  )}
+                      <span style={{ color: "#d50000" }}>
+                        Demande supérieure aux stocks
+                      </span>
+                    )}
                 </div>
               </CardDescription>
             </CardContent>

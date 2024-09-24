@@ -1,153 +1,250 @@
-"use client";
-import type { Review } from "@prisma/client";
+"use client"
+import { TabsContent } from '@/components/ui/tabs';
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton"
+import { Rate } from 'antd';
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import Link from 'next/link';
 
-import { TabsContent } from "@/components/tabs";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { Info, LocateIcon, Star } from "lucide-react";
-import { useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+// Définir les types
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  image: string | undefined;
+  mark: number | null;
+  address: {
+    street: string;
+    city: string;
+  };
+}
 
-export default function ReservationsTab() {
-  const [reviews, setReviews] = useState<Review[]>([{},{}]);
-  const rating = 4;
+interface Review {
+  id: string;
+  professional: User;
+  author: User;
+  service: Service;
+  rating: number;
+  comment: string;
+  status: 'await' | 'approved';
+  createdAt: Date;
+}
+
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: string;
+  domicile: boolean;
+  dureeRDV: string;
+  userId: string;
+}
+
+export default function Comments() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      try {
+        const res = await fetch('/api/review/getAll');
+        if (!res.ok) {
+          throw new Error('Failed to fetch reviews');
+        }
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setReviews(data);
+        } else {
+          console.error("Expected an array of reviews, but got:", data);
+          setReviews([]);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des avis", error);
+        setReviews([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchReviews();
+  }, []);
+
+  if (loading) {
+    return <Skeleton active />;
+  }
+
+  const sortedReviews = reviews.sort((a, b) => {
+    if (a.status === 'await' && b.status === 'approved') {
+      return -1;
+    }
+    if (a.status === 'approved' && b.status === 'await') {
+      return 1;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <TabsContent title="Mes avis" value="reviews">
-      {reviews && reviews.length > 0 ? (
-        <>
-          <div className="grid gap-6 justify-center">
-            {[...Array(3)].map((_, i) => (
-              <Card className="max-w-3xl mx-auto">
-                <CardHeader>
-                  <div className="flex flex-wrap gap-3 items-center mb-2">
-                    <Image
-                      src={"/nail-salon.webp"}
-                      alt="user image"
-                      width={200}
-                      height={200}
-                      className="rounded-full object-cover h-12 w-12"
-                    />
-                    <h2>Melina Beauty</h2>
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, index) => (
-                        <Star
-                          key={index}
-                          className={`w-4 h-4 ${
-                            index < rating
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground text-sm">(255 avis)</p>
-                  </div>
-                  <div>
-                    <span className="bg-muted text-sm inline-block px-2 py-1 rounded-xl">
-                      Coiffeuse
-                    </span>
-                    &nbsp;
-                    <span className=" text-muted-foreground text-sm">
-                      <LocateIcon className="h-4 w-4 mr-2 inline-block" />
-                      02 rue des alpes, Paris, France.
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between gap-4 mb-4">
-                    <div className="flex flex-wrap gap-3">
-                      <Image
-                        src={"/nail-salon.webp"}
-                        alt="user image"
-                        width={200}
-                        height={200}
-                        className="rounded-full object-cover h-10 w-10"
-                      />
-                      <h3 className="">
-                        Miss kitty <br />
-                        <span className="text-sm text-muted-foreground">
-                          il y a 1h
-                        </span>
-                      </h3>
-                    </div>
-                    <div className="ml-auto flex items-center">
-                      {[...Array(5)].map((_, index) => (
-                        <Star
-                          key={index}
-                          className={`w-4 h-4 ${
-                            index < rating
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm ">
-                    Lorem ipsum dolor sit amet, consectetur adipicing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqa. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi ut aliquip ex ea commodo consequat
-                  </p>
-                </CardContent>
-                <CardFooter className="flex justify-end gap-4">
-                  <Button variant={"secondary"}>Supprimer</Button>
-                  <Button>Voir</Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-          <div className="my-6">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious href="#" />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">1</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#" isActive>
-                    2
-                  </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">3</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext href="#" />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        </>
-      ) : (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Oups!</AlertTitle>
-          <AlertDescription>
-            Vous n'avez pas encore d'avis déposé...
-          </AlertDescription>
-        </Alert>
-      )}
+      <div className="h-full flex-1 flex-col space-y-8 pl-8 pt-8 md:flex">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">Gestion des Avis</h2>
+        </div>
+        {sortedReviews.map((review) => (
+          <ModelComment key={review.id} review={review} setReviews={setReviews} />
+        ))}
+      </div>
     </TabsContent>
   );
 }
+
+
+function ModelComment({ review, setReviews }: { review: Review; setReviews: React.Dispatch<React.SetStateAction<Review[]>> }) {
+  async function handleApprove(reviewId: string) {
+    const res = await fetch(`/api/review/updateStatus/${review.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reviewId }),
+    });
+
+    if (res.ok) {
+      const updatedReview = await res.json();
+      setReviews((prev) => prev.map(review => review.id === reviewId ? updatedReview : review));
+    } else {
+      console.error("Erreur lors de l'approbation de l'avis");
+    }
+  }
+
+  async function handleDelete(reviewId: string) {
+    const res = await fetch(`/api/review/archive`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reviewId }),
+    });
+
+    if (res.ok) {
+      const updatedReview = await res.json();
+      setReviews((prev) => prev.map((r) => (r.id === reviewId ? updatedReview : r)));
+    } else {
+      console.error("Erreur lors de la suppression de l'avis");
+    }
+  }
+
+  return (
+    <Card className='p-5'>
+      {/* Render the professional and client details */}
+      <ModelSkeletonPro review={review} />
+      <ModelSkeletonClient review={review} />
+      <div className="mt-4">
+        <Rate allowHalf disabled value={review.rating} />
+      </div>
+      <br />
+      <div className="flex justify-end">
+        {review?.status === 'await' ? (
+          <>
+            <Link href={`/back-up/Profil/${review?.professional.id}`}>
+              <Button variant="secondary">Voir</Button>
+            </Link>
+            <Button className="ml-3" onClick={() => handleApprove(review.id)}>Approuver</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="destructive" onClick={() => handleDelete(review.id)}>Supprimer</Button>
+            <Link href={`/back-up/Profil/${review.professional.id}`}>
+              <Button className='ml-4'>Voir</Button>
+            </Link>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function ModelSkeletonPro({ review }: { review: Review }) {
+  return (
+    <div className="flex flex-col">
+      <div className='flex justify-between items-center'>
+        <div className='flex items-center'>
+          {review?.professional ? (
+            <>
+              <img
+                style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
+                className='rounded-full object-cover'
+                src={review?.professional?.image || '/default-image.png'}
+                alt={`Image Of The Professional`}
+              />
+              <span style={{ fontSize: '130%' }} className='m-3'>{review?.professional?.firstName || 'Inconnu'}</span>
+              <span style={{ fontSize: '130%' }}>{review?.professional?.lastName || 'Inconnu'}</span>
+            </>
+          ) : (
+            <span>Informations du professionnel non disponibles</span>
+          )}
+        </div>
+        {review?.status === 'await' && (
+          <button
+            className="flex items-center text-base rounded py-1 px-3"
+            style={{ background: '#FEE9E9', color: '#FF0000', height: '30px' }}
+          >
+            <div className="rounded-full h-2 w-2 mr-2" style={{ background: '#FF0000' }}></div>
+            En cours d'approbation
+          </button>
+        )}
+        {review?.status === 'approved' && (
+          <button
+            className="flex items-center text-base rounded py-1 px-3"
+            style={{ background: '#EAF7EC', color: '#2DB742', height: '30px' }}
+          >
+            <div className="rounded-full h-2 w-2 mr-2" style={{ background: '#2DB742' }}></div>
+            Approuvé
+          </button>
+        )}
+      </div>
+      <br />
+      <div className="flex items-center">
+        <img className="ml-4" src="/iconService/map-pin-3.svg" alt="Pin icon" />
+        <span className="ml-2" style={{ color: '#74788D' }}>
+          {review?.professional?.address ? (
+            `${review?.professional?.address?.street} ${review?.professional?.address?.city}`
+          ) : (
+            'Adresse non disponible'
+          )}
+        </span>
+      </div>
+      <br />
+      <hr />
+      <br />
+    </div>
+  );
+}
+
+function ModelSkeletonClient({ review }: { review: Review }) {
+  return (
+    <div>
+      <div className="flex justify-between items-center">
+        <div className="flex">
+          <img
+            style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
+            className='rounded-full object-cover'
+            src={review?.author?.image || '/default-image.png'}
+            alt={`Image of Client ${review?.author?.firstName || ''}`}
+          />
+          <div className="ml-4 flex flex-col">
+            <span>{review?.author?.firstName} {review?.author?.lastName}</span>
+            <span style={{ color: '#74788D' }}>
+              {formatDistanceToNow(new Date(review?.createdAt), { addSuffix: true, locale: fr })}
+            </span>
+          </div>
+        </div>
+      </div>
+      <br />
+      <span style={{ color: '#A6A6A6' }}>{review?.comment}</span>
+    </div>
+  );
+}
+

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -20,24 +19,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useUserContext } from "@/contexts/user";
 
 interface Formation {
   id: string;
   image: string;
   title: string;
   description: string;
-  price: string; // Assuming price is a string from your API
+  price: string;
   quantity: number;
-  deposit: number;
+  deposit: string;
   alt?: string;
+  idStripe: string;
 }
 
 const Formations = () => {
   const [formations, setFormations] = useState<Formation[]>([]);
-
+  const [quantity, setQuantity] = useState<{ [id: string]: number }>({});
+  const [buttonInvalid, setButtonInvalid] = useState<{ [id: string]: boolean }>(
+    {}
+  );
+  const { user } = useUserContext();
   useEffect(() => {
-    // Fetch the formations from the API
-    fetch("/api/formation/get", { // Update this API endpoint to match your actual endpoint
+    fetch("/api/formation/get", {
       method: "GET",
     })
       .then((response) => {
@@ -47,18 +54,70 @@ const Formations = () => {
         return response.json();
       })
       .then((data: Formation[]) => {
-        console.log("Formations fetched:", data);
         setFormations(data);
       })
       .catch((error) => console.error("Error fetching formations:", error));
   }, []);
+  console.log(formations)
+  const handleFormationChange = (id: string, value: number) => {
+    setQuantity((prevQuantities) => ({
+      ...prevQuantities,
+      [id]: value,
+    }));
+  };
+
+  const handleAddToCart = async (formationId: string) => {
+    try {
+      const formation = formations.find(
+        (formation) => formation.id === formationId
+      );
+      if (!formation) {
+        throw new Error(`Formation with id ${formationId} not found.`);
+      }
+
+      const response = await fetch("/api/cart/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          productId: formationId,
+          quantity: quantity[formationId] || 1,
+          title: formation.title,
+          price: parseFloat(formation.deposit),
+          idStripe: formation.idStripe,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      toast.success("La formation a été ajoutée au panier.");
+    } catch (error) {
+      console.error("Erreur lors de l'ajout au panier:", error);
+      toast.error("Erreur lors de l'ajout au panier.");
+    }
+  };
+
+  useEffect(() => {
+    const updatedButtonInvalid: { [id: string]: boolean } = {};
+    formations.forEach((formation) => {
+      updatedButtonInvalid[formation.id] =
+        quantity[formation.id] > formation.quantity ||
+        quantity[formation.id] < 0 ||
+        quantity[formation.id] === 0;
+    });
+    setButtonInvalid(updatedButtonInvalid);
+  }, [quantity, formations]);
 
   return (
     <div className="flex items-center justify-center w-full p-10">
       <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
         {formations.map((formation) => (
           <Dialog key={formation.id}>
-            <Card style={{ margin: 0 }} className="flex flex-col rounded-lg m-2">
+            <Card className="flex flex-col rounded m-2">
               <CardHeader className="h-52 bg-none rounded-lg p-0">
                 <Image
                   className="w-full rounded-md h-full object-cover"
@@ -77,7 +136,31 @@ const Formations = () => {
                     style: "currency",
                     currency: "EUR",
                   }).format(parseFloat(formation.price))}
-            
+                  <div className="flex items-center gap-x-2 pt-2">
+                    Quantité:
+                    <Input
+                      className="w-[100px]"
+                      max={formation.quantity}
+                      onChange={(e) =>
+                        handleFormationChange(
+                          formation.id,
+                          Number(e.target.value)
+                        )
+                      }
+                      defaultValue={1}
+                      type="number"
+                    />
+                    {quantity[formation.id] === formation.quantity && (
+                      <span style={{ color: "orange" }}>
+                        Limite disponible atteinte
+                      </span>
+                    )}
+                    {quantity[formation.id] > formation.quantity && (
+                      <span style={{ color: "#d50000" }}>
+                        Demande supérieure aux stocks
+                      </span>
+                    )}
+                  </div>
                 </CardDescription>
               </CardContent>
 
@@ -87,12 +170,13 @@ const Formations = () => {
                     Détails
                   </Button>
                 </DialogTrigger>
-                <Link
-                  href={`/reservation/${formation.id}`} // Adjust the link as needed
+                <Button
+                  onClick={() => handleAddToCart(formation.id)}
+                  disabled={buttonInvalid[formation.id]}
                   className="w-full md:w-auto"
                 >
-                  <Button className="w-full">Réserver</Button>
-                </Link>
+                  Ajouter au Panier
+                </Button>
               </CardFooter>
             </Card>
 
@@ -112,18 +196,32 @@ const Formations = () => {
                 <li>
                   Tarif de réservation :{" "}
                   <span style={{ fontWeight: "700" }}>
-                    {formation.price} € / JOUR
+                    {formation.price} €
+                  </span>
+                </li>
+                <li className="mt-4">
+                  Tarif de l'accompte :{" "}
+                  <span style={{ fontWeight: "700" }}>
+                    {formation.deposit} €
                   </span>
                 </li>
               </div>
               <div>
-                <span style={{ fontWeight: "700" }}>Dépot :</span>{" "}
-                <span style={{ fontWeight: "700" }}>{formation.deposit} €</span>
+                <span>
+                  1) Le paiement de l'acompte se fera via la réservation de cette
+                  formation.
+                </span>
+                <br />
+                <span>
+                  2) Nous vous demandons d'apporter la suite du paiement en main
+                  propre.
+                </span>
               </div>
             </DialogContent>
           </Dialog>
         ))}
       </div>
+      <ToastContainer />
     </div>
   );
 };

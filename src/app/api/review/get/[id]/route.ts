@@ -12,16 +12,19 @@ export async function GET(req: NextRequest, res: NextResponse) {
   if (req.method === 'GET') {
     try {
       const reviews = await prisma.review.findMany({
-        where: { professionalId: userId as string },
+        where: {
+          professionalId: userId as string,
+          status: { not: 'await' }
+        },
         include: { author: true },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
 
-      return NextResponse.json(reviews, {status:200});
+      return NextResponse.json(reviews, { status: 200 });
     } catch (error) {
-      return NextResponse.json({ error: 'Une erreur est survenue lors de la récupération des avis.' }, {status: 405});
+      return NextResponse.json({ error: 'Une erreur est survenue lors de la récupération des avis.' }, { status: 405 });
     }
   } else {
-    return NextResponse.json(`Method ${req.method} Not Allowed`, {status:500});
+    return NextResponse.json(`Method ${req.method} Not Allowed`, { status: 500 });
   }
 }

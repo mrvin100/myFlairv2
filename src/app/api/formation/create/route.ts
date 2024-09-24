@@ -10,15 +10,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { image, alt, title, description, price, quantity, deposit, type, dates } = body;
     const descriptionWithoutHtml = htmlToText(description);
-    
-    // Create the Stripe product
     const formationProduct = await stripe.products.create({
       name: title,
       description: description,
       images: [image],
     });
-
-    // Create the Stripe price
     let priceObj;
     if (type === 'day') {
       priceObj = await stripe.prices.create({
@@ -41,7 +37,7 @@ export async function POST(req: NextRequest) {
         prodType: 'FORMATION',
       },
     });
-    
+
     const formation = await prisma.formation.create({
       data: {
         image,
