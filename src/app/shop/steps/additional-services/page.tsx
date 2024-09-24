@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { getAllAdditionalServices } from "@/data/additional-service";
 import Image from "next/image";
 import CartGlobal from "../../Cart";
-import { Input } from "@/components/ui/input";
 import ButtonServiceAdd from "@/components/shop/steps/reservation/ButtonServiceAdd/page";
 import Link from "next/link";
+import CheckoutButton from "./CheckoutButton";
 
 export default async function AdditionalServices() {
   const additionalServices = (await getAllAdditionalServices()) || [];
@@ -39,19 +39,24 @@ export default async function AdditionalServices() {
                     currency: "EUR",
                   }).format(additionalService.price)}{" "}
                   /{" "}
-                  {additionalService.type === "day" && (
-                    <h3 className="text-gray-400 text-[20px] ml-1">jours</h3>
-                  )}
+                  {(() => {
+                    const typeLabels = {
+                      day: "jour",
+                      piece: "heure",
+                      page: "page"
+                    };
+                    return (
+                      <span className="text-gray-400 text-[20px] ml-1">
+                        {typeLabels[additionalService.type] || ""}
+                      </span>
+                    );
+                  })()}
                 </h3>
                 <p className="text-left">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Non
-                  nemo assumenda asperiores alias perferendis voluptates est
-                  officiis quas cum, repudiandae expedita recusandae consectetur
-                  aperiam? Minus laboriosam vitae blanditiis a? Debitis.
+                  {additionalService.description}
                 </p>
-                {/*Utilisation d'un compoent client car utilisation de onWheel*/}
                 <div className="flex justify-end">
-                  <ButtonServiceAdd />
+                  <ButtonServiceAdd service={additionalService} />
                 </div>
               </div>
             </div>
@@ -72,9 +77,7 @@ export default async function AdditionalServices() {
             Annuler
           </Button>
         </Link>
-        <Link href={"/shop/steps/payment-form"}>
-          <Button className="ml-4">Continuer</Button>
-        </Link>
+        <CheckoutButton />
       </div>
     </main>
   );

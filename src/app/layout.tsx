@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 import "@/app/globals.css";
 import { DateProvider } from "@/contexts/dateContext";
+import { CartProvider } from "@/contexts/cart-global";
 
 const poppins = Poppins({
   weight: "400",
@@ -35,12 +36,14 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <UserContextProvider session={session}>
         <DateProvider>
-          <html lang="fr">
-            <body className={poppins.className}>
-              {children}
-              <Toaster />
-            </body>
-          </html>
+          <CartProvider>
+            <html lang="fr">
+              <body className={poppins.className}>
+                {children}
+                <Toaster />
+              </body>
+            </html>
+          </CartProvider>
         </DateProvider>
       </UserContextProvider>
     </SessionProvider>

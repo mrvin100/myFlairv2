@@ -71,7 +71,7 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
     const calculateAvailability = () => {
       const availableDates = generateAvailableDates();
       console.log(" avalaibles dates : ", availableDates);
-      
+
       const individualStockCopy = { ...individualStock };
 
       availableDates.forEach((dateString) => {
@@ -97,15 +97,13 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
 
   const generateAvailableDates = () => {
     const availableDates: string[] = [];
-    const today = startOfToday(); // commence a partir de la date d'aujourd'hui
+    const today = startOfToday();
     const threeMonthsLater = addMonths(today, 3);
-    let date = addDays(today, 1); // Start from today
+    let date = addDays(today, 1);
 
     while (date <= threeMonthsLater) {
       const dayOfWeek = date.getDay();
-      if(dayOfWeek !== 1){// Si ce n'est pas un dimanche
-        availableDates.push(date.toISOString().split("T")[0]);
-      }
+      if (dayOfWeek !== 1 && date >= new Date()) availableDates.push(date.toISOString().split("T")[0]);
       date = addDays(date, 1);
     }
 
@@ -123,8 +121,8 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
           id: date,
           title: individualStock[date]?.toString() || "0",
           start: date,
-          backgroundColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000",
-          borderColor: isSelected ? "#15803d" : individualStock[date] > 0 ? "#22c55e" : "#FF0000",
+          backgroundColor: isSelected ? "#15803d" : individualStock[date] > 0 || new Date(date) < new Date() ? "#22c55e" : "#FF0000",
+          borderColor: isSelected ? "#15803d" : individualStock[date] > 0 || new Date(date) < new Date() ? "#22c55e" : "#FF0000",
           className: "",
           editable: true,
           extendedProps: {
@@ -140,12 +138,10 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
 
   const handleDateClick = (info: any) => {
     const clickedDate = new Date(info.dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     clickedDate.setHours(0, 0, 0, 0);
 
-    if (clickedDate < today) {
-      error((props) => {}, {
+    if (clickedDate < new Date()) {
+      error((props) => { }, {
         title: "Erreur",
         description: "Vous ne pouvez pas sélectionner une date passée.",
       });
@@ -159,12 +155,11 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
     if ((dayOfWeek >= 1 && dayOfWeek <= 5) || isSaturday) {
       if ([...selectedWeekDays, ...selectedSaturdays].includes(dateString)) {
         removeDate(dateString, isSaturday);
+        console.log("Date supprimée:", dateString, "Est samedi:", isSaturday);
       } else {
-        if (stock <= 0 || individualStock[dateString] <= 0) {
-          // PS: Will add a toast here 
-          return;
-        }
+        if (stock <= 0 || individualStock[dateString] <= 0) return
         addDate(dateString, isSaturday);
+        console.log("Date ajoutée:", dateString, "Est samedi:", isSaturday);
       }
     }
     updateCalendarDates();
@@ -183,7 +178,6 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
   };
 
   console.log("reseved Dates : ", reservedDates);
-  
 
   return (
     <div>
@@ -200,6 +194,11 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
         }}
         initialView="dayGridMonth"
         height={"auto"}
+        validRange={{
+          start: new Date().setHours(18, 0, 0, 0),
+          end: addMonths(new Date(), 3)
+        }}
+        hiddenDays={[0]}
         dateClick={handleDateClick}
         datesSet={handlePrevNextClick}
         eventContent={({ event }) => (
@@ -209,7 +208,6 @@ const Home: React.FC<Props> = ({ postId, post }: Props) => {
                 {event.title}
               </span>
             </div>
-            
           </div>
         )}
       />

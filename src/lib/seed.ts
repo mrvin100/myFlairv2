@@ -73,9 +73,9 @@ async function createUser() {
       gallery: [],
      
       role: UserRole.PERSONAL,
-      username: 'demo-personal',
-      firstName: 'demo',
-      lastName: 'perso',
+      username: 'aydansoupama',
+      firstName: 'aydan',
+      lastName: 'soupama',
       address: {
         city: 
           "Compiègne",
@@ -84,8 +84,8 @@ async function createUser() {
       },
       enterprise: '',
       homeServiceOnly: false,
-      email: 'demo-personal@myflair.fr',
-      password: hash('demo-personal'),
+      email: 'aydansoupama@gmail.com',
+      password: hash('MisterLeyvei972'),
       phone: '+33123456789',
       website: '',
       preferences: {

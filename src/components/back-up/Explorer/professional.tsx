@@ -8,24 +8,10 @@ import { getProfessionalsByTown, getAllServices } from '@/data/back-up';
 import { HeaderSection } from '@/components/shop/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { StarFilled } from "@ant-design/icons";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import { useUserContext } from '@/contexts/user';
 import Subscriptions from '@/components/back-up/Subscriptions';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import ProfessionalDiscoverCard from '@/components/back-up/Explorer/professional';
 
 interface Publication {
   id: string;

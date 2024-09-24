@@ -4,9 +4,12 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const items = body.item;
+    const items = body.items;
 
-    // Log les items pour déboguer leur structure
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Aucun article dans le panier' }, { status: 400 });
+    }
+
     console.log('Items reçus :', items);
 
     const redirectURL =
@@ -14,23 +17,16 @@ export async function POST(req: Request) {
         ? 'http://localhost:3000'
         : 'https://stripe-checkout-next-js-demo.vercel.app';
 
-    const transformedItems = [];
-    for (let i = 0; i < items.length; i++) {
-      const element = items[i];
-      const transformedItem = {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: element.title,
-          },
-          unit_amount: element.price * 100, 
+    const transformedItems = items.map(item => ({
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.title,
         },
-        quantity: element.quantity,
-      };
-      transformedItems.push(transformedItem);
-    }
-
-    console.log('Items transformés :', transformedItems);
+        unit_amount: Math.round(item.price * 100),
+      },
+      quantity: item.quantity,
+    }));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -40,7 +36,6 @@ export async function POST(req: Request) {
       cancel_url: `${redirectURL}/cancel`,
     });
 
-    // Log l'ID de la session
     console.log('ID de session Stripe créé :', session.id);
 
     return NextResponse.json({ id: session.id });

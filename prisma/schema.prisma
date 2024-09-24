@@ -1,11 +1,14 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 // Énumérations
@@ -37,7 +40,6 @@ enum ProductType {
   FORMATION
   BUSINESS_BOOSTER
 }
-
 
 // Modèles
 model User {
@@ -76,7 +78,6 @@ model User {
   clientUsers       Client[]  @relation("ClientUserRelation")
 }
 
-
 model Client {
   id                String   @id @default(cuid())
   proId             String   
@@ -88,6 +89,7 @@ model Client {
   clientUser        User     @relation("ClientUserRelation", fields: [clientId], references: [id])
   reservations      ReservationServicePro[]
 }
+
 model ReservationServicePro {
   id                String    @id @default(cuid())
   date              String
@@ -145,7 +147,7 @@ model Post {
   updatedAt                   DateTime @updatedAt
   idStripe                    String   @unique
   product                     Product  @relation(fields: [idStripe], references: [stripeId])
-  room                         Room?
+  room                        Room?
 }
 
 model Formation {
@@ -163,8 +165,6 @@ model Formation {
   product     Product  @relation(fields: [idStripe], references: [stripeId])
 }
 
-
-
 model Cart {
   id        String     @id @default(uuid())
   user      User       @relation(fields: [userId], references: [id])
@@ -173,6 +173,7 @@ model Cart {
   updatedAt DateTime?  @updatedAt
   items     CartItem[]
 }
+
 model CartItem {
   id        String   @id @default(uuid())
   cart      Cart     @relation(fields: [cartId], references: [id])
@@ -186,7 +187,6 @@ model CartItem {
   updatedAt DateTime?
 }
 
-
 model Product {
   stripeId        String         @id @unique
   prodType        ProductType
@@ -196,6 +196,7 @@ model Product {
   businessBooster BusinessBooster?
   cartItems       CartItem[]
 }
+
 model AdditionalService {
   id          String    @id @default(cuid())
   image       String
@@ -210,13 +211,13 @@ model AdditionalService {
   updatedAt   DateTime  @updatedAt
   idStripe    String    @unique
   product     Product   @relation(fields: [idStripe], references: [stripeId])
+  order          Order? @relation(fields: [orderId], references: [id])
+  orderId        String?
 }
 
 model Test {
   id          String    @id @default(cuid())
 }
-
-
 
 model BusinessBooster {
   id          String    @id @default(cuid())
@@ -231,8 +232,9 @@ model BusinessBooster {
   updatedAt   DateTime  @updatedAt
   idStripe    String?   @unique
   product     Product?  @relation(fields: [idStripe], references: [stripeId])
+  order          Order? @relation(fields: [orderId], references: [id])
+  orderId        String?
 }
-
 
 model Reservation {
   id             String            @id @default(cuid())
@@ -247,6 +249,8 @@ model Reservation {
   date           DateTime
   createdAt      DateTime          @default(now())
   updatedAt      DateTime?         @updatedAt
+  order          Order? @relation(fields: [orderId], references: [id])
+  orderId        String?
 }
 
 model Review {
@@ -280,7 +284,6 @@ model Notification {
   timestamp DateTime @default(now())
 }
 
-
 model Transaction {
   id                 String   @id @default(cuid())
   amount             Int
@@ -293,6 +296,9 @@ model Order {
   id        String    @id @default(cuid())
   user      User      @relation(fields: [userId], references: [id])
   userId    String    @unique
+  reservations Reservation[]
+  boosters BusinessBooster[]
+  additionalServices AdditionalService[]
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 }
@@ -307,7 +313,6 @@ model Subscription {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime?        @updatedAt
 }
-
 
 model Category {
   id            String    @id @default(cuid())
@@ -325,7 +330,6 @@ model Room {
   id             Int       @id @default(autoincrement())
   name           String
   stock          Int
-  postId         Int       @unique
   post           Post      @relation(fields: [postId], references: [id])
+  postId         Int       @unique
 }
-
