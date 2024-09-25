@@ -61,103 +61,107 @@ const Workplaces = () => {
   }, []);
 
   return (
-    <div className="flex items-center justify-center w-full p-10">
-      <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
-        {workplaces.map((workplace) => (
-          <Dialog key={workplace.id}>
-            <Card
-              style={{ margin: 0 }}
-              className="flex flex-col rounded-lg m-2"
-            >
-              <CardHeader className="h-52 bg-none rounded-lg p-0">
-                <Image
-                  className="w-full rounded-md h-full object-cover"
-                  src={workplace.image}
-                  alt={workplace.alt ?? ""}
-                  width={1000}
-                  height={1000}
+    <div>
+      {workplaces && workplaces.length > 0 ? (
+        <div className="max-w-7xl mx-auto grid xl:grid-cols-3 md:grid-cols-2 gap-8 md:gap-10 lg:gap-12 p-10">
+          {workplaces.map((workplace) => (
+            <Dialog key={workplace.id}>
+              <Card
+                style={{ margin: 0 }}
+                className="flex flex-col rounded-lg m-2"
+              >
+                <CardHeader className="h-52 bg-none rounded-lg p-0">
+                  <Image
+                    className="w-full rounded-md h-full object-cover"
+                    src={workplace.image}
+                    alt={workplace.alt ?? ""}
+                    width={1000}
+                    height={1000}
+                  />
+                </CardHeader>
+
+                <CardContent className="my-4 py-0">
+                  <CardTitle className="mb-4">{workplace.title}</CardTitle>
+                  <CardDescription>
+                    A partir de{" "}
+                    {Intl.NumberFormat("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(parseFloat(workplace.weekPrice))}
+                    /jour
+                  </CardDescription>
+                </CardContent>
+
+                <CardFooter className="flex justify-between pt-0 gap-3">
+                  <DialogTrigger className="w-full  md:w-auto">
+                    <Button variant="outline" className="w-full">
+                      Détails
+                    </Button>
+                  </DialogTrigger>
+                  <Link
+                    href={`/shop/steps/reservation/${workplace.id}`}
+                    className="w-full md:w-auto"
+                  >
+                    <Button className="w-full">Réserver</Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{workplace.title}</DialogTitle>
+                </DialogHeader>
+
+                <div
+                  dangerouslySetInnerHTML={{ __html: workplace.description }}
                 />
-              </CardHeader>
 
-              <CardContent className="my-4 py-0">
-                <CardTitle className="mb-4">{workplace.title}</CardTitle>
-                <CardDescription>
-                  A partir de{" "}
-                  {Intl.NumberFormat("fr-FR", {
-                    style: "currency",
-                    currency: "EUR",
-                  }).format(parseFloat(workplace.weekPrice))}
-                  /jour
-                </CardDescription>
-              </CardContent>
-
-              <CardFooter className="flex justify-between pt-0 flex-wrap gap-3">
-                <DialogTrigger className="w-full  md:w-auto">
-                  <Button variant="outline" className="w-full">
-                    Détails
-                  </Button>
-                </DialogTrigger>
-                <Link
-                  href={`/shop/steps/reservation/${workplace.id}`}
-                  className="w-full md:w-auto"
-                >
-                  <Button className="w-full">Réserver</Button>
-                </Link>
-              </CardFooter>
-            </Card>
-
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{workplace.title}</DialogTitle>
-              </DialogHeader>
-
-              <div
-                dangerouslySetInnerHTML={{ __html: workplace.description }}
-              />
-
-              <div>
-                <span style={{ fontWeight: "700" }}>
-                  Tarifs de réservation :
-                </span>
-              </div>
-              <div>
-                <li>
-                  Du Lundi au vendredi:{" "}
+                <div>
                   <span style={{ fontWeight: "700" }}>
-                    {workplace.weekPrice} € / JOUR
+                    Tarifs de réservation :
                   </span>
-                </li>
-              </div>
-              <div>
-                <li>
-                  Le Samedi:{" "}
+                </div>
+                <div>
+                  <li>
+                    Du Lundi au vendredi:{" "}
+                    <span style={{ fontWeight: "700" }}>
+                      {workplace.weekPrice} € / JOUR
+                    </span>
+                  </li>
+                </div>
+                <div>
+                  <li>
+                    Le Samedi:{" "}
+                    <span style={{ fontWeight: "700" }}>
+                      {workplace.saturdayPrice} €
+                    </span>
+                  </li>
+                </div>
+                <div>
                   <span style={{ fontWeight: "700" }}>
-                    {workplace.saturdayPrice} €
+                    Ouverture durant la semaine :
                   </span>
-                </li>
-              </div>
-              <div>
-                <span style={{ fontWeight: "700" }}>
-                  Ouverture durant la semaine :
-                </span>
-                <br /> De {workplace.durationWeekStartHour}heures{" "}
-                {workplace.durationWeekStartMinute} à{" "}
-                {workplace.durationWeekEndHour}heures{" "}
-                {workplace.durationWeekEndMinute}
-              </div>
-              <div>
-                <span style={{ fontWeight: "700" }}>
-                  Ouverture durant le Samedi :
-                </span>
-                <br /> De {workplace.durationSaturdayStartHour}heures{" "}
-                {workplace.durationSaturdayStartMinute} à{" "}
-                {workplace.durationSaturdayEndHour}heures{" "}
-                {workplace.durationSaturdayEndMinute}
-              </div>
-            </DialogContent>
-          </Dialog>
-        ))}
-      </div>
+                  <br /> De {workplace.durationWeekStartHour}heures{" "}
+                  {workplace.durationWeekStartMinute} à{" "}
+                  {workplace.durationWeekEndHour}heures{" "}
+                  {workplace.durationWeekEndMinute}
+                </div>
+                <div>
+                  <span style={{ fontWeight: "700" }}>
+                    Ouverture durant le Samedi :
+                  </span>
+                  <br /> De {workplace.durationSaturdayStartHour}heures{" "}
+                  {workplace.durationSaturdayStartMinute} à{" "}
+                  {workplace.durationSaturdayEndHour}heures{" "}
+                  {workplace.durationSaturdayEndMinute}
+                </div>
+              </DialogContent>
+            </Dialog>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center">Aucun poste a louer présent.</div>
+      )}
     </div>
   );
 };
