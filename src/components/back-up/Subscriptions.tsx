@@ -1,9 +1,9 @@
 "use client";
 
-import type { Subscription } from "@prisma/client";
+import { $Enums, type Subscription } from "@prisma/client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
 
 import { Button } from "@/components/ui/button";
@@ -15,14 +15,45 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import clsx from "clsx";
 
 const types = {
   MONTHLY: "mois",
   YEARLY: "an",
 };
 
+const initialSubscriptions: Subscription[] = [
+  {
+      id: 'sub_monthly_1',
+      title: 'Mensuel',
+      description: "19 € facturés chaque mois",
+      price: 19,
+      arguments: [
+          { title: 'Espace de stockage', value: '10 Go', type: "POSITIVE" },
+          { title: "Nombre d'utilisateurs", value: '1', type: "POSITIVE" },
+      ],
+      type: $Enums.SubscriptionType.MONTHLY,
+      createdAt: new Date('2023-11-22'),
+      updatedAt: new Date('2023-12-05'),
+  },
+  {
+      id: 'sub_annual_1',
+      title: 'Annuel',
+      description: '200 € facturés à l’année',
+      price: 16,
+      arguments: [
+          { title: 'Espace de stockage', value: '100 Go', type: "POSITIVE" },
+          { title: "Nombre d'utilisateurs", value: '5', type: "POSITIVE" },
+          { title: 'Support prioritaire', value: 'Oui', type: "POSITIVE" },
+      ],
+      type: $Enums.SubscriptionType.YEARLY,
+      createdAt: new Date('2023-09-15'),
+      updatedAt: null,
+  },
+];
+
 export default function Subscriptions() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions);
 
   return (
     <section className="px-6 py-8 text-center lg:px-24">
@@ -35,16 +66,17 @@ export default function Subscriptions() {
       </p>
       <div>
         {subscriptions && subscriptions.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 px-16 lg:grid-cols-2 lg:px-24">
+          <div className="grid justify-center grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12 max-w-5xl mx-auto">
             {subscriptions.map((subscription) => (
               <Card key={subscription.id}>
                 <CardHeader>
-                  <CardTitle className="text-xl">
+                  <CardTitle className={clsx(`${subscription.type === "MONTHLY" ? "bg-secondary-foreground text-secondary" : ""}`,"text-xl p-4 uppercase border-b mb-4 rounded-md")}>
                     {subscription.title}
+                    
                   </CardTitle>
                   <h2 className="text-3xl font-bold tracking-tight">
                     <b>
-                      {subscription.price}/{types[subscription.type]}
+                      {subscription.price}/Mois
                     </b>
                   </h2>
                   <CardDescription>{subscription.description}</CardDescription>
@@ -75,7 +107,7 @@ export default function Subscriptions() {
                     href={`/back-up/subscriptions/payment?type=${subscription.type.toLowerCase()}`}
                   >
                     <Button className="w-full" role="link" size="lg">
-                      Acheter
+                    J'essaye Gratuitement
                     </Button>
                   </Link>
                   <div className="text-sm text-muted-foreground">
