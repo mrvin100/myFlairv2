@@ -143,12 +143,29 @@ const ProfessionalDiscoverCard = () => {
     </div>
   );
 };
+type Option = {
+  id?: string;
+  title: string;
+  image: string;
+};
+
+const initialOptions: Option[] = [
+  {id:"1", title: "Coiffeur / Coiffeuse", image: "/back-up/coiffeuse.svg"},
+  {id:"2", title: "Styliste capillaire", image: "/back-up/style-capillaire.png"},
+  {id:"3", title: "Esthéticienne", image: "/back-up/estheticienne.png"},
+  {id:"4", title: "Maquilleur / Maquilleuse", image: "/back-up/maquille.png"},
+  {id:"5", title: "Manucure", image: "/back-up/manucure.png"},
+  {id:"6", title: "Masseur / Masseuse", image: "/back-up/masseur.png"},
+  {id:"7", title: "Spécialiste en épilation", image: "/back-up/epil.png"},
+  {id:"8", title: "Bien-être", image: "/back-up/bien.png"},
+];
 
 export default function BackUpPage() {
   const { user } = useUserContext();
 
   const [service, setService] = useState("");
-  const [options, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [options, setOptions] = useState<Option[]>(initialOptions)
   const [professionals, setProfessionals] = useState<User[]>([]);
 
   useEffect(() => {
@@ -159,6 +176,7 @@ export default function BackUpPage() {
       );
     })();
   }, [user]);
+  
 
   const disabled = false;
   const handleSelect = (x: any) => setService(x);
@@ -201,7 +219,9 @@ export default function BackUpPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center">Aucun services professionnels présent.</div>
+              <div className="text-center">
+                Aucun services professionnels présent.
+              </div>
             )}
           </div>
         </section>
