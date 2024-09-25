@@ -1,4 +1,3 @@
-"use client"
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -9,9 +8,8 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ReactQuill from 'react-quill';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover } from '@/components/ui/popover';
-import { format, addDays } from 'date-fns';
+import { format, addDays, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import DisplayFormations from './displayData';
@@ -26,15 +24,14 @@ interface Formation {
   price: number;
   quantity: number;
   deposit: number;
-  [key: string]: string | boolean | number | undefined;
+  dates: string[];
 }
-
-
 
 const AddFormation = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const [formation, setFormation] = useState<Formation>({
     image: '',
     alt: '',
@@ -43,6 +40,7 @@ const AddFormation = () => {
     price: 0,
     quantity: 0,
     deposit: 0,
+    dates: [],
   });
   const [images, setImages] = useState<File[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -50,7 +48,6 @@ const AddFormation = () => {
     to: addDays(new Date(), 30),
   });
   const [dates, setDates] = useState<DateRange[]>([]);
-
 
   const handleFormationChange = (key: keyof Formation, value: any) => {
     setFormation((prevFormation) => ({
@@ -101,23 +98,26 @@ const AddFormation = () => {
     }
   };
 
-  const handleTypeChange = (value: string) => {
-    handleFormationChange('type', value);
+  const formatDates = (dates: DateRange[]): string[] => {
+    return dates.flatMap(({ from, to }) => {
+      if (!from || !to) return [];
+      return eachDayOfInterval({ start: from, end: to }).map(date =>
+        format(date, 'yyyy-MM-dd')
+      );
+    });
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/formation/create', formation, {
+      const formattedDates = formatDates(dates);
+      const response = await axios.post('/api/formation/create', { ...formation, dates: formattedDates }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
       if (response.status === 200) {
         toast.success('Formation ajoutée avec succès');
-        setTimeout(() => {
-          router.push('/dashboard/professional');
-        }, 2000);
       } else {
         toast.error('Erreur lors de l\'ajout de la formation');
         console.log('Erreur lors de l\'ajout de la formation :', response.data);
@@ -221,52 +221,50 @@ const AddFormation = () => {
                         />
                       </div>
                       <br />
-                      <label htmlFor="">Date</label>
-                        <Popover>
-                          <div className="grid gap-2 mt-6">
-                            <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
-                          </div>
-                        </Popover>
+                      <label>Date</label>
+                      <Popover>
+                        <div className="grid gap-2 mt-6">
+                          <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
+                        </div>
+                      </Popover>
 
-                        {dates.length > 0 && <p className='mt-6'>Dates ajoutées:</p>}
-                        {dates.map((date, index) => (
-                          <div className="flex items-center gap-2" key={index}>
-                            {date.to ? (
-                              <>
-                                {format(date.from!, 'dd LLL y', { locale: fr })} - {format(date.to!, 'dd LLL y', { locale: fr })}
-                              </>
-                            ) : (
-                              format(date.from!, 'dd LLL y', { locale: fr })
-                            )}
-                            <Button
-                              size="icon"
-                              variant="destructive"
-                              onClick={() => {
-                                const newDates = dates.filter((_, i) => i !== index);
-                                setDates(newDates);
-                                
-                              }}
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </Button>
-                            <br />
-                          </div>
-                        ))}
-
-                        <Button
-                          className="flex justify-start mt-6"
-                          onClick={() => {
-                            if (dateRange) {
-                              const newDates = [...dates, dateRange];
+                      {dates.length > 0 && <p className='mt-6'>Dates ajoutées:</p>}
+                      {dates.map((date, index) => (
+                        <div className="flex items-center gap-2" key={index}>
+                          {date.to ? (
+                            <>
+                              {format(date.from!, 'dd LLL y', { locale: fr })} - {format(date.to!, 'dd LLL y', { locale: fr })}
+                            </>
+                          ) : (
+                            format(date.from!, 'dd LLL y', { locale: fr })
+                          )}
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => {
+                              const newDates = dates.filter((_, i) => i !== index);
                               setDates(newDates);
-                              
-                            }
-                          }}
-                          type="button"
-                        >
-                          Ajouter la date
-                        </Button>
-                        <br />
+                            }}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                          <br />
+                        </div>
+                      ))}
+
+                      <Button
+                        className="flex justify-start mt-6"
+                        onClick={() => {
+                          if (dateRange) {
+                            const newDates = [...dates, dateRange];
+                            setDates(newDates);
+                          }
+                        }}
+                        type="button"
+                      >
+                        Ajouter la date
+                      </Button>
+                      <br />
                       <div>
                         <label>Image</label>
                         <br />
@@ -275,55 +273,41 @@ const AddFormation = () => {
                           onClick={() => fileInputRef.current?.click()}
                           onDrop={handleDrop}
                           onDragOver={e => e.preventDefault()}
-                          style={{
-                            cursor: 'pointer',
-                            width: '100%',
-                            height: '100px',
-                            border: '2px dashed #aaa',
-                            borderRadius: '5px',
-                            textAlign: 'center',
-                            padding: '20px',
-                            marginBottom: '20px'
-                          }}
+                          className={`border-dashed border-2 p-6 flex justify-center items-center rounded-md ${images.length > 0 ? 'border-green-500' : 'border-gray-300'}`}
                         >
-                          <p className="flex items-center justify-center">Cliquez ou glissez et déposez des fichiers ici</p>
-                          <p className="text-sm">Formats pris en charge: JPEG, PNG, JPG et SVG</p>
+                          {images.length > 0 ? (
+                            <img src={formation.image} alt={formation.alt} className="h-32 w-32 object-cover" />
+                          ) : (
+                            <p>Déposez votre image ici ou cliquez pour en télécharger une</p>
+                          )}
                         </div>
                         <input
-                          ref={fileInputRef}
                           type="file"
-                          accept="image/jpeg, image/png, image/jpg, image/svg"
-                          style={{ display: 'none' }}
+                          ref={fileInputRef}
                           onChange={handleFileInputChange}
+                          accept="image/*"
+                          className="hidden"
                         />
                         {images.length > 0 && (
-                          <div>
-                            {images.map((file, index) => (
-                              <div key={index} style={{ position: 'relative', display: 'inline-block', marginRight: '10px' }}>
-                                <img
-                                  src={URL.createObjectURL(file)}
-                                  alt={file.name}
-                                  style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
-                                  className="rounded-lg"
-                                />
-                                <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
-                                  <button className="rounded-full" style={{ padding: '5px', background: 'red' }} onClick={handleDelete}>
-                                    <img className='w-5 h-5' src="/iconService/trashWhite.svg" alt="Delete" />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <Button variant="destructive" onClick={handleDelete}>
+                            Supprimer l'image
+                          </Button>
                         )}
                       </div>
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        className="mt-4"
+                      >
+                        {isLoading ? 'Chargement...' : 'Ajouter la formation'}
+                      </Button>
                     </div>
-                    <Button type="button" onClick={handleSubmit}>Ajouter</Button>
                   </DialogDescription>
                 </DialogHeader>
               </DialogContent>
             </Dialog>
           </div>
-          <DisplayFormations/>
+          <DisplayFormations />
         </div>
       </TabsContent>
     </div>

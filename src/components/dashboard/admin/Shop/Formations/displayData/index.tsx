@@ -1,6 +1,7 @@
-'use client';
-
+"use client";
 import { useEffect, useState } from "react";
+import { format, parseISO } from "date-fns";
+import { fr } from 'date-fns/locale';  
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -31,10 +31,28 @@ interface Formation {
   title: string;
   description: string;
   price: number;
-  type: string;
   quantity: number;
   alt?: string;
+  dates: { date: string; available: string }[]; // Changed to array of dates
 }
+
+const formatDates = (dates: { date: string; available: string }[]) => {
+  if (!dates || dates.length === 0) return 'Aucune date disponible';
+
+  try {
+    const sortedDates = dates
+      .map(({ date }) => parseISO(date))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    const startDate = format(sortedDates[0], 'dd MMMM yyyy', { locale: fr });
+    const endDate = format(sortedDates[sortedDates.length - 1], 'dd MMMM yyyy', { locale: fr });
+
+    return `Du ${startDate} au ${endDate}`;
+  } catch (error) {
+    console.error('Erreur lors du formatage des dates:', error);
+    return 'Date invalide';
+  }
+};
 
 const DisplayFormations = () => {
   const [formations, setFormations] = useState<Formation[]>([]);
@@ -43,7 +61,7 @@ const DisplayFormations = () => {
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`${window.location.origin}/api/formations/get`, {
+    fetch(`/api/formation/get`, {
       method: 'GET',
     })
       .then(response => {
@@ -88,17 +106,21 @@ const DisplayFormations = () => {
             <TableRow>
               <TableHead>Id</TableHead>
               <TableHead>Formation</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead>Image</TableHead>
               <TableHead>Tarif</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
-          {formations.map((formation) => (
-            <TableBody key={formation.id}>
-              <TableRow>
+          <TableBody>
+            {formations.map((formation) => (
+              <TableRow key={formation.id}>
                 <TableCell>n° {formation.id}</TableCell>
                 <TableCell>{formation.title}</TableCell>
+                <TableCell>
+                  {formatDates(formation.dates)} {/* Updated to use formatDates */}
+                </TableCell>
                 <TableCell>
                   <img
                     src={formation.image}
@@ -124,30 +146,30 @@ const DisplayFormations = () => {
                         }}
                       />
                     </AlertDialogTrigger>
+                    {showDialog && selectedFormationId === formation.id && (
+                      <AlertDialogContent key={formation.id}>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Voulez-vous vraiment supprimer cette formation ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible, voulez-vous vraiment la supprimer ?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => {
+                            handleDelete(formation.id);
+                            setShowDialog(false);
+                          }}>
+                            Valider
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    )}
                   </div>
-                  {showDialog && selectedFormationId === formation.id && (
-                    <AlertDialogContent key={formation.id}>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Voulez-vous vraiment supprimer cette formation ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Cette action est irréversible, voulez-vous vraiment la supprimer ?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
-                          handleDelete(formation.id);
-                          setShowDialog(false);
-                        }}>
-                          Valider
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  )}
                 </TableCell>
               </TableRow>
-            </TableBody>
-          ))}
+            ))}
+          </TableBody>
         </Table>
       </AlertDialog>
     </div>

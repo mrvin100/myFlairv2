@@ -93,8 +93,8 @@ export default function AdditionalServices() {
           idStripe: service.idStripe,
         }),
       });
-      const response2 = await fetch("/api/cart/get", {
-        method: "POST",
+      const response2 = await fetch(`/api/cart/get/${user?.id}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
@@ -126,88 +126,94 @@ export default function AdditionalServices() {
   }, [quantity, additionalServices]);
 
   return (
-    <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
-      {additionalServices?.map((additionalService) => (
-        <Dialog key={additionalService.id}>
-          <Card className="flex flex-col rounded-lg m-2">
-            <CardHeader className="h-52 bg-none rounded-lg p-0 mb-4">
-              <Image
-                className="w-full rounded-md h-full object-cover"
-                src={additionalService.image}
-                alt={additionalService.alt}
-                width={1000}
-                height={1000}
-              />
-            </CardHeader>
-
-            <CardContent>
-              <CardTitle>{additionalService.title}</CardTitle>
-              <CardDescription>
-                À partir de{" "}
-                {Intl.NumberFormat("fr-FR", {
-                  style: "currency",
-                  currency: "EUR",
-                }).format(additionalService.price)}
-                /{additionalService.type}
-                <div className="flex items-center gap-x-2 pt-2">
-                  Quantité:
-                  <Input
-                    className="w-[100px]"
-                    max={additionalService.quantity}
-                    onChange={(e) =>
-                      handleServiceChange(
-                        additionalService.id,
-                        Number(e.target.value)
-                      )
-                    }
-                    defaultValue={1}
-                    type="number"
+    <div>
+      {additionalServices && additionalServices.length > 0 ? (
+        <div className="max-w-7xl mx-auto grid xl:grid-cols-3 md:grid-cols-2 gap-8 md:gap-10 lg:gap-12 p-10">
+          {additionalServices?.map((additionalService) => (
+            <Dialog key={additionalService.id}>
+              <Card className="flex flex-col rounded-lg m-2 w-full">
+                <CardHeader className="h-52 bg-none rounded-lg p-0 mb-4">
+                  <Image
+                    className="w-full rounded-md h-full object-cover"
+                    src={additionalService.image}
+                    alt={additionalService.alt}
+                    width={1000}
+                    height={1000}
                   />
-                  {quantity[additionalService.id] ===
-                    additionalService.quantity && (
-                    <span style={{ color: "orange" }}>
-                      Limite disponible atteinte
-                    </span>
-                  )}
-                  {quantity[additionalService.id] >
-                    additionalService.quantity && (
-                    <span style={{ color: "#d50000" }}>
-                      Demande supérieure aux stocks
-                    </span>
-                  )}
-                </div>
-              </CardDescription>
-            </CardContent>
+                </CardHeader>
 
-            <CardFooter className="flex justify-between pt-0 flex-wrap gap-3">
-              <DialogTrigger className="w-full  md:w-auto">
-                <Button variant="outline" className="w-full">
-                  Détails
-                </Button>
-              </DialogTrigger>
-              <Button
-                onClick={() => handleAddToCart(additionalService.id)}
-                disabled={buttonInvalid[additionalService.id]}
-                className="w-full  md:w-auto"
-              >
-                Ajouter au Panier
-              </Button>
-            </CardFooter>
-          </Card>
+                <CardContent>
+                  <CardTitle>{additionalService.title}</CardTitle>
+                  <CardDescription className="flex justify-between items-center gap-3">
+                    À partir de{" "}
+                    {Intl.NumberFormat("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(additionalService.price)}
+                    /{additionalService.type}
+                    <div className="flex items-center gap-x-2 pt-2">
+                      Quantité:
+                      <Input
+                        className="w-[100px]"
+                        max={additionalService.quantity}
+                        onChange={(e) =>
+                          handleServiceChange(
+                            additionalService.id,
+                            Number(e.target.value)
+                          )
+                        }
+                        defaultValue={1}
+                        type="number"
+                      />
+                      {quantity[additionalService.id] ===
+                        additionalService.quantity && (
+                        <span style={{ color: "orange" }}>
+                          Limite disponible atteinte
+                        </span>
+                      )}
+                      {quantity[additionalService.id] >
+                        additionalService.quantity && (
+                        <span style={{ color: "#d50000" }}>
+                          Demande supérieure aux stocks
+                        </span>
+                      )}
+                    </div>
+                  </CardDescription>
+                </CardContent>
 
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{additionalService.title}</DialogTitle>
-            </DialogHeader>
-            <div
-              dangerouslySetInnerHTML={{
-                __html: additionalService.description,
-              }}
-            ></div>
-          </DialogContent>
-        </Dialog>
-      ))}
-      <ToastContainer />
+                <CardFooter className="flex justify-between pt-0 gap-3">
+                  <DialogTrigger className="w-full  md:w-auto">
+                    <Button variant="outline" className="w-full">
+                      Détails
+                    </Button>
+                  </DialogTrigger>
+                  <Button
+                    onClick={() => handleAddToCart(additionalService.id)}
+                    disabled={buttonInvalid[additionalService.id]}
+                    className="w-full  md:w-auto"
+                  >
+                    Ajouter au Panier
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{additionalService.title}</DialogTitle>
+                </DialogHeader>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: additionalService.description,
+                  }}
+                ></div>
+              </DialogContent>
+            </Dialog>
+          ))}
+          <ToastContainer />
+        </div>
+      ) : (
+        <div className="text-center">Aucun services additionels présent.</div>
+      )}
     </div>
   );
 }

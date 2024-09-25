@@ -1,423 +1,424 @@
-'use client';
-import { TabsContent } from '@/components/ui/tabs';
+import { useEffect, useState } from "react";
+import { TabsContent } from "@/components/ui/tabs";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    CardFooter
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
-
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command";
-
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-
 import { Button } from "@/components/ui/button";
-import { useState } from 'react';
-import { addDays, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { DateRange } from 'react-day-picker';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { TrashIcon } from '@radix-ui/react-icons';
-import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
-import { Popover } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
+import { Input } from "@/components/ui/input";
+import { TrashIcon } from "lucide-react";
 
-const Abonnement = [
-    {
-        id: 1,
-        title: 'Tarifs gestion planning MENSUEL',
-        price: 19,
-        freePeriod: 1,
-        type: 'day'
-    },
-    {
-        id: 2,
-        title: 'Tarifs gestion planning ANNUEL',
-        price: 200,
-        freePeriod: 1,
-        type: 'year'
-    }
-];
-
-interface Suscribe {
-    clientId: string;
-    type: string;
-    [key: string]: string | boolean | number | undefined;
-}
-
-interface createSuscribe {
-    title: string,
-    price: number,
-    nbrEssaisGratuit: number,
-    period: string,
-    [key: string]: string | boolean | number | undefined;
+interface CreateSuscribe {
+  title: string;
+  price: number;
+  nbrEssaisGratuit: number;
+  period: string;
+  functions: string[];
 }
 
 export default function SuscribeTab() {
-    const [suscribe, setSuscribe] = useState<Suscribe>({
-        clientId: '',
-        type: '',
-    });
+  const [createSuscribe, setCreateSuscribe] = useState<CreateSuscribe>({
+    title: "",
+    price: 0,
+    nbrEssaisGratuit: 0,
+    period: "",
+    functions: [],
+  });
 
+  const [abonnement, setAbonnement] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [newFunction, setNewFunction] = useState<string>("");
 
-    const [createSuscribe, setCreateSucribe] = useState<createSuscribe>({
-        title: '',
-        price: 0,
-        nbrEssaisGratuit:0,
-        period:'',
-    });
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: new Date(),
-        to: addDays(new Date(), 30),
-    });
-    const [dates, setDates] = useState<DateRange[]>([]);
+  // Mise à jour de l'état lors du changement des champs
+  const handleAbonnementChange = (field: string, value: any) => {
+    setCreateSuscribe((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-    const handleServiceChange = (key: keyof Suscribe, value: any) => {
-        setSuscribe((prevSuscribe) => ({
-            ...prevSuscribe,
-            [key]: value,
-        }));
-    };
+  const handleFunctionChange = (value: string) => {
+    setNewFunction(value);
+  };
 
-    const handleAbonnementChange = (key: keyof Suscribe, value: any) => {
-        setCreateSucribe((prevCreateSuscribe) => ({
-            ...prevCreateSuscribe,
-            [key]: value
-        }))
+  const addFunction = () => {
+    if (newFunction.trim() !== "") {
+      setCreateSuscribe((prev) => ({
+        ...prev,
+        functions: [...prev.functions, newFunction],
+      }));
+      setNewFunction("");
     }
+  };
 
-    const handleTypeChange = (value: string) => {
-        handleServiceChange('type', value);
+  const removeFunction = (index: number) => {
+    setCreateSuscribe((prev) => ({
+      ...prev,
+      functions: prev.functions.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Fonction pour créer un abonnement
+  const handleCreateAbonnement = async () => {
+    const abonnementData = {
+      title: createSuscribe.title,
+      price: createSuscribe.price,
+      nbrEssaisGratuit: createSuscribe.nbrEssaisGratuit,
+      period: createSuscribe.period,
+      functions: createSuscribe.functions,
     };
-    const handleTimeChange = (value: string) => {
-        handleAbonnementChange('period', value);
+
+    const response = await fetch("/api/abonnement/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(abonnementData),
+    });
+
+    if (response.ok) {
+      await fetchAbonnements(); // Recharger les abonnements après la création
+      resetForm(); // Réinitialiser le formulaire
+    } else {
+      console.error("Erreur lors de la création de l'abonnement");
+    }
+  };
+
+  // Fonction pour récupérer les abonnements existants
+  const fetchAbonnements = async () => {
+    const response = await fetch("/api/abonnement/get");
+    const abonnements = await response.json();
+    setAbonnement(abonnements); // Mettre à jour l'état avec les abonnements récupérés
+  };
+
+  useEffect(() => {
+    fetchAbonnements(); // Charger les abonnements au démarrage du composant
+  }, []);
+
+  // Fonction pour gérer la modification d'un abonnement
+  const handleEditAbonnement = async (abonnementToEdit: any) => {
+    setCreateSuscribe({
+      title: abonnementToEdit.title,
+      price: abonnementToEdit.price,
+      nbrEssaisGratuit: abonnementToEdit.nbrEssaisGratuit,
+      period: abonnementToEdit.period,
+      functions: abonnementToEdit.functions || [],
+    });
+    setEditId(abonnementToEdit.id);
+    setIsEditing(true); // Ouvrir le dialog de modification
+  };
+
+  // Fonction pour mettre à jour un abonnement existant
+  const handleUpdateAbonnement = async () => {
+    const abonnementData = {
+      title: createSuscribe.title,
+      price: createSuscribe.price,
+      nbrEssaisGratuit: createSuscribe.nbrEssaisGratuit,
+      period: createSuscribe.period,
+      functions: createSuscribe.functions,
     };
 
-    return (
-        <TabsContent value='suscribe' className="space-y-4">
-            <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
-                <div className="flex items-center justify-between space-y-2">
-                    <h2 className="text-2xl font-bold tracking-tight">Gestion des Abonnements</h2>
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button>Ajouter</Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-screen overflow-y-scroll">
-                            <DialogHeader>
-                                <DialogTitle>Ajouter un abonnement</DialogTitle>
-                                <DialogDescription>
-                                    <br />
-                                    <label className='mt-4' htmlFor="">Titre</label>
-                                    <br />
-                                    <Input 
-                                        type='text'
-                                        placeholder='Ex: Gestion planning MENSUEL'
-                                    />
-                                    <br />
-                                    <label htmlFor="">Prix</label>
-                                    <br />
-                                    <Input 
-                                        type='number'
-                                        placeholder='Ex: 19 €'
-                                    />
-                                    <br />
-                                    <label htmlFor="">Essai gratuit</label>
-                                    <br />
-                                    <div className='flex'>
-                                        <Input type='number' className='mr-6'/>
-                                      
-                                        <Select onValueChange={handleTimeChange}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Période" />
-                                            </SelectTrigger>
-                                            <SelectContent >
-                                                <SelectGroup>
-                                                    <SelectLabel>Période</SelectLabel>
-                                                        <SelectItem value='day'>Jours</SelectItem>
-                                                        <SelectItem value='week'>Semaines</SelectItem>
-                                                        <SelectItem value='month'>Mois</SelectItem>
-                                                        <SelectItem value='year'>Années</SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                        
-                                    </div>
-                                </DialogDescription>
-                                <div>
-                                    <Button></Button>
-                                </div>
+    const response = await fetch(`/api/abonnement/update/${editId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(abonnementData),
+    });
 
-                            </DialogHeader>
-                        </DialogContent>
-                    </Dialog>
+    if (response.ok) {
+      await fetchAbonnements(); // Recharger les abonnements après la modification
+      resetForm(); // Réinitialiser le formulaire après modification
+    } else {
+      console.error("Erreur lors de la mise à jour de l'abonnement");
+    }
+  };
 
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 min-w-[400px]">
-                    {Abonnement.map((abonnement) => (
-                        <Card key={abonnement.id} className=''>
-                            <CardHeader>
-                                <CardTitle className="flex justify-center" style={{ fontWeight: '700' }}>
-                                    {abonnement.title}:
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <span className="flex justify-center" style={{ fontWeight: 700, fontSize: '40px' }}>
-                                    {abonnement.price}€
-                                </span>
-                                <br />
-                                <span className="flex justify-center">Essai gratuit :</span>
-                                <span className="flex justify-center" style={{ fontWeight: 700, fontSize: '40px' }}>
-                                    {abonnement.freePeriod} {abonnement.type === "day" && abonnement.freePeriod === 1 ? (
-                                        "Jour"
-                                    ) : abonnement.type === 'day' && abonnement.freePeriod > 1 ? (
-                                        "Jours"
-                                    ) : abonnement.type === 'week' && abonnement.freePeriod === 1 ? (
-                                        "Semaine"
-                                    ) : abonnement.type === 'week' && abonnement.freePeriod > 1 ? (
-                                        "Semaines"
-                                    ) : abonnement.type === 'month' && abonnement.freePeriod === 1 ? (
-                                        "Mois"
-                                    ) : abonnement.type === 'month' && abonnement.freePeriod > 1 ? (
-                                        "Mois"
-                                    ) : abonnement.type === 'year' && abonnement.freePeriod === 1 ? (
-                                        "Année"
-                                    ) : abonnement.type === 'year' && abonnement.freePeriod > 1 ? (
-                                        "Années"
-                                    ) : null}
-                                </span>
-                            </CardContent>
-                            <CardFooter className="flex justify-end">
-                                <Button variant="destructive">Supprimer</Button>
-                                <Button className="ml-3">Modifier</Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-                <Dialog>
-                    <DialogTrigger><Button> Ajouter un Abonnement</Button></DialogTrigger>
-                    <DialogContent className="max-h-screen overflow-y-scroll rounded-md ">
-                        <DialogTitle>Ajouter un Abonnement à un Client</DialogTitle>
-                        <DialogDescription className='p-2'>
-                            <Command>
-                                <CommandInput placeholder="Rechercher un Client" />
-                                <CommandList>
-                                    <CommandEmpty>Aucun Résultat</CommandEmpty>
-                                    <CommandGroup heading="Suggestions">
-                                        <CommandItem className="flex items-center">
-                                            <img
-                                                style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                                className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                                alt="photo de profil"
-                                            />
-                                            <span className="ml-3">Miss Kitty</span>
-                                        </CommandItem>
-                                        <CommandItem className="flex items-center">
-                                            <img
-                                                style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                                className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                                alt="photo de profil"
-                                            />
-                                            <span className="ml-3">Jane Doe</span>
-                                        </CommandItem>
-                                        <CommandItem className="flex items-center">
-                                            <img
-                                                style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                                className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                                alt="photo de profil"
-                                            />
-                                            <span className="ml-3">Alice Smith</span>
-                                        </CommandItem>
-                                        <CommandItem className="flex items-center">
-                                            <img
-                                                style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                                className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                                alt="photo de profil"
-                                            />
-                                            <span className="ml-3">Emily Johnson</span>
-                                        </CommandItem>
-                                        <CommandItem className="flex items-center">
-                                            <img
-                                                style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                                className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                                alt="photo de profil"
-                                            />
-                                            <span className="ml-3">Sarah Brown</span>
-                                        </CommandItem>
-                                        <CommandItem className="flex items-center">
-                                            <img
-                                                style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                                className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                                />
-                                     <span className="ml-3">Olivia Davis</span>
-                                </CommandItem>
-                                <CommandItem className="flex items-center">
-                                    <img
-                                        style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                        className='object-cover rounded-full'
-                                                src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                        alt="photo de profil"
-                                    />
-                                    <span className="ml-3">Sophia Martinez</span>
-                                </CommandItem>
-                                <CommandItem className="flex items-center">
-                                    <img
-                                        style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                        className='object-cover rounded-full'
-                                        src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                        alt="photo de profil"
-                                    />
-                                    <span className="ml-3">Ava Wilson</span>
-                                </CommandItem>
-                                <CommandItem className="flex items-center">
-                                    <img
-                                        style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                        className='object-cover rounded-full'
-                                        src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                        alt="photo de profil"
-                                    />
-                                    <span className="ml-3">Isabella Moore</span>
-                                </CommandItem>
-                                <CommandItem className="flex items-center">
-                                    <img
-                                        style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                        className='object-cover rounded-full'
-                                        src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                        alt="photo de profil"
-                                    />
-                                    <span className="ml-3">Mia Taylor</span>
-                                </CommandItem>
-                                <CommandItem className="flex items-center">
-                                    <img
-                                        style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                        className='object-cover rounded-full'
-                                        src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                        alt="photo de profil"
-                                    />
-                                    <span className="ml-3">Amelia Anderson</span>
-                                </CommandItem>
-                                <CommandItem className="flex items-center">
-                                    <img
-                                        style={{ width: '30px', height: '30px', border: 'solid 2px white' }}
-                                        className='object-cover rounded-full'
-                                        src="https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI="
-                                        alt="photo de profil"
-                                    />
-                                    <span className="ml-3">Harper Thomas</span>
-                                </CommandItem>
-                            </CommandGroup>
-                        </CommandList>
-                        <br />
-                        <div>
-                        <label htmlFor="">Type d'abonnement</label>
-                        <br />
-                        <br />
-                        <div style={{padding:'1px'}}>
-                            <Select onValueChange={handleTypeChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Type d'abonnement" />
-                                </SelectTrigger>
-                                <SelectContent >
-                                    <SelectGroup>
-                                        <SelectLabel>Type d'abonnement</SelectLabel>
-                                        <SelectItem value='month'>Gestion planning Mensuel</SelectItem>
-                                        <SelectItem value='year'>Gestion planning Annuel</SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <br />
-                    <label htmlFor="">Date</label>
-                    <br></br>
-                        <Popover>
-                          <div className="grid gap-2">
-                            <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
-                          </div>
-                        </Popover>
-                        <br />
-                        {dates.length > 0 && <p>Dates ajoutées:</p>}
-                        {dates.map((date, index) => (
-                          <div className="flex items-center gap-2" key={index}>
-                            {date.to ? (
-                              <>
-                                {format(date.from!, 'dd LLL y', { locale: fr })} - {format(date.to!, 'dd LLL y', { locale: fr })}
-                              </>
-                            ) : (
-                              format(date.from!, 'dd LLL y', { locale: fr })
-                            )}
-                            <Button
-                              size="icon"
-                              variant="destructive"
-                              onClick={() => {
-                                const newDates = dates.filter((_, i) => i !== index);
-                                setDates(newDates);
-                                
-                              }}
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </Button>
-                            <br />
-                          </div>
-                        ))}
-<br />
+  // Fonction pour réinitialiser le formulaire
+  const resetForm = () => {
+    setCreateSuscribe({
+      title: "",
+      price: 0,
+      nbrEssaisGratuit: 0,
+      period: "",
+      functions: [],
+    });
+    setEditId(null);
+    setIsEditing(false); // Fermer le dialog de modification
+  };
+
+  // Fonction pour supprimer un abonnement
+  const handleDeleteAbonnement = async (id: string) => {
+    const response = await fetch(`/api/abonnement/delete/${id}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      setAbonnement((prevAbonnement) =>
+        prevAbonnement.filter((abonnement) => abonnement.id !== id)
+      ); // Retirer l'abonnement supprimé
+    } else {
+      console.error("Erreur lors de la suppression de l'abonnement");
+    }
+  };
+
+  return (
+    <TabsContent value="suscribe" className="space-y-4">
+      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Gestion des Abonnements
+          </h2>
+          <Dialog onOpenChange={resetForm}>
+            <DialogTrigger asChild>
+              <Button>Ajouter</Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-screen overflow-y-scroll">
+              <DialogHeader>
+                <DialogTitle>Ajouter un abonnement</DialogTitle>
+                <DialogDescription>
+                  {/* Formulaire pour ajouter un abonnement */}
+                  <label className="mt-4">Titre</label>
+                  <Input
+                    className="mt-4"
+                    type="text"
+                    placeholder="Ex: Gestion planning MENSUEL"
+                    value={createSuscribe.title}
+                    onChange={(e) =>
+                      handleAbonnementChange("title", e.target.value)
+                    }
+                  />
+                  <br />
+                  <label className="mt-4">Prix</label>
+                  <Input
+                    className="mt-4"
+                    type="number"
+                    placeholder="Ex: 19 €"
+                    value={createSuscribe.price}
+                    onChange={(e) =>
+                      handleAbonnementChange("price", e.target.value)
+                    }
+                  />
+                  <br />
+                  <label className="mt-4">Essai gratuit</label>
+                  <Input
+                    className="mt-4"
+                    type="number"
+                    value={createSuscribe.nbrEssaisGratuit}
+                    onChange={(e) =>
+                      handleAbonnementChange("nbrEssaisGratuit", e.target.value)
+                    }
+                  />
+                  <Select
+                    onValueChange={(value) =>
+                      handleAbonnementChange("period", value)
+                    }
+                  >
+                    <SelectTrigger className="mt-4">
+                      <SelectValue placeholder="Période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Période</SelectLabel>
+                        <SelectItem value="day">Jours</SelectItem>
+                        <SelectItem value="week">Semaines</SelectItem>
+                        <SelectItem value="month">Mois</SelectItem>
+                        <SelectItem value="year">Années</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <label className="mt-4">Points forts</label>
+                  <div className="flex mt-4">
+                    <Input
+                      className="flex-1"
+                      type="text"
+                      placeholder="Ajouter un point fort"
+                      value={newFunction}
+                      onChange={(e) => handleFunctionChange(e.target.value)}
+                    />
+                    <Button className="ml-2" onClick={addFunction}>
+                      Ajouter
+                    </Button>
+                  </div>
+                  <div className="mt-4">
+                    {createSuscribe.functions.map((func, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between mb-2"
+                      >
+                        <span>{func}</span>
                         <Button
-                          className="flex justify-center"
-                          onClick={() => {
-                            if (dateRange) {
-                              const newDates = [...dates, dateRange];
-                              setDates(newDates);
-                             
-                            }
-                          }}
-                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeFunction(index)}
                         >
-                            
-                          Ajouter la date
+                          <TrashIcon className="mr-2" /> Supprimer
                         </Button>
-                        <br />
-                        <div className='flex justify-end mt-5'>
-                            <Button variant={'secondary'}>Annuler</Button>
-                            <Button className='ml-4'>Enregistrer</Button>
-                        </div>
-                    </Command>
-                    
-                    
+                      </div>
+                    ))}
+                  </div>
+                  <Button onClick={handleCreateAbonnement} className="mt-4">
+                    Ajouter
+                  </Button>
                 </DialogDescription>
+              </DialogHeader>
             </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Liste des abonnements */}
+        {abonnement && abonnement.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {abonnement.map((ab, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle>{ab.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Prix: {ab.price} €</p>
+                  <p>Essai gratuit: {ab.nbrEssaisGratuit} jours</p>
+                  <p>Période: {ab.period}</p>
+                  <p>Points forts :</p>
+                  <ul>
+                    {ab.functions.map((func: any, i: number) => (
+                      <li key={i}>
+                        - {typeof func === "object" ? func.name : func}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className="mr-2"
+                    onClick={() => handleEditAbonnement(ab)}
+                  >
+                    Modifier
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteAbonnement(ab.id)}
+                  >
+                    <TrashIcon className="mr-2" /> Supprimer
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center">Aucun abonnement présent.</div>
+        )}
+
+        {/* Dialog pour modifier un abonnement */}
+        <Dialog open={isEditing} onOpenChange={resetForm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Modifier un abonnement</DialogTitle>
+              <DialogDescription>
+                <label className="mt-4">Titre</label>
+                <Input
+                  className="mt-4"
+                  type="text"
+                  placeholder="Ex: Gestion planning MENSUEL"
+                  value={createSuscribe.title}
+                  onChange={(e) =>
+                    handleAbonnementChange("title", e.target.value)
+                  }
+                />
+                <br />
+                <label className="mt-4">Prix</label>
+                <Input
+                  className="mt-4"
+                  type="number"
+                  placeholder="Ex: 19 €"
+                  value={createSuscribe.price}
+                  onChange={(e) =>
+                    handleAbonnementChange("price", e.target.value)
+                  }
+                />
+                <br />
+                <label className="mt-4">Essai gratuit</label>
+                <Input
+                  className="mt-4"
+                  type="number"
+                  value={createSuscribe.nbrEssaisGratuit}
+                  onChange={(e) =>
+                    handleAbonnementChange("nbrEssaisGratuit", e.target.value)
+                  }
+                />
+                <Select
+                  onValueChange={(value) =>
+                    handleAbonnementChange("period", value)
+                  }
+                >
+                  <SelectTrigger className="mt-4">
+                    <SelectValue placeholder="Période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Période</SelectLabel>
+                      <SelectItem value="day">Jours</SelectItem>
+                      <SelectItem value="week">Semaines</SelectItem>
+                      <SelectItem value="month">Mois</SelectItem>
+                      <SelectItem value="year">Années</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <label className="mt-4">Points forts</label>
+                <div className="flex mt-4">
+                  <Input
+                    className="flex-1"
+                    type="text"
+                    placeholder="Ajouter un point fort"
+                    value={newFunction}
+                    onChange={(e) => handleFunctionChange(e.target.value)}
+                  />
+                  <Button className="ml-2" onClick={addFunction}>
+                    Ajouter
+                  </Button>
+                </div>
+
+                <div className="mt-4">
+                  {createSuscribe.functions.map((func: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between mb-2"
+                    >
+                      <span>{typeof func === "object" ? func.name : func}</span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeFunction(index)}
+                      >
+                        <TrashIcon className="mr-2" /> Supprimer
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={handleUpdateAbonnement} className="mt-4">
+                  Modifier
+                </Button>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
         </Dialog>
-        
-    </div>
-</TabsContent>
-);
+      </div>
+    </TabsContent>
+  );
 }

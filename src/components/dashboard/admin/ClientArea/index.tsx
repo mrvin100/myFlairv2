@@ -1,5 +1,5 @@
 
-
+"use client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Client from './Client';
 import Publication from './Publication';

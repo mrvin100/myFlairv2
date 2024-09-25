@@ -1,344 +1,268 @@
-'use client';
+"use client"
 
+import { useState } from 'react'
+import { Separator } from "@/components/ui/separator"
+
+import { TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button'
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table';
-
+} from "@tanstack/react-table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Table,
   TableBody,
-  TableCell as UiTableCell,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { TabsContent } from '@/components/tabs';
-import { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import Link from 'next/link';
-import React from 'react';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "@/components/ui/table"
 
-type Option = {
-  label: string;
-  value: string;
-};
+interface DataTbaleProps<TData, TValue>{
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+}
 
-type Student = {
- 
-  orderID: number;
-  prix: number;
-  dateOfBirth: string;
-  
-};
-
-const TableCell = ({
-  
-  getValue,
-  row,
-  column,
-  table,
-}: {
-  getValue: any;
-  row: any;
-  column: any;
-  table: any;
-}) => {
-  const initialValue = getValue();
-  const columnMeta = column.columnDef.meta;
-  const tableMeta = table.options.meta;
-  const [value, setValue] = useState(initialValue);
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  const onBlur = () => {
-    tableMeta?.updateData(row.index, column.id, value);
-  };
-
-  const onSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setValue(e.target.value);
-    tableMeta?.updateData(row.index, column.id, e.target.value);
-  };
-
-  const formattedValue =
-    column.id === 'dateOfBirth' && value
-      ? format(parseISO(value), 'dd MMMM yyyy', { locale: fr })
-      : value;
-
-  if (tableMeta?.editedRows[row.id]) {
-    return columnMeta?.type === 'select' ? (
-      <UiTableCell>
-        <select onChange={onSelectChange} value={initialValue}>
-          {(columnMeta?.options as Option[])?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </UiTableCell>
-    ) : (
-      <UiTableCell>
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onBlur={onBlur}
-          type={columnMeta?.type || 'text'}
-        />
-      </UiTableCell>
-    );
-  }
-  return <UiTableCell>{formattedValue}</UiTableCell>;
-};
-
-const columnHelper = createColumnHelper<Student>();
-
-const columns = [
-  columnHelper.accessor('orderID', {
-    header: 'Commandes',
-    cell: TableCell,
-    meta: {
-      type: 'number',
-    },
-  }),
-  columnHelper.accessor('dateOfBirth', {
-    header: 'Date',
-    cell: TableCell,
-    meta: {
-      type: 'date',
-    },
-  }),
-  columnHelper.accessor('prix', {
-    header: 'Prix',
-    cell: TableCell,
-    meta: {
-      type: 'text',
-    },
-  }),
-  columnHelper.display({
-    id: 'action',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <Link href={`/dashboard/personal/orders/${row.original.orderID}`}>
-        <Button>Voir</Button>
-      </Link>
-    ),
-  }),
-];
-
-const defaultData: Student[] = [
-  {
-  
-    orderID: 1111,
-    prix: 19967,
-    dateOfBirth: '1984-01-04',
-  },
-  {
-   
-    orderID: 2222,
-    prix: 45650,
-    dateOfBirth: '1961-05-10',
-  },
-  {
-    
-    orderID: 3333,
-    prix: 2354,
-    dateOfBirth: '1991-10-12',
-  },
-  {
-
-    orderID: 4444,
-    prix: 12460,
-    dateOfBirth: '1978-09-24',
-  },
-];
-
-
-
-export const FooterCell = ({ table }: { table: any }) => {
-  const meta = table.options.meta;
-
-  const removeRows = () => {
-    meta.removeSelectedRows(
-      table.getSelectedRowModel().rows.map((row: any) => row.index),
-    );
-    table.resetRowSelection();
-  };
-  const selectedRows = table.getSelectedRowModel().rows;
-
+function DataTable<TData, TValue>({
+  columns, data,
+}: DataTbaleProps<TData, TValue>){
+  const table = useReactTable({
+    data, 
+    columns, 
+    getCoreRowModel: getCoreRowModel(),
+  })
   return (
-    <div className="footer-buttons">
-      {selectedRows.length > 0 ? (
-        <button className="remove-button" onClick={removeRows}>
-          Remove Selected x
-        </button>
-      ) : null}
-      <br />
-      <button className="add-button" onClick={meta?.addRow}>
-        Ajouter +
-      </button>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map(headerGroup => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map(header => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                    ?null
+                    :flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow 
+              key={row.id}
+              data-state={row.getIsSelected() && "selected"}
+              >{
+                row.getVisibleCells().map(cell => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>))
+              }
+                <TableCell>
+                  <OrderDetailsPage />
+                </TableCell>
+              </TableRow>
+            ))
+          ): (
+            <TableRow>
+              <TableCell colSpan={columns.length} className='h-24 text-center'>No results.</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
-  );
-};
+  )
+}
+
+type Order = {
+  order: string
+  date: string
+  status: "En cours" | "Annulée" | "Complète"
+  total: string
+  action?: string
+}
+
+const orders: Order[] = [
+  {
+    order: "n°23074",
+    date: "23 février 2024",
+    status: "En cours",
+    total: "119,94 € pour 6 articles",
+  } ,
+  {
+    order: "n°23061",
+    date: "26 janvier 2024",
+    status: "Annulée",
+    total: "129,94 € pour 6 articles",
+  }
+]
+
+const columns: ColumnDef<Order>[] = [
+  {
+    accessorKey: "order",
+    header: "Commande", 
+  },
+  {
+    accessorKey: "date",
+    header: "Date", 
+  },
+  {
+    accessorKey: "status",
+    header: "État", 
+  },
+  {
+    accessorKey: "total",
+    header: "Total",
+  },
+  {
+    accessorKey: "action",
+    header: "Actions",
+  },
+]
 
 export default function OrdersTab() {
-  const [rowSelection, setRowSelection] = useState({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-
-  const [editedRows, setEditedRows] = useState({});
-  const [data, setData] = useState(defaultData);
-
-  const [originalData, setOriginalData] = useState(() => [...defaultData]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-    },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    meta: {
-      editedRows,
-      setEditedRows,
-      revertData: (rowIndex: number, revert: boolean) => {
-        if (revert) {
-          setData((old) =>
-            old.map((row, index) =>
-              index === rowIndex ? originalData[rowIndex] : row,
-            ),
-          );
-        } else {
-          setOriginalData((old) =>
-            old.map((row, index) =>
-              index === rowIndex ? data[rowIndex] : row,
-            ),
-          );
-        }
-      },
-      updateData: (rowIndex: number, columnId: string, value: string) => {
-        setData((old) =>
-          old.map((row, index) => {
-            if (index === rowIndex) {
-              return {
-                ...old[rowIndex],
-                [columnId]: value,
-              };
-            }
-            return row;
-          }),
-        );
-      },
-      addRow: () => {
-        const newRow: Student = {
-          orderID: Math.floor(Math.random() * 100000),
-          prix: 0,
-          dateOfBirth: '',
-    
-      
-          
-        };
-        const setFunc = (old: Student[]) => [...old, newRow];
-        setData(setFunc);
-        setOriginalData(setFunc);
-      },
-      removeRow: (rowIndex: number) => {
-        const setFilterFunc = (old: Student[]) =>
-          old.filter((_row: Student, index: number) => index !== rowIndex);
-        setData(setFilterFunc);
-        setOriginalData(setFilterFunc);
-      },
-      removeSelectedRows: (selectedRows: number[]) => {
-        const setFilterFunc = (old: Student[]) =>
-          old.filter((_row, index) => !selectedRows.includes(index));
-        setData(setFilterFunc);
-        setOriginalData(setFilterFunc);
-      },
-    },
-  });
-  
   return (
-    <TabsContent title="Commandes" value="orders">
-      <div className="space-y-4">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} {...cell.getContext()} />
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <UiTableCell colSpan={table.getCenterLeafColumns().length} className="h-24 text-center">
-                    Aucun résultat.
-                  </UiTableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <tfoot>
-          <tr>
-            <th colSpan={table.getCenterLeafColumns().length} align="right">
-              <FooterCell table={table} />
-            </th>
-          </tr>
-        </tfoot>
+    <TabsContent value="orders" className="space-y-4">
+      <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
+          <h2 className="text-2xl font-normal tracking-tight">Mes Commandes</h2>
+          <div className="container mx-auto py-10">
+            <DataTable columns={columns} data={orders} />
+          </div>
       </div>
     </TabsContent>
   );
+}
 
+
+
+// Order details function
+
+function OrderDetailsPage() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="container mx-auto p-4">
+      <Button className='rounded-[1.3rem]' onClick={() => setOpen(true)}>Voir</Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-normal">Mes commandes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+              <div>
+                <p className="font-semibold">NUMÉRO de commande :</p>
+                <p>#001</p>
+              </div>
+              <div>
+                <p className="font-semibold">DATE :</p>
+                <p>23 mars 2024</p>
+              </div>
+              <div>
+                <p className="font-semibold">Email :</p>
+                <p>mon@email.com</p>
+              </div>
+              <div>
+                <p className="font-semibold">TOTAL :</p>
+                <p>2000 €</p>
+              </div>
+              <div>
+                <p className="font-semibold">Mode de paiement :</p>
+                <p>carte bleue</p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold bg-gray-100 p-2">Détails de la commande</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-semibold">Produit</TableHead>
+                    <TableHead className="font-semibold">Date de réservation</TableHead>
+                    <TableHead className="font-semibold">Qtés</TableHead>
+                    <TableHead className="font-semibold">TOTAL</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold">Location Poste Coiffure & make up</TableCell>
+                    <TableCell>
+                      04.06.2024 <br/>
+                      06.06.2024 <br/>
+                      07.06.2024
+                    </TableCell>
+                    <TableCell>
+                      1 <br/>
+                      1 <br/>
+                      1
+                    </TableCell>
+                    <TableCell>
+                      70 € <br />
+                      45 € <br />
+                      30 € <br />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Formation lissage</TableCell>
+                    <TableCell>07.06.2024</TableCell>
+                    <TableCell>1</TableCell>
+                    <TableCell>30 €</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Fer à lisser</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>2</TableCell>
+                    <TableCell>30 €</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3} className="font-semibold text-left">Total</TableCell>
+                    <TableCell className="font-semibold">2000 €</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold bg-gray-100 p-2">Adresse de facturation</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div className="space-y-2">
+                  <p><span className="font-semibold">Nom de la société :</span></p>
+                  <p><span className="font-semibold">Prénom et nom :</span></p>
+                  <p><span className="font-semibold">Num et rue :</span></p>
+                  <p><span className="font-semibold">Code postal :</span></p>
+                  <p><span className="font-semibold">Téléphone :</span></p>
+                  <p><span className="font-semibold">Email :</span></p>
+                </div>
+                <div className="space-y-2">
+                  {/* Les valeurs seront ajoutées ici */}
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex space-x-4 justify-end">
+              <Button variant="secondary" onClick={() => setOpen(false)}>Retour</Button>
+              <Button>Télécharger la facture</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
 }

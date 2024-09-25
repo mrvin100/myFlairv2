@@ -1,4 +1,5 @@
 "use client";
+
 import { useRef, useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
 import { TabsContent } from "@/components/tabs";
@@ -22,32 +23,50 @@ import {
   CircleMinus,
 } from "lucide-react";
 
-type ReservationType = {
+interface User {
   id: string;
-  service: {
-    typeClient: string;
-    title: string;
-    price: number;
-  };
-  status: string;
-  dateOfRdv: string;
-  time: string;
-  address: string;
-  note: string;
-  user: {
-    email: string;
-    phone: string;
-  };
-};
+  stripeCustomerId?: string | null;
+  image: string;
+  gallery: string[];
+  role: UserRole;
+  username: string;
+  firstName: string;
+  lastName: string;
+  address: Record<string, any>;
+  billingAddress?: Record<string, any> | null;
+  enterprise?: string | null;
+  homeServiceOnly: boolean;
+  email: string;
+  password: string;
+  forgotPassword: string;
+  phone: string;
+  website?: string | null;
+  nameOfSociety?: string | null;
+  preferences?: Record<string, any> | null;
+  preferencesProWeek?: Record<string, any> | null;
+  mark?: number | null;
+  numberOfRate?: number | null;
+  socialMedia?: Record<string, any> | null;
+  biography?: string | null;
+  createdAt: Date;
+  updatedAt?: Date | null;
+}
+
+interface UserRole {
+  id: string;
+  name: string;
+}
 
 export default function ProfileTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUserContext();
   const [images, setImages] = useState<File[]>([]);
+  const [userActual, setUserActual] = useState<User | null>(null);
 
   const handleDelete = () => {
     setImages([]);
   };
+
   const uploadImage = async (file: File): Promise<string> => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -74,19 +93,43 @@ export default function ProfileTab() {
     }
   };
 
-  const handleFileInputChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/utilisateur/getActualUser/${user?.id}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setUserActual(data);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    if (user?.id) {
+      fetchData();
+    }
+  }, [user?.id]);
+
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       try {
         const imageUrl = await uploadImage(files[0]);
         setImages([files[0]]);
+        if (userActual) {
+          setUserActual({
+            ...userActual,
+            gallery: [...userActual.gallery, imageUrl],
+          });
+        }
       } catch (error) {
         console.error("Error uploading image:", error);
       }
     }
   };
+
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -103,18 +146,29 @@ export default function ProfileTab() {
     }
   };
 
+  const handleDeleteImage = (index: number) => {
+    if (!userActual) return;
+    const updatedGallery = [...userActual.gallery];
+    updatedGallery.splice(index, 1);
+    setUserActual({ ...userActual, gallery: updatedGallery });
+  };
+
+
   return (
     <TabsContent title="Mon Profile" value="profile">
       <div className="max-w-5xl w-full">
         <h2 className="font-normal text-lg my-4">Image profil</h2>
         <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start ">
+
           <Image
-            src={"/nail-salon.webp"}
+            src={userActual?.image || ""}
             height={120}
             width={120}
             alt="client profile"
             className="rounded-full object-cover h-24 w-24"
           />
+
+
           <div>
             <div className="flex gap-4 my-3 justify-center md:justify-start">
               <Button>Télécharger</Button>
@@ -138,6 +192,7 @@ export default function ProfileTab() {
             placeholder="Ex: Milana Beauty"
             required
             id="entreprise"
+            value={userActual?.enterprise || ""}
           />
         </div>
         <br />
@@ -152,6 +207,7 @@ export default function ProfileTab() {
               required
               placeholder="Ex: Coiffeuse"
               id="profession"
+
             />
           </div>
         </div>
@@ -167,6 +223,7 @@ export default function ProfileTab() {
             value={""}
             onChange={() => "lorem onchange"}
             placeholder="Décrivez votre entreprise ici..."
+            value={userActual?.biography || ""}
           />
         </div>
         <br />
@@ -184,6 +241,7 @@ export default function ProfileTab() {
                 type="text"
                 onChange={() => "lorem"}
                 placeholder="Ex: myname@myFlair.fr"
+                defaultValue={userActual?.email}
               />
             </div>
           </div>
@@ -195,6 +253,7 @@ export default function ProfileTab() {
                 onChange={() => "lorem"}
                 required
                 placeholder="Ex: Coiffeuse"
+                defaultValue={userActual?.phone}
               />
             </div>
           </div>
@@ -209,6 +268,7 @@ export default function ProfileTab() {
               <Switch
                 onCheckedChange={() => "nothing"}
                 className="data-[state=checked]:bg-green-500"
+                value={userActual?.homeServiceOnly || ""}
               />
             </div>
           </div>
@@ -221,9 +281,10 @@ export default function ProfileTab() {
           <Input
             type="text"
             onChange={(e) => "fallback function"}
-            placeholder="Ex: Milana Beauty"
+            placeholder="Ex: 30 rue Molière"
             required
             id="entreprise"
+            value={userActual?.address?.street || ""}
           />
         </div>
         <br />
@@ -235,7 +296,8 @@ export default function ProfileTab() {
               <Input
                 type="text"
                 onChange={() => "lorem"}
-                placeholder="Ex: Rue de Compiege"
+                placeholder="Ex: Marseille"
+                value={userActual?.address?.city || ""}
               />
             </div>
           </div>
@@ -246,7 +308,8 @@ export default function ProfileTab() {
                 type="text"
                 onChange={() => "lorem"}
                 required
-                placeholder="Ex: 1240 av."
+                placeholder="Ex: 12400"
+                value={userActual?.address?.postalCode || ""}
               />
             </div>
           </div>
@@ -260,6 +323,7 @@ export default function ProfileTab() {
               onChange={() => "lorem"}
               placeholder="Ex: France"
               required
+              value={userActual?.address?.country || ""}
             />
           </div>
         </div>
@@ -273,12 +337,13 @@ export default function ProfileTab() {
             onChange={(e) => "fallback function"}
             placeholder="Ex: Plus d'infos complementaires sur votre addresse..."
             id="entreprise"
+            value={userActual?.address?.complementAddress || ""}
           />
         </div>
         <br />
 
         <div>
-        <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
+          <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
           <div
             onClick={() => fileInputRef.current?.click()}
             onDrop={handleDrop}
@@ -301,6 +366,7 @@ export default function ProfileTab() {
               Formats pris en charge: JPEG, PNG, JPG et SVG
             </p>
           </div>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -308,43 +374,48 @@ export default function ProfileTab() {
             style={{ display: "none" }}
             onChange={handleFileInputChange}
           />
-          {images.length > 0 && (
+
+          {userActual?.gallery?.length > 0 && (
             <div>
               <h3 className="my-4">Sélectionner une image par défaut</h3>
-              {images.map((file, index) => (
-                <div
-                  key={index}
-                  style={{
-                    position: "relative",
-                    display: "inline-block",
-                    marginRight: "10px",
-                  }}
-                >
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    style={{
-                      width: "100px",
-                      height: "auto",
-                      marginBottom: "5px",
-                    }}
-                    className="rounded-lg"
-                  />
+              <div className="flex flex-wrap">
+                {userActual.gallery.map((imageUrl, index) => (
                   <div
-                    style={{ position: "absolute", top: "5px", right: "5px" }}
+                    key={index}
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                      marginRight: "10px",
+                    }}
                   >
-                    <button
-                      className="rounded-full"
-                      style={{ padding: "5px", background: "red" }}
-                      onClick={handleDelete}
+                    <img
+                      src={imageUrl}
+                      alt={`Image ${index + 1}`}
+                      style={{
+                        width: "100px",
+                        height: "auto",
+                        marginBottom: "5px",
+                      }}
+                      className="rounded-lg"
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "5px",
+                        right: "5px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => handleDeleteImage(index)}
                     >
-                      <img src="/iconService/trashWhite.svg" alt="Delete" />
-                    </button>
+                      <CircleMinus size={24} color="red" />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
+
+
         </div>
         <div className="flex justify-end">
           <SubmitButton pending={false} onClick={() => "handleSubmit"}>
@@ -388,6 +459,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { userAgent } from "next/server";
+import { AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar } from "@/components/ui/avatar";
 
 type Social = {
   value: string;

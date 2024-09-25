@@ -1,38 +1,120 @@
-'use client';
-
-import fr from 'react-phone-number-input/locale/fr';
-import { useState } from 'react';
-import { BuildingIcon, MailIcon } from 'lucide-react';
-import { UserRole } from '@prisma/client';
-import { EyeClosedIcon, EyeOpenIcon, PersonIcon } from '@radix-ui/react-icons';
-
-import { useSignUpFormContext } from '@/contexts/sign-up-form';
-
-import { ImageUploader } from '@/components/image-uploader';
-import { PhoneInput } from '@/components/phone-input';
-
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+"use client"
+import React, { useRef, useState } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FormField, FormControl, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { PhoneInput } from '@/components/phone-input';
+import { useSignUpFormContext } from '@/contexts/sign-up-form';
+import { EyeClosedIcon, EyeOpenIcon, PersonIcon } from '@radix-ui/react-icons';
+import { MailIcon, BuildingIcon, TrashIcon } from 'lucide-react';
+import { UserRole } from '@prisma/client';
+import fr from 'react-phone-number-input/locale/fr';
 
 export default function Step2() {
   const form = useSignUpFormContext();
-
   const [hidden, setHidden] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [images, setImages] = useState<File[]>([]);
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error('Les variables d\'environnement Cloudinary ne sont pas correctement configurées.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error('Erreur lors du téléchargement de l\'image :', error);
+      throw error;
+    }
+  };
+
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      try {
+        const imageUrl = await uploadImage(files[0]);
+        setImages([files[0]]);
+        form.setValue('image', imageUrl);
+      } catch (error) {
+        console.error('Erreur lors du téléchargement de l\'image :', error);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    setImages([]);
+    form.setValue('image', '');
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 1) {
+      console.log("Vous ne pouvez sélectionner qu'une seule image.");
+      return;
+    }
+    try {
+      const imageUrl = await uploadImage(files[0]);
+      setImages(files);
+      form.setValue('image', imageUrl);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement de l\'image :', error);
+    }
+  };
 
   return (
     <>
-      <ImageUploader callback={(url: string) => form.setValue('image', url)} />
+      <ToastContainer />
+      <div
+        className="border-dashed border-2 border-gray-300 p-4"
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleFileInputChange}
+        />
+        {images.length > 0 ? (
+          <div className="relative">
+            <img
+              src={URL.createObjectURL(images[0])}
+              alt="Uploaded"
+              className="max-w-full h-auto"
+            />
+            <TrashIcon
+              className="absolute top-2 right-2 cursor-pointer"
+              onClick={handleDelete}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-blue-500"
+          >
+            Cliquez pour télécharger une image
+          </button>
+        )}
+      </div>
 
       <FormField
         control={form.control}

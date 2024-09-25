@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -7,58 +8,81 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Button } from '@/components/ui/button';
 import { TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import ReactQuill from 'react-quill';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import DisplayClients from './displayData';
+import { EyeClosedIcon, EyeOpenIcon } from '@radix-ui/react-icons';
+import { Switch } from '@/components/ui/switch';
 
 interface NewClient {
-    name: string;
-    firstName: string;
-    nameOfSociety: string;
-    image: string;
-    address: {
-      street: string;
-      city: string;
-      postalCode: string;
-      country: string;
-    };
-    phone: string;
-    email: string;
-    status: string;
-    billingAddress: {
-      company: string;
-      firstName: string;
-      lastName: string;
-      address: string;
-    };
-  }
+  lastName: string;
+  firstName: string;
+  nameOfSociety: string;
+  image: string;
+  address: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+  phone: string;
+  email: string;
+  password: string;
+  role: string;
+  homeServiceOnly: boolean;
+  billingAddress?: {
+    street?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  preferences: {};
+}
 
 const AddClient = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hidden, setHidden] = useState(true);
   const [newClient, setNewClient] = useState<NewClient>({
-    name: '',
+    lastName: '',
     firstName: '',
     nameOfSociety: '',
     image: '',
     address: {
-        street:'',
-        city:'',
-        postalCode:'',
-        country:'',
+      street: '',
+      city: '',
+      postalCode: '',
+      country: '',
     },
     phone: '',
     email: '',
-    status: '',
-
+    password: '',
+    role: '',
+    homeServiceOnly: false,
     billingAddress: {
-      company: '',
-      firstName: '',
-      lastName: '',
-      address: '',
+      street: '',
+      city: '',
+      postalCode: '',
+      country: ''
     },
+    preferences: {}
   });
   const [images, setImages] = useState<File[]>([]);
 
@@ -89,7 +113,9 @@ const AddClient = () => {
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName || !uploadPreset) {
-      throw new Error('Cloudinary environment variables are not properly configured.');
+      throw new Error(
+        'Cloudinary environment variables are not properly configured.'
+      );
     }
 
     const formData = new FormData();
@@ -108,7 +134,9 @@ const AddClient = () => {
     }
   };
 
-  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       try {
@@ -121,27 +149,22 @@ const AddClient = () => {
     }
   };
 
-
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // Example POST request, adjust endpoint and payload structure as needed
-      const response = await axios.post('/api/clients/add', newClient, {
+      const response = await axios.post('/api/utilisateur/create', newClient, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
       if (response.status === 200) {
         toast.success('Nouveau client ajouté avec succès');
-        setTimeout(() => {
-          router.push('/dashboard/clients');
-        }, 2000);
       } else {
-        toast.error('Erreur lors de l\'ajout du client');
+        toast.error("Erreur lors de l'ajout du client");
         console.log('Error adding client:', response.data);
       }
     } catch (error) {
-      toast.error('Erreur lors de l\'ajout du client');
+      toast.error("Erreur lors de l'ajout du client");
       console.error('Error:', error);
     } finally {
       setIsLoading(false);
@@ -168,7 +191,7 @@ const AddClient = () => {
     <div>
       <ToastContainer />
       <TabsContent value="clientList" className="space-y-3">
-        <div className=" h-full flex-1 flex-col space-y-8 p-8 md:flex">
+        <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
           <div className="flex items-center justify-between space-y-2">
             <h2 className="text-2xl font-bold tracking-tight">Clients</h2>
             <Dialog>
@@ -181,47 +204,53 @@ const AddClient = () => {
                   <br />
                   <DialogDescription>
                     <div>
-                      <label>Nom du client <span className='text-red-500'>*</span></label>
-                      <br />
-                      <br />
-                      <Input
-                        className="rounded outline-none"
-                        type="text"
-                        value={newClient.name}
-                        onChange={(e) => handleClientChange('name', e.target.value)}
-                        placeholder="Nom du client"
-                        required
-                      />
-                      <br />
-                      <label>Prénom du client <span className='text-red-500'>*</span></label>
+                      <label>
+                        Prénom du client <span className="text-red-500">*</span>
+                      </label>
                       <br />
                       <br />
                       <Input
                         className="rounded outline-none"
                         type="text"
                         value={newClient.firstName}
-                        onChange={(e) => handleClientChange('name', e.target.value)}
+                        onChange={(e) =>
+                          handleClientChange('firstName', e.target.value)
+                        }
                         placeholder="Prénom du client"
                         required
                       />
                       <br />
-                      <label htmlFor="">Nom de la société</label>
-                      <br /><br />
+                      <label>
+                        Nom du client <span className="text-red-500">*</span>
+                      </label>
+                      <br />
+                      <br />
                       <Input
                         className="rounded outline-none"
                         type="text"
-                        value={newClient.nameOfSociety}
-                        onChange={(e) => handleClientChange('name', e.target.value)}
-                        placeholder="Nom de la société"
-                        
+                        value={newClient.lastName}
+                        onChange={(e) =>
+                          handleClientChange('lastName', e.target.value)
+                        }
+                        placeholder="Nom du client"
+                        required
                       />
                       <br />
-                      
-                      <label>Adresse <span className='text-red-500'>*</span></label>
-                      <br /><br />
+
+
+                      <label>
+                        Adresse <span className="text-red-500">*</span>
+                      </label>
+                      <br />
+                      <br />
                       <Input
                         type="text"
-                        onChange={(e) => handleClientChange('address', { field: 'street', value: e.target.value })}
+                        onChange={(e) =>
+                          handleClientChange('address', {
+                            field: 'street',
+                            value: e.target.value,
+                          })
+                        }
                         value={newClient.address.street}
                         placeholder="Rue"
                         required
@@ -229,7 +258,12 @@ const AddClient = () => {
                       <br />
                       <Input
                         type="text"
-                        onChange={(e) => handleClientChange('address', { field: 'city', value: e.target.value })}
+                        onChange={(e) =>
+                          handleClientChange('address', {
+                            field: 'city',
+                            value: e.target.value,
+                          })
+                        }
                         value={newClient.address.city}
                         placeholder="Ville"
                         required
@@ -237,7 +271,12 @@ const AddClient = () => {
                       <br />
                       <Input
                         type="text"
-                        onChange={(e) => handleClientChange('address', { field: 'postalCode', value: e.target.value })}
+                        onChange={(e) =>
+                          handleClientChange('address', {
+                            field: 'postalCode',
+                            value: e.target.value,
+                          })
+                        }
                         value={newClient.address.postalCode}
                         placeholder="Code postal"
                         required
@@ -245,144 +284,183 @@ const AddClient = () => {
                       <br />
                       <Input
                         type="text"
-                        onChange={(e) => handleClientChange('address', { field: 'country', value: e.target.value })}
+                        onChange={(e) =>
+                          handleClientChange('address', {
+                            field: 'country',
+                            value: e.target.value,
+                          })
+                        }
                         value={newClient.address.country}
                         placeholder="Pays"
                         required
                       />
                       <br />
                       <br />
-                      <label>Téléphone <span className='text-red-500'>*</span></label>
+                      <label>
+                        Téléphone <span className="text-red-500">*</span>
+                      </label>
                       <br />
                       <br />
                       <Input
                         type="tel"
-                        onChange={(e) => handleClientChange('phone', e.target.value)}
+                        onChange={(e) =>
+                          handleClientChange('phone', e.target.value)
+                        }
                         value={newClient.phone}
                         placeholder="Numéro de téléphone"
                         required
                       />
                       <br />
-                      <label>Email <span className='text-red-500'>*</span></label>
+                      <label>
+                        Email <span className="text-red-500">*</span>
+                      </label>
                       <br />
                       <br />
                       <Input
                         type="email"
-                        onChange={(e) => handleClientChange('email', e.target.value)}
+                        onChange={(e) =>
+                          handleClientChange('email', e.target.value)
+                        }
                         value={newClient.email}
                         placeholder="Adresse email"
                         required
                       />
                       <br />
-                      <label>Statut <span className='text-red-500'>*</span></label>
+                      <label>
+                        Mot de passe <span className="text-red-500">*</span>
+                      </label>
                       <br />
                       <br />
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un statut" />
+                      <div className="flex items-center border rounded-md">
+                        <div className="flex items-center justify-center border-r px-3 py-1">
+                          {hidden ? (
+                            <EyeClosedIcon
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() => setHidden(false)}
+                            />
+                          ) : (
+                            <EyeOpenIcon
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() => setHidden(true)}
+                            />
+                          )}
+                        </div>
+                        <Input
+                          className="rounded-none rounded-br-md rounded-tr-md border-none px-3 py-1 pl-1.5"
+                          type={hidden ? 'password' : 'text'}
+                          value={newClient.password}
+                          onChange={(e) =>
+                            handleClientChange('password', e.target.value)
+                          }
+                          placeholder="Mot de passe"
+                          required
+                        />
+                      </div>
+                      <br />
+                      <label>
+                        Rôle <span className="text-red-500">*</span>
+                      </label>
+                      <br />
+                      <br />
+                      <Select
+                        value={newClient.role}
+                        onValueChange={(value) => handleClientChange('role', value)}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionnez un rôle" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectGroup >
-                            <SelectLabel>Statut</SelectLabel>
-                            <SelectItem value="personal">Personel</SelectItem>
-                            <SelectItem value="professional">Professionel</SelectItem>
-                            <SelectItem value="administrator">Administrateur</SelectItem>   
+                          <SelectGroup>
+                            <SelectLabel>Rôles</SelectLabel>
+                            <SelectItem value="ADMINISTRATOR">Administrateur</SelectItem>
+                            <SelectItem value="PROFESSIONAL">Professionel</SelectItem>
+                            <SelectItem value="PERSONAL">Particulier</SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                       <br />
-                      <div>
-                        <label>Adresse de facturation</label>
-                        <br />
-                        <br />
-                        <Input
-                          type="text"
-                          onChange={(e) => handleClientChange('billingAddress', { field: 'company', value: e.target.value })}
-                          value={newClient.billingAddress.company}
-                          placeholder="Nom de la société"
-                        />
-                        <br />
-                        <Input
-                          type="text"
-                          onChange={(e) => handleClientChange('billingAddress', { field: 'firstName', value: e.target.value })}
-                          value={newClient.billingAddress.firstName}
-                          placeholder="Prénom"
-                        />
-                        <br />
-                        <Input
-                          type="text"
-                          onChange={(e) => handleClientChange('billingAddress', { field: 'lastName', value: e.target.value })}
-                          value={newClient.billingAddress.lastName}
-                          placeholder="Nom"
-                        />
-                        <br />
-                        <Input
-                          type="text"
-                          onChange={(e) => handleClientChange('billingAddress', { field: 'address', value: e.target.value })}
-                          value={newClient.billingAddress.address}
-                          placeholder="Adresse"
-                        />
-                      </div>
-                      <br />
-                      <label>Image <span className='text-red-500'>*</span></label>
-                      <br />
-                      <br />
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        onDrop={handleDrop}
-                        onDragOver={e => e.preventDefault()}
-                        style={{
-                          cursor: 'pointer',
-                          width: '100%',
-                          height: '100px',
-                          border: '2px dashed #aaa',
-                          borderRadius: '5px',
-                          textAlign: 'center',
-                          padding: '20px',
-                          marginBottom: '20px'
-                        }}
-                      >
-                        <p className="flex items-center justify-center">Cliquez ou glissez et déposez des fichiers ici</p>
-                        <p className="text-sm">Formats pris en charge: JPEG, PNG, JPG et SVG</p>
-                      </div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg, image/png, image/jpg, image/svg"
-                        style={{ display: 'none' }}
-                        onChange={handleFileInputChange}
-                      />
-                      {images.length > 0 && (
+                      {newClient.role === 'PROFESSIONAL' && (
                         <div>
-                          {images.map((file, index) => (
-                            <div key={index} style={{ position: 'relative', display: 'inline-block', marginRight: '10px' }}>
-                              <img
-                                src={URL.createObjectURL(file)}
-                                alt={file.name}
-                                style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
-                                className="rounded-lg"
-                              />
-                              <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
-                                <button className="rounded-full" style={{ padding: '5px', background: 'red' }} onClick={handleDelete}>
-                                  <img src="/iconService/trashWhite.svg" alt="Delete" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                          <label htmlFor="">Nom de la société</label>
+                          <br />
+                          <br />
+                          <Input
+                            className="rounded outline-none"
+                            type="text"
+                            value={newClient.nameOfSociety}
+                            onChange={(e) =>
+                              handleClientChange('nameOfSociety', e.target.value)
+                            }
+                            placeholder="Nom de la société"
+                          />
+                          <br />
+                          <label>Adresse de facturation</label>
+                          <br /><br />
+                          <Input
+                            type="text"
+                            onChange={(e) => handleClientChange('billingAddress', { field: 'street', value: e.target.value })}
+                            value={newClient.billingAddress?.street || ''}
+                            placeholder="Rue"
+                          />
+                          <br />
+                          <Input
+                            type="text"
+                            onChange={(e) => handleClientChange('billingAddress', { field: 'city', value: e.target.value })}
+                            value={newClient.billingAddress?.city || ''}
+                            placeholder="Ville"
+                          />
+                          <br />
+                          <Input
+                            type="text"
+                            onChange={(e) => handleClientChange('billingAddress', { field: 'lastName', value: e.target.value })}
+                            value={newClient.billingAddress?.postalCode || ''}
+                            placeholder="Code Postal"
+                          />
+                          <br />
+                          <Input
+                            type="text"
+                            onChange={(e) => handleClientChange('billingAddress', { field: 'address', value: e.target.value })}
+                            value={newClient.billingAddress?.country || ''}
+                            placeholder="Pays"
+                          />
+                          <br />
+                          <label>
+                            Services à domicile uniquement
+                          </label>
+                          <br />
+                          <br />
+                          <Switch
+                            checked={newClient.homeServiceOnly}
+                            onCheckedChange={(checked) =>
+                              handleClientChange('homeServiceOnly', checked)
+                            }
+                          />
+                          <br />
                         </div>
                       )}
+                      <Button
+                        className="mt-4"
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Enregistrement...' : 'Ajouter Client'}
+                      </Button>
+
                     </div>
-                    <Button type="button" onClick={handleSubmit}>Ajouter</Button>
                   </DialogDescription>
                 </DialogHeader>
               </DialogContent>
             </Dialog>
           </div>
-          <DisplayClients/>
+          <DisplayClients />
         </div>
       </TabsContent>
     </div>
+
+
   );
 };
 
 export default AddClient;
+

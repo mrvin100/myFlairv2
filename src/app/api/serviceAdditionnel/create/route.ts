@@ -7,9 +7,6 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { image, alt, title, description, price, type, quantity } = body;
-
-    console.log('Données reçues:', body);
-
     const descriptionWithoutHtml = htmlToText(description);
 
     const additionalService = await stripe.products.create({
@@ -17,9 +14,6 @@ export async function POST(req: NextRequest) {
       description: description,
       images: [image],
     });
-
-    console.log('Type de produit:', type);
-
     let priceObj;
     if (type === 'day') {
       priceObj = await stripe.prices.create({
@@ -55,9 +49,6 @@ export async function POST(req: NextRequest) {
         idStripe: createdProduct.stripeId,
       },
     });
-
-    console.log('Service créé:', service);
-
     return NextResponse.json({
       additionalService,
       price: priceObj,

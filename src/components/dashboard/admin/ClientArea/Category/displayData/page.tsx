@@ -12,85 +12,112 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import axios from "axios";
 
 interface Category {
   id: string;
   title: string;
-  image: string;
+  imageMinia: string;
+  imageLogo: string;
 }
 
 const DisplayCategory = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showDialog, setShowDialog] = useState(false);
-  
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/api/category/get');
+        console.log(response)
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des catégories :", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleDeleteCategory = async () => {
+    if (!selectedCategoryId) return;
+    try {
+      await axios.delete(`/api/categories/${selectedCategoryId}`);
+      setCategories(categories.filter(category => category.id !== selectedCategoryId));
+      setShowDialog(false);
+      setSelectedCategoryId(null);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la catégorie :", error);
+    }
+  };
 
   return (
     <div>
-      <AlertDialog>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Titre</TableHead>
+            <TableHead>Image Miniature</TableHead>
+            <TableHead>Image du Logo</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {categories.map((category) => (
-            <TableBody key={category.id}>
-              <TableRow>
-                <TableCell>n° {category.id}</TableCell>
-                <TableCell>n° {category.title}</TableCell>
-                <TableCell>n° {category.image}</TableCell>
-                
-                <TableCell>
-                  <div className="flex">
-                    <Link href={`/dashboard/administrator/client/${encodeURIComponent(category.id)}`}>
-                      <img src="/iconWorkPlace/edit.svg" alt="" />
-                    </Link>
-                    <AlertDialogTrigger asChild style={{ marginLeft: '20px' }}>
+            <TableRow key={category.id}>
+              <TableCell>{category.id}</TableCell>
+              <TableCell>{category.title}</TableCell>
+              <TableCell>
+                <img src={category.imageMinia} alt={category.title} style={{ width: '100px', height: 'auto' }} />
+              </TableCell>
+              <TableCell>
+                <img src={category.imageLogo} alt={`${category.title} Logo`} style={{ width: '100px', height: 'auto' }} />
+              </TableCell>
+              <TableCell>
+                <div className="flex">
+                  <Link href={`/dashboard/administrator/client/${encodeURIComponent(category.id)}`}>
+                    <img src="/iconWorkPlace/edit.svg" alt="Edit" />
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
                       <img
                         src="/iconWorkPlace/trash-2.svg"
-                        alt=""
-                        
+                        alt="Delete"
+                        onClick={() => {
+                          setSelectedCategoryId(category.id);
+                          setShowDialog(true);
+                        }}
                       />
                     </AlertDialogTrigger>
-                  </div>
-                  {showDialog && // selectedCategoryId
-                 category.id && (
-                    <AlertDialogContent key={category.id}>
+                    <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Voulez-vous vraiment supprimer cette Catégorie ?</AlertDialogTitle>
+                        <AlertDialogTitle>Voulez-vous vraiment supprimer cette catégorie ?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Cette action est irréversible, voulez-vous vraiment la supprimer ?
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
-                        <AlertDialogAction>
-                          Valider
-                        </AlertDialogAction>
+                        <AlertDialogAction onClick={handleDeleteCategory}>Valider</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
-                  )}
-                </TableCell>
-              </TableRow>
-            </TableBody>
+                  </AlertDialog>
+                </div>
+              </TableCell>
+            </TableRow>
           ))}
-        </Table>
-      </AlertDialog>
+        </TableBody>
+      </Table>
     </div>
   );
 };

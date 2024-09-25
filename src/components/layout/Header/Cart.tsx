@@ -75,7 +75,21 @@ export default function Cart() {
     }
 
     fetchCartItems();
-  }, [user?.id]); 
+  }, [user?.id]);
+
+  const deleteCartItem = async (itemId: string) => {
+    try {
+      const response = await fetch(`/api/cart/delete/${itemId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete item');
+      }
+      setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    } catch (error) {
+      console.error('Error deleting cart item:', error);
+    }
+  };
 
   const createCheckOutSession = async () => {
     setLoading(true);
@@ -120,17 +134,22 @@ export default function Cart() {
                 <div className="flex items-center justify-between w-full">
                   <div className="flex flex-col">
                     <span style={{ fontWeight: '700' }}>
-                      {item.product.additionalService?.title || item.product.formation?.title || item.product.businessBooster?.title || 'Produit sans titre'}
+                      {item.product.additionalService?.title || item.product.formation?.[0]?.title || item.product.businessBooster?.title || 'Produit sans titre'}
                     </span>
                     <div className="flex">
                       <span>
-                        {item.product.additionalService?.price || item.product.formation?.price || item.product.businessBooster?.price || '0'} € x
+                        {item.product.additionalService?.price || item.product.formation?.[0]?.price || item.product.businessBooster?.price || '0'} € x
                       </span>
                       {item.quantity}
                     </div>
                   </div>
                   <div className="">
-                    <img src="/cart/trash-2-3.svg" alt="" className="flex justify-end" />
+                    <img
+                      src="/cart/trash-2-3.svg"
+                      alt="Supprimer"
+                      className="flex justify-end cursor-pointer"
+                      onClick={() => deleteCartItem(item.id)}
+                    />
                   </div>
                 </div>
               </DropdownMenuItem>

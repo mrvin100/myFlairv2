@@ -1,29 +1,29 @@
-'use client'
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TabsContent } from '@/components/ui/tabs';
 import { ConfigProvider, Slider } from 'antd';
-import { useEffect, useState } from 'react';
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
-import { StarOutlined, StarFilled, StarTwoTone } from '@ant-design/icons';
-import '../Publication/global.css'
+import { StarFilled } from '@ant-design/icons';
+import '../Publication/global.css';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Link from 'next/link';
+import { Edit, Trash } from 'lucide-react';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Publication() {
     const mark = {
@@ -44,18 +44,17 @@ export default function Publication() {
         starRating: number;
         category: string;
         isAtHome: boolean;
+        idUser: string;
     }
 
     const [publication, setPublication] = useState<Publication[]>([]);
     const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-    const [isOpen, setIsOpen] = useState(false);
-    
-    useEffect(() => {
-        // Fetch or set publications here
-        setPublication(publicationData); // Replace with your actual data fetching logic
-    }, []);
-
     const [sliderValue, setSliderValue] = useState([50, 150]);
+    const [showDialog, setShowDialog] = useState(false);
+    const [selectedPublicationId, setSelectedPublicationId] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredPublications, setFilteredPublications] = useState<Publication[]>([]);
+
 
     const handleSliderChange = (value: number[]) => {
         setSliderValue(value);
@@ -65,89 +64,96 @@ export default function Publication() {
         setCategoryFilter(value === "all" ? null : value);
     };
 
-    const publicationData: Publication[] = [
-        {
-            id: '1',
-            name: 'Milani Beauty',
-            ville: 'Paris',
-            pays: 'France',
-            prix: 35,
-            starRating: 4,
-            imageProfil: 'https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI=',
-            category: 'Bien-être',
-            isAtHome: false,
-        },
-        {
-            id: '2',
-            name: 'Milani Beauty',
-            ville: 'Paris',
-            pays: 'France',
-            prix: 35,
-            starRating: 4,
-            imageProfil: '',
-            category: '',
-            isAtHome: true,
-        },
-        {
-            id: '3',
-            name: 'Milani Beauty',
-            ville: 'Paris',
-            pays: 'France',
-            prix: 35,
-            starRating: 4,
-            imageProfil: '',
-            category: 'Bien-être',
-            isAtHome: false,
-        },
-        {
-            id: '4',
-            name: 'Milani Beauty',
-            ville: 'Paris',
-            pays: 'France',
-            prix: 35,
-            starRating: 4,
-            imageProfil: '',
-            category: 'Bien-être',
-            isAtHome: false,
-        },
-        {
-            id: '5',
-            name: 'Milani Beauty',
-            ville: 'Paris',
-            pays: 'France',
-            prix: 35,
-            starRating: 4,
-            imageProfil: '',
-            category: 'Bien-être',
-            isAtHome: false,
-        },
-        {
-            id: '6',
-            name: 'Milani Beauty',
-            ville: 'Paris',
-            pays: 'France',
-            prix: 35,
-            starRating: 4,
-            imageProfil: '',
-            category: 'Bien-être',
-            isAtHome: false,
-        }
+    useEffect(() => {
+        const fetchPublications = async () => {
+            try {
+                const response = await fetch('/api/serviceProfessional/get', {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Expires': '0',
+                    },
+                });
+                const data = await response.json();
+                const mappedData = data.map((item: any) => ({
+                    id: item.id,
+                    idUser: item.userId,
+                    name: item.title,
+                    imageProfil: item.user.image,
+                    ville: item.user.address.city,
+                    pays: item.user.address.country,
+                    prix: parseFloat(item.price),
+                    starRating: item.rating || 0,
+                    category: item.category,
+                    isAtHome: item.domicile,
+                }));
+                setPublication(mappedData);
+            } catch (error) {
+                console.error('Error fetching publications:', error);
+            }
+        };
 
-    ];
+        fetchPublications();
+    }, []);
+
+    const handleDeletePublication = async (id: string) => {
+        try {
+            const response = await fetch(`/api/serviceProfessional/delete/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setPublication(prevPublications => prevPublications.filter(pub => pub.id !== id));
+                alert('Publication supprimée avec succès');
+            } else {
+                const data = await response.json();
+                alert(`Erreur : ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression de la publication :', error);
+            alert('Erreur lors de la suppression');
+        }
+    };
+
+    const confirmDelete = (id: string) => {
+        setSelectedPublicationId(id);
+        setShowDialog(true);
+    };
+
+    useEffect(() => {
+        // Appliquer les filtres
+        const filtered = publication.filter(pub => {
+            const withinPriceRange = pub.prix >= sliderValue[0] && pub.prix <= sliderValue[1];
+            const matchesCategory = categoryFilter ? pub.category === categoryFilter : true;
+            const matchesSearchTerm = pub.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return withinPriceRange && matchesCategory && matchesSearchTerm;
+        });
+
+        setFilteredPublications(filtered);
+    }, [publication, categoryFilter, sliderValue, searchTerm]);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
 
     function ModelPublication({ publication }: { publication: Publication }) {
         return (
-            <Card style={{ margin: 0 }} className=' min-w-[330px] rounded-md'>
+            <Card style={{ margin: 0 }} className='min-w-[330px] rounded-md'>
                 <div className='relative'>
-                    <Image
-                        src={'/nail-salon.webp'}
-                        width={1000}
-                        height={1000}
-                        alt="Picture of the author"
-                        className='rounded-md object-cover'
-                    />
+                    <Link href={`back-up/servicePage/${publication.id}`}>
+                        <Image
+                            src={'/nail-salon.webp'}
+                            width={1000}
+                            height={1000}
+                            alt="Picture of the author"
+                            className='rounded-md object-cover'
+                        />
+                    </Link>
                     <button style={{ padding: '9px', background: '#F8F8F8' }} className='absolute text-sm top-2 left-2 rounded-md text-black'>{publication.category}</button>
-                    <img style={{ width: '40px', height: '40px', border: 'solid 2px white' }} className='object-cover absolute bottom-2 right-2 rounded-full' src={publication.imageProfil} alt="" />
+                    <Link href={`/back-up/Profil/${publication.idUser}`}>
+                        <img style={{ width: '40px', height: '40px', border: 'solid 2px white' }} className='object-cover absolute bottom-2 right-2 rounded-full' src={publication.imageProfil} alt="" />
+                    </Link>
                 </div>
                 <br />
                 <CardContent>
@@ -160,29 +166,51 @@ export default function Publication() {
                             ) : (
                                 <span style={{ color: "#CECECE" }}>{publication.ville}</span>
                             )},</span>
-                            <span style={{ color: "#CECECE", marginLeft: '5px' }}>{publication.isAtHome ? (
-                                <span style={{ color: "#CECECE" }}>{publication.ville}</span>
-                            ) : (
-                                <span style={{ color: "#CECECE" }}>{publication.pays}</span>
-                            )}</span>
+                            <span style={{ color: "#CECECE", marginLeft: '5px' }}>{publication.pays}</span>
                         </div>
                         <div className='flex items-center' style={{ color: '#CECECE', marginTop: '3%', marginRight: '2px' }}><StarFilled style={{ color: '#F7F74A', fontSize: '24px', marginRight: '5px' }} /> {publication.starRating}/5</div>
                     </div>
                     <br />
                     <div className='flex justify-between'>
-                        <span>A partir de <span style={{ fontWeight: '700', fontSize: '150%' }}>{publication.prix} €</span></span>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger className='rounded-md' style={{ backgroundColor: 'black', color: '#fff', padding: '9px' }}>Modifier</DropdownMenuTrigger>
-                            <DropdownMenuContent style={{ backgroundColor: '#fff' }}>
-                                <DropdownMenuItem style={{ backgroundColor: '#fff' }} className='flex'><Button variant="secondary">Compte</Button><Button style={{ marginLeft: '20px' }} className='secondary'>Publication</Button></DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <span style={{ fontWeight: '700', fontSize: '150%' }}>{publication.prix} €</span>
+                        <div className='flex'>
+                            <Button><Edit /></Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        className='ml-2'
+                                        variant={'destructive'}
+                                        onClick={() => confirmDelete(publication.id)}
+                                    >
+                                        <Trash />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                {showDialog && selectedPublicationId === publication.id && (
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Voulez-vous vraiment supprimer cette publication ?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Cette action est irréversible, voulez-vous vraiment le supprimer ?
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => {
+                                                handleDeletePublication(publication.id);
+                                                setShowDialog(false);
+                                            }}>
+                                                Valider
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                )}
+                            </AlertDialog>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
-        )
+        );
     }
-
     return (
         <TabsContent value='publication'>
             <div className="h-full flex-1 flex-col space-y-8 pl-8 pt-8 md:flex">
@@ -220,31 +248,24 @@ export default function Publication() {
                         </div>
                         <div className="bg-gray-100 rounded p-4 mt-4">
                             <h1>Prix</h1>
-                            <ConfigProvider
-                                theme={{
-                                    token: {
-                                        colorPrimaryBorderHover: '#000'
-                                    },
-                                    components: {
-                                        Slider: { dotActiveBorderColor: '#000', handleActiveColor: '#000', handleColor: '#000', trackBg: '#000', trackHoverBg: '#000', handleColorDisabled: '#000' },
-                                    },
-                                }}
-                            >
-                                <Slider style={{ width: '95%' }} className=" mt-4" marks={mark} step={5} max={200} range defaultValue={[50, 150]} onChange={handleSliderChange} />
+                            <ConfigProvider theme={{ token: { colorPrimaryBorderHover: '#000' }, components: { Slider: { dotActiveBorderColor: '#000', handleActiveColor: '#000', handleColor: '#000', trackBg: '#000', trackHoverBg: '#000' } } }}>
+                                <Slider style={{ width: '95%' }} className="mt-4" marks={mark} step={5} max={200} range defaultValue={[50, 150]} onChange={handleSliderChange} />
                             </ConfigProvider>
                             <span className="block mt-2">Prix: {sliderValue[0]} € - {sliderValue[1]} €</span>
                         </div>
                         <button className="bg-black rounded text-white text-lg mt-4 w-full py-3">Rechercher</button>
                     </div>
-                    <div style={{marginLeft:'2%'}}>
-                    <div className="grid grid-cols-custom gap-7">
-                        {publication.map(pub => (
-                            <ModelPublication key={pub.id} publication={pub} />
-                        ))}
-                    </div>
+                    <div style={{ marginLeft: '2%' }}>
+                        <div className="grid grid-cols-custom gap-7">
+                            {filteredPublications.map(pub => (
+                                <ModelPublication key={pub.id} publication={pub} />
+                            ))}
+
+                        </div>
                     </div>
                 </div>
             </div>
         </TabsContent>
-    )
+    );
 }
+

@@ -1,76 +1,200 @@
 import { TabsContent } from '@/components/ui/tabs';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton"
 import { Rate } from 'antd';
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import Link from 'next/link';
 
-const AviData = [
-    {
-        id: 1,
-        firstName: 'Melina',
-        lastName: 'Beauty',
-        rate: 4.7,
-        numberOfRate: 244,
-        category: 'Coiffure',
-        addresse: '02 rue des Alpes, Paris, France',
-        imageOfPro: 'https://media.istockphoto.com/id/1320651997/fr/photo/portrait-datelier-isolé-dune-jeune-femme-en-gros-plan.jpg?s=612x612&w=0&k=20&c=VlvYhvY75qMYbay0FI2sy4dQEbvb7w6zTlCDnEDAWbI=',
-        status: 'validated',
-        imageOfClient: 'https://resize.elle.fr/original/var/plain_site/storage/images/beaute/soins/tendances/dermaplaning-ce-soin-tendance-qui-consiste-a-se-raser-le-visage-4007770/96395685-1-fre-FR/Dermaplaning-ce-soin-tendance-qui-consiste-a-se-raser-le-visage.jpg',
-        since: '1h',
-        note: 5,
-        description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores natus quae illum labore iure odio animi pariatur unde repellendus ipsum aut harum officia magni aliquid, molestias quasi molestiae nulla vitae?',
-        firstNameOfClient:'Miss',
-        lastNameOfClient:'Kitty',
+// Définir les types
+interface User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    image: string | undefined;
+    mark: number | null;
+    address: {
+        street: string;
+        city: string;
+    };
+}
 
+interface Review {
+    id: string;
+    professional: User;
+    author: User;
+    service: Service;
+    rating: number;
+    comment: string;
+    status: 'await' | 'approved';
+    createdAt: Date;
+}
+
+interface Service {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    price: string;
+    domicile: boolean;
+    dureeRDV: string;
+    userId: string;
+}
+
+export default function Comments() {
+    const [reviews, setReviews] = useState<Review[]>([]);  
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchReviews() {
+            try {
+                const res = await fetch('/api/review/getAll');
+                if (!res.ok) {
+                    throw new Error('Failed to fetch reviews');
+                }
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setReviews(data);
+                } else {
+                    console.error("Expected an array of reviews, but got:", data);
+                    setReviews([]);
+                }
+            } catch (error) {
+                console.error("Erreur lors du chargement des avis", error);
+                setReviews([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchReviews();
+    }, []);
+    
+    if (loading) {
+        return <Skeleton active />;
     }
-];
-import {Button} from '@/components/ui/button'
-function StarRatingPro() {
+
+    const sortedReviews = reviews.sort((a, b) => {
+        if (a.status === 'await' && b.status === 'approved') {
+            return -1;
+        }
+        if (a.status === 'approved' && b.status === 'await') {
+            return 1;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
     return (
-        <Rate disabled defaultValue={AviData[0].rate} />
+        <TabsContent value='comment'>
+            <div className="h-full flex-1 flex-col space-y-8 pl-8 pt-8 md:flex">
+                <div className="flex items-center justify-between space-y-2">
+                    <h2 className="text-2xl font-bold tracking-tight">Gestion des Avis</h2>
+                </div>
+                {sortedReviews.map((review) => (
+                    <ModelComment key={review.id} review={review} setReviews={setReviews} />
+                ))}
+            </div>
+        </TabsContent>
     );
 }
 
-function StarRatingOfClient() {
+
+function ModelComment({ review, setReviews }: { review: Review; setReviews: React.Dispatch<React.SetStateAction<Review[]>> }) {
+    async function handleApprove(reviewId: string) {
+        const res = await fetch(`/api/review/updateStatus/${review.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reviewId }),
+        });
+
+        if (res.ok) {
+            const updatedReview = await res.json();
+            setReviews((prev) => prev.map(review => review.id === reviewId ? updatedReview : review));
+        } else {
+            console.error("Erreur lors de l'approbation de l'avis");
+        }
+    }
+
+    async function handleDelete(reviewId: string) {
+        const res = await fetch(`/api/review/archive`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reviewId }),
+        });
+
+        if (res.ok) {
+            const updatedReview = await res.json();
+            setReviews((prev) => prev.map((r) => (r.id === reviewId ? updatedReview : r)));
+        } else {
+            console.error("Erreur lors de la suppression de l'avis");
+        }
+    }
+
     return (
-        <Rate disabled defaultValue={AviData[0].note} />
+        <Card className='p-5'>
+            {/* Render the professional and client details */}
+            <ModelSkeletonPro review={review} />
+            <ModelSkeletonClient review={review} />
+            <div className="mt-4">
+                <Rate allowHalf disabled value={review.rating} />
+            </div>
+            <br />
+            <div className="flex justify-end">
+                {review?.status === 'await' ? (
+                    <>
+                        <Link href={`/back-up/Profil/${review?.professional.id}`}>
+                            <Button variant="secondary">Voir</Button>
+                        </Link>
+                        <Button className="ml-3" onClick={() => handleApprove(review.id)}>Approuver</Button>
+                    </>
+                ) : (
+                    <>
+                        <Button variant="destructive" onClick={() => handleDelete(review.id)}>Supprimer</Button>
+                        <Link href={`/back-up/Profil/${review.professional.id}`}>
+                            <Button className='ml-4'>Voir</Button>
+                        </Link>
+                    </>
+                )}
+            </div>
+        </Card>
     );
 }
 
-function ModelSkeletonPro() {
+function ModelSkeletonPro({ review }: { review: Review }) {
     return (
         <div className="flex flex-col">
             <div className='flex justify-between items-center'>
                 <div className='flex items-center'>
-                    <img
-                        style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
-                        className='rounded-full object-cover'
-                        src={AviData[0].imageOfPro}
-                        alt="Image Of The Professional"
-                    />
-                    <span style={{ fontSize: '130%' }} className='m-3'>{AviData[0].firstName}</span>
-                    <span style={{ fontSize: '130%' }}>{AviData[0].lastName}</span>
-                    <div className='pl-5'>
-                        <StarRatingPro />
-                        <span style={{ color: '#74788D' }} className='pl-4'>({AviData[0].numberOfRate}) avis</span>
-                    </div>
+                    {review?.professional ? (
+                        <>
+                            <img
+                                style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
+                                className='rounded-full object-cover'
+                                src={review?.professional?.image || '/default-image.png'}
+                                alt={`Image Of The Professional`}
+                            />
+                            <span style={{ fontSize: '130%' }} className='m-3'>{review?.professional?.firstName || 'Inconnu'}</span>
+                            <span style={{ fontSize: '130%' }}>{review?.professional?.lastName || 'Inconnu'}</span>
+                        </>
+                    ) : (
+                        <span>Informations du professionnel non disponibles</span>
+                    )}
                 </div>
-                {AviData[0].status === 'await' && (
+                {review?.status === 'await' && (
                     <button
                         className="flex items-center text-base rounded py-1 px-3"
                         style={{ background: '#FEE9E9', color: '#FF0000', height: '30px' }}
                     >
                         <div className="rounded-full h-2 w-2 mr-2" style={{ background: '#FF0000' }}></div>
-                        En attente d'aprobation
+                        En cours d'approbation
                     </button>
                 )}
-                {AviData[0].status === 'validated' && (
+                {review?.status === 'approved' && (
                     <button
                         className="flex items-center text-base rounded py-1 px-3"
                         style={{ background: '#EAF7EC', color: '#2DB742', height: '30px' }}
@@ -82,9 +206,14 @@ function ModelSkeletonPro() {
             </div>
             <br />
             <div className="flex items-center">
-                <button style={{ padding: '9px', background: '#EAEAEA',  color:'black' }} className='rounded-md'>{AviData[0].category}</button>
-                <img className="ml-4" src="/iconService/map-pin-3.svg" alt="" />
-                <span className="ml-2" style={{color:'#74788D'}}>{AviData[0].addresse}</span>
+                <img className="ml-4" src="/iconService/map-pin-3.svg" alt="Pin icon" />
+                <span className="ml-2" style={{ color: '#74788D' }}>
+                    {review?.professional?.address ? (
+                        `${review?.professional?.address?.street} ${review?.professional?.address?.city}`
+                    ) : (
+                        'Adresse non disponible'
+                    )}
+                </span>
             </div>
             <br />
             <hr />
@@ -93,65 +222,28 @@ function ModelSkeletonPro() {
     );
 }
 
-function ModelSkeletonClient() {
-    return(
+function ModelSkeletonClient({ review }: { review: Review }) {
+    return (
         <div>
-        <div className="flex justify-between items-center">
-            <div className="flex">
-                <img
-                    style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
-                    className='rounded-full object-cover'
-                    src={AviData[0].imageOfClient} 
-                    alt="Image of Client" 
-                />
-                <div className="ml-4 flex flex-col">
-                    <span>{AviData[0].firstNameOfClient} {AviData[0].lastNameOfClient}</span>
-                    <span style={{color:'#74788D'}}>Il y a {AviData[0].since}</span>
+            <div className="flex justify-between items-center">
+                <div className="flex">
+                    <img
+                        style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
+                        className='rounded-full object-cover'
+                        src={review?.author?.image || '/default-image.png'} 
+                        alt={`Image of Client ${review?.author?.firstName || ''}`}
+                    />
+                    <div className="ml-4 flex flex-col">
+                        <span>{review?.author?.firstName} {review?.author?.lastName}</span>
+                        <span style={{ color: '#74788D' }}>
+                            {formatDistanceToNow(new Date(review?.createdAt), { addSuffix: true, locale: fr })}
+                        </span>
+                    </div>
                 </div>
             </div>
-            <div><StarRatingOfClient/></div>
-        </div>
-        <br />
-        <span style={{color:'#A6A6A6'}}>{AviData[0].description}</span>
-        </div>
-    )
-}
-
-function ModelComment() {
-    return (
-        <Card className='p-5'>
-            <ModelSkeletonPro />
-            <ModelSkeletonClient />
             <br />
-            <div className="flex justify-end">
-                {AviData[0].status === 'await' ? (
-                    <>
-                    <Button variant="secondary">Supprimer</Button>
-                    <Button className="ml-3">Approuver</Button>
-                    </>
-                ) : (
-                    <>
-                    <Button variant="secondary">Supprimer</Button>
-                    <Button className="ml-3">Voir</Button>
-                    </>
-                )}
-                
-            </div>
-        </Card>
+            <span style={{ color: '#A6A6A6' }}>{review?.comment}</span>
+        </div>
     );
 }
 
-export default function Comments() {
-    return (
-        <TabsContent value='comment'>
-            <div className="h-full flex-1 flex-col space-y-8 pl-8 pt-8 md:flex">
-                <div className="flex items-center justify-between space-y-2">
-                    <h2 className="text-2xl font-bold tracking-tight">Gestion des Avis</h2>
-                </div>
-                <div>
-                    <ModelComment />
-                </div>
-            </div>
-        </TabsContent>
-    );
-}
