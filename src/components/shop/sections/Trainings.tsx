@@ -114,8 +114,10 @@ const Formations = () => {
 
   return (
     <div className="flex items-center justify-center w-full p-10">
-      <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
-        {formations.map((formation) => (
+      <div>
+        {(formations && formations.length > 0) ? 
+        <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
+          {formations.map((formation) => (
           <Dialog key={formation.id}>
             <Card className="flex flex-col rounded m-2">
               <CardHeader className="h-52 bg-none rounded-lg p-0">
@@ -220,6 +222,10 @@ const Formations = () => {
             </DialogContent>
           </Dialog>
         ))}
+        </div>
+        : (
+          <div className="text-center">Aucune formation présente.</div>
+        )}
       </div>
       <ToastContainer />
     </div>
