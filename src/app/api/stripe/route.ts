@@ -11,28 +11,12 @@ export async function POST(req: Request) {
     }
 
     console.log('Items reçus :', items);
+
     const redirectURL =
       process.env.NODE_ENV === 'development'
-        ? 'http://127.0.0.1:3001'
-        : 'https://your-production-url.com';
+        ? 'http://localhost:3000'
+        : 'https://stripe-checkout-next-js-demo.vercel.app';
 
-    const transformedItems = [];
-    for (let i = 0; i < items.length; i++) {
-      const element = items[i];
-      const transformedItem = {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: element.title,
-          },
-          unit_amount: element.price * 100,
-        },
-        quantity: element.quantity,
-      };
-      transformedItems.push(transformedItem);
-    }
-
-    console.log('Transformed Items:', transformedItems);
     const transformedItems = items.map(item => ({
       price_data: {
         currency: 'eur',
@@ -44,20 +28,19 @@ export async function POST(req: Request) {
       quantity: item.quantity,
     }));
 
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: transformedItems,
       mode: 'payment',
-      success_url: `${redirectURL}/dashboard`,
+      success_url: `${redirectURL}/success`,
       cancel_url: `${redirectURL}/cancel`,
     });
-    console.log('Stripe session ID created:', session.id);
 
+    console.log('ID de session Stripe créé :', session.id);
 
     return NextResponse.json({ id: session.id });
   } catch (error) {
-    console.error('Error creating Stripe session:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Erreur lors de la création de la session Stripe :', error);
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }

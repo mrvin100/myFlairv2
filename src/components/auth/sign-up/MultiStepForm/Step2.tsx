@@ -13,6 +13,7 @@ import { EyeClosedIcon, EyeOpenIcon, PersonIcon } from '@radix-ui/react-icons';
 import { MailIcon, BuildingIcon, TrashIcon } from 'lucide-react';
 import { UserRole } from '@prisma/client';
 import fr from 'react-phone-number-input/locale/fr';
+import { Label } from '@/components/ui/label';
 
 export default function Step2() {
   const form = useSignUpFormContext();
@@ -79,43 +80,44 @@ export default function Step2() {
     }
   };
 
+  const checkUserExists = async (username: string, email: string) => {
+    try {
+      const response = await axios.post('/api/checkUser', { username, email });
+      return response.data.exists;
+    } catch (error) {
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError.response && axiosError.response.status === 409) {
+        toast.error('Ce nom d\'utilisateur ou e-mail existe déjà.');
+      } else {
+        console.error('Error checking user existence:', error);
+      }
+      return false;
+    }
+  };
+
+
+  const handleBlur = async (field: string) => {
+    const username = form.getValues('username');
+    const email = form.getValues('email');
+
+    if (field === 'username') {
+      const exists = await checkUserExists(username, email);
+      if (exists) {
+
+        toast.error('Ce nom d\'utilisateur existe déjà.');
+      }
+    } else if (field === 'email') {
+      const exists = await checkUserExists(username, email);
+      if (exists) {
+
+        toast.error('Cet e-mail existe déjà.');
+      }
+    }
+  };
+
   return (
     <>
       <ToastContainer />
-      <div
-        className="border-dashed border-2 border-gray-300 p-4"
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleFileInputChange}
-        />
-        {images.length > 0 ? (
-          <div className="relative">
-            <img
-              src={URL.createObjectURL(images[0])}
-              alt="Uploaded"
-              className="max-w-full h-auto"
-            />
-            <TrashIcon
-              className="absolute top-2 right-2 cursor-pointer"
-              onClick={handleDelete}
-            />
-          </div>
-        ) : (
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="text-blue-500"
-          >
-            Cliquez pour télécharger une image
-          </button>
-        )}
-      </div>
-
       <FormField
         control={form.control}
         name="username"
@@ -130,6 +132,7 @@ export default function Step2() {
 
                   <Input
                     {...field}
+                    onBlur={() => handleBlur('username')}
                     className="rounded-none rounded-br-md rounded-tr-md border-none px-3 py-1 pl-1.5"
                     placeholder="Nom d'utilisateur"
                     type="text"
@@ -149,6 +152,7 @@ export default function Step2() {
             <FormControl>
               <Input
                 {...field}
+                onBlur={() => handleBlur('email')}
                 className="w-[200px]"
                 placeholder="Nom"
                 type="text"
@@ -302,6 +306,28 @@ export default function Step2() {
           </FormItem>
         )}
       />
+      <div className="grid w-full max-w-sm items-center gap-1.5">
+        <div className='flex '>
+          <Input
+            id="picture"
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            className="mb-4"
+          />
+
+          {images.length > 0 && (
+            <div className="flex mt-1 ml-4 cursor-pointer">
+              <TrashIcon
+                className=""
+                onClick={handleDelete}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
     </>
   );
 }

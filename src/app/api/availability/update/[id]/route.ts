@@ -1,14 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function PUT(req: NextRequest, res: NextResponse
-) {
+export async function PUT(req: NextRequest) {
     if (req.method === "PUT") {
         try {
             const body = await req.json();
             const { availabilities, availabilitiesPeriods } = body;
-
             const url = new URL(req.url);
             const segments = url.pathname.split('/');
             const userId = segments[segments.length - 1];
@@ -18,10 +15,19 @@ export async function PUT(req: NextRequest, res: NextResponse
                 },
                 data: {
                     preferencesProWeek: {
-                        availabilities: availabilities,
-                        availabilitiesPeriods: availabilitiesPeriods,
+                        upsert: {
+
+                            create: {
+                                availabilities: availabilities,
+                                availabilitiesPeriods: availabilitiesPeriods,
+                            },
+                            update: {
+                                availabilities: availabilities,
+                                availabilitiesPeriods: availabilitiesPeriods,
+                            },
+                        },
                     },
-                }
+                },
             });
 
             return NextResponse.json({ message: "Disponibilités mises à jour", updatedUser }, { status: 200 });

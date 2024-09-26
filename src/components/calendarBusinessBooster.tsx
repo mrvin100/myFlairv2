@@ -24,7 +24,7 @@ export const CalendarBusinessBooster: React.FC<CalendarBusinessBoosterProps> = (
   
   const defaultDateRange = {
     from: new Date(),
-    to: addDays(new Date(), 7),
+    to: addDays(new Date(), 30),
   };
 
   return (

@@ -43,41 +43,49 @@ enum ProductType {
 
 // Modèles
 model User {
-  id                 String                  @id @default(cuid())
-  stripeCustomerId   String?
-  image              String
-  gallery            String[]
-  role               UserRole
-  username           String                  @unique
-  firstName          String
-  lastName           String
-  address            Json
-  billingAddress     Json?
-  enterprise         String?
-  homeServiceOnly    Boolean                 @default(false)
-  email              String                  @unique
-  password           String
-  forgotPassword     String                  @unique @default(uuid())
-  phone              String
-  website            String?
-  nameOfSociety      String?
-  services           Service[]
-  orders             Order[]
-  reviewsWritten     Review[]                @relation("ReviewsWritten")
-  reviewsReceived    Review[]                @relation("ReviewsReceived")
-  cart               Cart?
-  preferences        Json?
-  preferencesProWeek Json?
-  mark               Float?
-  numberOfRate       Int?
-  socialMedia        Json?
-  biography          String?
-  subscription       SubscriptionType?
-  createdAt          DateTime                @default(now())
-  updatedAt          DateTime?               @updatedAt
-  reservations       ReservationServicePro[]
-  clients            Client[]                @relation("ProfessionalClients")
-  clientUsers        Client[]                @relation("ClientUserRelation")
+  id                   String                  @id @default(cuid())
+  stripeCustomerId     String?
+  image                String
+  gallery              String[]
+  role                 UserRole
+  username             String                  @unique
+  firstName            String
+  lastName             String
+  address              Json
+  billingAddress       Json?
+  enterprise           String?
+  homeServiceOnly      Boolean                 @default(false)
+  email                String                  @unique
+  password             String
+  forgotPassword       String                  @unique @default(uuid())
+  phone                String
+  website              String?
+  nameOfSociety        String?
+  services             Service[]
+  orders               Order[]
+  reviewsWritten       Review[]                @relation("ReviewsWritten")
+  reviewsReceived      Review[]                @relation("ReviewsReceived")
+  cart                 Cart?
+  preferences          Json?
+  preferencesProWeekId String?                 @unique
+  preferencesProWeek   PreferencesProWeek?     @relation(fields: [preferencesProWeekId], references: [id])
+  mark                 Float?
+  numberOfRate         Int?
+  socialMedia          Json?
+  biography            String?
+  subscription         SubscriptionType?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime?               @updatedAt
+  reservations         ReservationServicePro[]
+  clients              Client[]                @relation("ProfessionalClients")
+  clientUsers          Client[]                @relation("ClientUserRelation")
+}
+
+model PreferencesProWeek {
+  id                    String @id @default(cuid())
+  availabilities        Json?
+  availabilitiesPeriods Json?
+  user                  User?  @relation
 }
 
 model Client {

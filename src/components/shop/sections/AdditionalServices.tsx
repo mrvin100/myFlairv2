@@ -46,6 +46,11 @@ export default function AdditionalServices() {
   );
   const { user } = useUserContext();
 
+  const serviceTypeTranslation = {
+    day: "Jour",
+    piece: "Pièce",
+    page: "Page"
+  }
   useEffect(() => {
     fetch("/api/serviceAdditionnel/get", {
       method: "GET",
@@ -142,13 +147,13 @@ export default function AdditionalServices() {
 
             <CardContent>
               <CardTitle>{additionalService.title}</CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-1">
                 À partir de{" "}
                 {Intl.NumberFormat("fr-FR", {
                   style: "currency",
                   currency: "EUR",
                 }).format(additionalService.price)}
-                /{additionalService.type}
+                /{serviceTypeTranslation[additionalService.type]}
                 <div className="flex items-center gap-x-2 pt-2">
                   Quantité:
                   <Input
