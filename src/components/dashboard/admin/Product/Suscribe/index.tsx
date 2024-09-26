@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import * as React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import {
   Card,
@@ -26,7 +27,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TrashIcon } from "lucide-react";
+import { Edit, PlusCircle, Search, Trash, TrashIcon } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface CreateSuscribe {
   title: string;
@@ -419,6 +428,144 @@ export default function SuscribeTab() {
           </DialogContent>
         </Dialog>
       </div>
+      <ListeAbonnements />
     </TabsContent>
+  );
+}
+
+function ListeAbonnements() {
+  const initialAbonnementClients = [
+    {
+      id: "1",
+      client: "Séraphine Manille",
+      type: "Gestion planning mensuel",
+      date_debut: "01 Janvier 2024",
+      date_expiration: "01 février 2024",
+      prochain_prelement: "-",
+      status: "annule",
+    },
+    {
+      id: "2",
+      client: "Lili  Dilialt",
+      type: "Gestion planning mensuel",
+      date_debut: "01 février 2024",
+      date_expiration: "01 Mars 2024",
+      prochain_prelement: "01 Mars 2024",
+      status: "expire",
+    },
+    {
+      id: "3",
+      client: "Michel Vierra",
+      type: "Gestion planning annuel",
+      date_debut: "01 avril 2024",
+      date_expiration: "01 avril 2025",
+      prochain_prelement: "01 avril 2025",
+      status: "en-cours",
+    },
+  ];
+  const [abonnementClients, setAbonnementClients] = React.useState(
+    initialAbonnementClients
+  );
+
+  function handlefilterPerStatus(status: string) {
+    const filteredDatas = initialAbonnementClients.filter(
+      (abonnementClient) => abonnementClient.status === status
+    );
+    setAbonnementClients(filteredDatas);
+    console.log("abonement client", abonnementClients);
+  }
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold my-8 text-center">
+        Abonements Clients
+      </h3>
+      <div className="my-6 flex justify-between items-center gap-3">
+        <Select onValueChange={(value) => handlefilterPerStatus(value)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Selectionez un status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="annule">Annulé</SelectItem>
+            <SelectItem value="expire">Expiré</SelectItem>
+            <SelectItem value="en-cours">En cours</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="relative ml-auto flex-1 md:grow-0">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+          />
+        </div>
+        <Button className="ml-auto">
+          <PlusCircle className="h-4 w-4" />
+          &nbsp;Ajouter un abonnement
+        </Button>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-100">
+            <TableHead className="font-semibold">#</TableHead>
+            <TableHead className="font-semibold">Client</TableHead>
+            <TableHead className="font-semibold">
+              Type d&apos;abonnement
+            </TableHead>
+            <TableHead className="font-semibold">Date de début</TableHead>
+            <TableHead className="font-semibold">
+              Date d&apos;expiration
+            </TableHead>
+            <TableHead className="font-semibold">
+              Prochain prélèvement
+            </TableHead>
+            <TableHead className="font-semibold">Statut</TableHead>
+            <TableHead className="font-semibold">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {abonnementClients && abonnementClients.length > 0 ? (
+            abonnementClients.map((abonnementClient) => (
+              <TableRow>
+                <TableCell className="font-semibold">
+                  {abonnementClient?.id}
+                </TableCell>
+                <TableCell className="font-semibold">
+                  {abonnementClient?.client}
+                </TableCell>
+                <TableCell>{abonnementClient?.type}</TableCell>
+                <TableCell>{abonnementClient?.date_debut}</TableCell>
+                <TableCell>{abonnementClient?.date_expiration}</TableCell>
+                <TableCell className="text-center">
+                  {abonnementClient?.prochain_prelement}
+                </TableCell>
+                <TableCell>
+                  {abonnementClient?.status === "annule"
+                    ? "Annulé"
+                    : abonnementClient?.status === "expire"
+                      ? "Expiré"
+                      : "En cours"}
+                </TableCell>
+                <TableCell>
+                  <Button variant={"ghost"} size={"icon"}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  &nbsp;
+                  <Button variant={"ghost"} size={"icon"}>
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell className="text-center border" colSpan={8}>
+                Aucun abonnement client présent.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
