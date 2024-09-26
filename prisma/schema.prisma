@@ -79,6 +79,7 @@ model User {
   reservations         ReservationServicePro[]
   clients              Client[]                @relation("ProfessionalClients")
   clientUsers          Client[]                @relation("ClientUserRelation")
+  notifications Notification[] 
 }
 
 model PreferencesProWeek {
@@ -294,6 +295,7 @@ model Notification {
   title     String
   userId    String
   timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {

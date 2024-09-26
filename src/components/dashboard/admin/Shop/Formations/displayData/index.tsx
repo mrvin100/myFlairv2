@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { fr } from 'date-fns/locale';  
@@ -33,7 +32,7 @@ interface Formation {
   price: number;
   quantity: number;
   alt?: string;
-  dates: { date: string; available: string }[]; // Changed to array of dates
+  dates: { date: string; available: string; quantity: number }[]; 
 }
 
 const formatDates = (dates: { date: string; available: string }[]) => {
@@ -71,7 +70,6 @@ const DisplayFormations = () => {
         return response.json();
       })
       .then((data: Formation[]) => {
-        console.log('Formations fetched:', data);
         setFormations(data);
       })
       .catch(error => console.error('Error fetching formations', error));
@@ -80,14 +78,16 @@ const DisplayFormations = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteFormationById(id);
-      router.refresh();
+      // Update the state by filtering out the deleted formation
+      setFormations(prevFormations => prevFormations.filter(formation => formation.id !== id));
+      setShowDialog(false); // Close the dialog
     } catch (error) {
       console.error('Erreur lors de la suppression de la formation:', error);
     }
   };
 
   async function deleteFormationById(id: string) {
-    const response = await fetch(`/api/formations/delete/${id}/`, {
+    const response = await fetch(`/api/formation/delete/${id}/`, {
       method: 'DELETE',
     });
 
@@ -118,9 +118,7 @@ const DisplayFormations = () => {
               <TableRow key={formation.id}>
                 <TableCell>n° {formation.id}</TableCell>
                 <TableCell>{formation.title}</TableCell>
-                <TableCell>
-                  {formatDates(formation.dates)} {/* Updated to use formatDates */}
-                </TableCell>
+                <TableCell>{formatDates(formation.dates)}</TableCell>
                 <TableCell>
                   <img
                     src={formation.image}
@@ -156,10 +154,7 @@ const DisplayFormations = () => {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => {
-                            handleDelete(formation.id);
-                            setShowDialog(false);
-                          }}>
+                          <AlertDialogAction onClick={() => handleDelete(formation.id)}>
                             Valider
                           </AlertDialogAction>
                         </AlertDialogFooter>

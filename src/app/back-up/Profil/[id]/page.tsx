@@ -289,9 +289,10 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
       setReviews((prevReviews) =>
         prevReviews.map((review) =>
           review.id === reviewId
-            ? { ...review, responses: [...review.responses, newResponse] }
+            ? { ...review, responses: [...(review.responses || []), newResponse] }
             : review
         )
+        
       );
 
       setResponseContent('');
@@ -590,12 +591,15 @@ const ProfilPage = ({ params }: { params: { id: string } }) => {
                           {currentUser?.id === review.author?.id ||
                             currentUser?.id === review.professional?.id ? (
                             <div className="mt-4">
-                              <Textarea
-                                placeholder="Répondez à cet avis..."
-                                value={respondingTo === review.id ? responseContent : ''}
-                                onChange={(e) => setResponseContent(e.target.value)}
-                                className="mb-2"
-                              />
+                             <Textarea
+                                  placeholder="Répondez à cet avis..."
+                                  value={respondingTo === review.id ? responseContent : ''}
+                                  onChange={(e) => {
+                                    setResponseContent(e.target.value);
+                                    setRespondingTo(review.id); 
+                                  }}
+                                  className="mb-2"
+                                />
                               <Button
                                 onClick={() => handleResponseSubmit(review.id)}
                                 size="sm"
