@@ -14,6 +14,17 @@ import { fr } from 'date-fns/locale';
 import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import DisplayFormations from './displayData';
 import { TrashIcon } from 'lucide-react';
+import { eachDayOfInterval } from 'date-fns';
+import { useForm } from 'react-hook-form';
+// Function to generate dates based on availability
+function generateDatesWithAvailability(from: Date, to: Date, quantity: number) {
+  const days = eachDayOfInterval({ start: from, end: to });
+  return days.map((day) => ({
+    date: format(day, 'yyyy-MM-dd'),
+    available: quantity,
+  }));
+}
+
 
 interface Formation {
   image: string;
@@ -35,8 +46,39 @@ const AddFormation = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const formattedStartDate = from ? format(from, 'yyyy-MM-dd') : '';
-  const formattedEndDate = to ? format(to, 'yyyy-MM-dd') : '';
+  const [dateRanges, setDateRanges] = useState<DateRange>({
+    from: new Date(),
+    to: addDays(new Date(), 30),
+  });
+  
+  const { setValue } = useForm(); 
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: new Date(),
+    to: addDays(new Date(), 30),
+  });
+  
+  const [dates, setDates] = useState<any[]>([]);
+  function generateDatesWithAvailability(from: Date, to: Date, quantity: number) {
+    const days = eachDayOfInterval({ start: from, end: to });
+
+    return days.map((day) => ({
+      date: format(day, 'yyyy-MM-dd'),
+      available: quantity,
+    }));
+  }
+  const [datesWithAvailability, setDatesWithAvailability] = useState<any[]>([]);
+
+
+  const handleAddDateRange = () => {
+    if (dateRange.from && dateRange.to && formation.quantity > 0) {
+      const generatedDates = generateDatesWithAvailability(dateRange.from!, dateRange.to!, formation.quantity);
+      setDatesWithAvailability(prevDates => [...prevDates, ...generatedDates]); // Utiliser la fonction de mise à jour pour assurer la bonne mise à jour
+      console.log('Nouvelle plage de dates ajoutée:', generatedDates);
+    } else {
+      toast.error("Veuillez vous assurer que toutes les valeurs sont correctes.");
+    }
+  };
+  
   const [formation, setFormation] = useState<Formation>({
     image: '',
     alt: '',
@@ -49,10 +91,7 @@ const AddFormation = () => {
     endDate: '',
   });
   const [images, setImages] = useState<File[]>([]);
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: new Date(),
-    to: addDays(new Date(), 30),
-  });
+
 
   const handleFormationChange = (key: keyof Formation, value: any) => {
     setFormation((prevFormation) => ({
@@ -106,19 +145,26 @@ const AddFormation = () => {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const { from, to } = dateRange;
-      const formattedStartDate = from ? format(from, 'yyyy-MM-dd') : '';
-      const formattedEndDate = to ? format(to, 'yyyy-MM-dd') : '';
-
+      // Formatez les dates pour l'envoi selon le format requis
+      const formattedDates = datesWithAvailability.map(date => ({
+        date: date.date,
+        quantity: date.available // ou date.quantity si vous changez le mapping
+      }));
+  
+      console.log("Données envoyées à l'API : ", {
+        ...formation,
+        dates: formattedDates,
+      }); // Vérifiez ce qui est envoyé
+  
       const response = await axios.post('/api/formation/create', {
         ...formation,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
+        dates: formattedDates,
       }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
+  
       if (response.status === 200) {
         toast.success('Formation ajoutée avec succès');
       } else {
@@ -132,6 +178,9 @@ const AddFormation = () => {
       setIsLoading(false);
     }
   };
+  
+  
+  
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -227,37 +276,57 @@ const AddFormation = () => {
                       <label>Date</label>
                       <Popover>
                         <div className="grid gap-2 mt-6">
-                          <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
+                          <CalendarBusinessBooster dateRange={dateRanges} setDateRange={setDateRanges} />
                         </div>
                       </Popover>
                       <p className='mt-6'>Date sélectionnée:</p>
-                      {dateRange.from && dateRange.to && (
-                        <div className="flex items-center gap-2">
-                          {format(dateRange.from, 'dd LLL y', { locale: fr })} - {format(dateRange.to, 'dd LLL y', { locale: fr })}
+                      {dates.length > 0 && <p>Dates ajoutées:</p>}
+                          {dates.map((date, index) => (
+                            <div
+                              className="flex items-center gap-2"
+                              key={index}
+                            >
+                              {date.to ? (
+                                <>
+                                  {format(date.from!, "dd LLL y", {
+                                    locale: fr,
+                                  })}{" "}
+                                  -{" "}
+                                  {format(date.to!, "dd LLL y", { locale: fr })}
+                                </>
+                              ) : (
+                                format(date.from!, "dd LLL y", { locale: fr })
+                              )}
+                              <Button
+                                size="icon"
+                                variant="destructive"
+                                onClick={() => {
+                                  const newDates = dates.filter(
+                                    (_, i) => i !== index
+                                  );
+                                  setDates(newDates);
+                                  setValue("dates", newDates);
+                                }}
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </Button>
+                              <br />
+                            </div>
+                          ))}
+
                           <Button
-                            size="icon"
-                            variant="destructive"
-                            onClick={() => setDateRange({ from: undefined, to: undefined })}
+                            className="flex justify-start"
+                            onClick={() => {
+                              if (dateRange) {
+                                const newDates = [...dates, dateRange];
+                                setDates(newDates);
+                                setValue("dates", newDates);
+                              }
+                            }}
+                            type="button"
                           >
-                            <TrashIcon className="h-4 w-4" />
+                            Ajouter la date
                           </Button>
-                        </div>
-                      )}
-                      <Button
-                        className="flex justify-start mt-6"
-                        onClick={() => {
-                          if (dateRange.from && dateRange.to) {
-                            setFormation((prev) => ({
-                              ...prev,
-                              startDate: format(dateRange.from, 'yyyy-MM-dd'),
-                              endDate: format(dateRange.to, 'yyyy-MM-dd'),
-                            }));
-                          }
-                        }}
-                        type="button"
-                      >
-                        Ajouter la date
-                      </Button>
                       <br />
                       <div>
                         <label>Image</label>

@@ -1,5 +1,3 @@
-// app/api/formation/create/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { htmlToText } from 'html-to-text';
 import { prisma } from '@/lib/prisma';
@@ -9,12 +7,15 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { image, alt, title, description, price, quantity, deposit, type, dates } = body;
+    console.log(body)
     const descriptionWithoutHtml = htmlToText(description);
+    
     const formationProduct = await stripe.products.create({
       name: title,
       description: description,
       images: [image],
     });
+    
     let priceObj;
     if (type === 'day') {
       priceObj = await stripe.prices.create({
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
         price: parseFloat(price),
         quantity: parseInt(quantity, 10),
         deposit: parseFloat(deposit),
-        dates,
+        dates: typeof dates === 'string' ? JSON.parse(dates) : dates,
         idStripe: createdProduct.stripeId,
       },
     });

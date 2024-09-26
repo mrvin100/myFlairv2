@@ -46,20 +46,8 @@ interface DisplayBusinessBoostersProps {
   setBusinessBoosters: React.Dispatch<React.SetStateAction<BusinessBooster[]>>;
 }
 
-const formatDates = (dates: { date: string; available: number }[]) => {
-  if (!dates || dates.length === 0) return 'No dates available';
 
-  const sortedDates = dates
-    .map(({ date }) => ({
-      date: parseISO(date),
-    }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  const startDate = format(sortedDates[0].date, 'dd MMMM yyyy');
-  const endDate = format(sortedDates[sortedDates.length - 1].date, 'dd MMMM yyyy');
-
-  return `Du ${startDate} au ${endDate}`;
-};
 
 const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
   businessBoosters,
@@ -81,10 +69,14 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
       })
       .then((data: BusinessBooster[]) => {
         console.log("Business Boosters fetched:", data);
+        data.forEach(booster => {
+          console.log(`Booster ${booster.id} dates:`, booster.dates);
+        });
         setBusinessBoosters(data);
       })
       .catch((error) => console.error("Error fetching business boosters", error));
   }, [setBusinessBoosters]);
+  
 
   const handleDelete = async (id: string) => {
     try {
@@ -110,19 +102,21 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
     return response.json();
   }
   const formatDates = (dates: { date: string; available: number }[]) => {
-    if (!dates || dates.length === 0) return 'Aucune date disponible';
+        if (!Array.isArray(dates) || dates.length === 0) return 'Aucune date disponible';
   
     const sortedDates = dates
       .map(({ date }) => ({
         date: parseISO(date),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
+      if (sortedDates.length === 0) return 'Aucune date disponible';
   
     const startDate = format(sortedDates[0].date, 'dd MMMM yyyy', { locale: fr });
     const endDate = format(sortedDates[sortedDates.length - 1].date, 'dd MMMM yyyy', { locale: fr });
   
     return `Du ${startDate} au ${endDate}`;
   };
+  
   
   return (
     <div>
