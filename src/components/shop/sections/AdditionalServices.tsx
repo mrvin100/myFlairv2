@@ -150,7 +150,7 @@ export default function AdditionalServices() {
 
                 <CardContent>
                   <CardTitle>{additionalService.title}</CardTitle>
-                  <CardDescription className="flex justify-between items-center gap-3">
+                  <CardDescription className="flex justify-between items-center flex-wrap gap-3">
                     À partir de{" "}
                     {Intl.NumberFormat("fr-FR", {
                       style: "currency",

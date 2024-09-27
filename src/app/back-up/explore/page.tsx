@@ -291,7 +291,7 @@ export default function ExplorePage() {
                   <ModelPublication key={pub.id} publication={pub} />
                 ))
               ) : (
-                <div>Aucun resultat present</div>
+                <div className="text-center">Aucun service présent</div>
               )}
             </div>
             <br />

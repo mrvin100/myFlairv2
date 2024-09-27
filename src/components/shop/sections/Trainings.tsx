@@ -113,14 +113,14 @@ const Formations = () => {
   }, [quantity, formations]);
 
   return (
-    <div className="flex items-center justify-center w-full p-10">
+    <div>
       <div>
         {(formations && formations.length > 0) ? 
-        <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 max-w-6xl">
+        <div className="max-w-7xl mx-auto grid xl:grid-cols-3 md:grid-cols-2 gap-8 md:gap-10 lg:gap-12 p-10">
           {formations.map((formation) => (
           <Dialog key={formation.id}>
-            <Card className="flex flex-col rounded m-2">
-              <CardHeader className="h-52 bg-none rounded-lg p-0">
+            <Card className="flex flex-col rounded-lg m-2">
+              <CardHeader className="h-52 bg-none rounded-lg p-0 mb-4">
                 <Image
                   className="w-full rounded-md h-full object-cover"
                   src={formation.image}
@@ -130,9 +130,9 @@ const Formations = () => {
                 />
               </CardHeader>
 
-              <CardContent className="my-4 py-0">
-                <CardTitle className="mb-4">{formation.title}</CardTitle>
-                <CardDescription>
+              <CardContent>
+                <CardTitle>{formation.title}</CardTitle>
+                <CardDescription className="flex justify-between items-center flex-wrap gap-3">
                   A partir de{" "}
                   {Intl.NumberFormat("fr-FR", {
                     style: "currency",
@@ -166,7 +166,7 @@ const Formations = () => {
                 </CardDescription>
               </CardContent>
 
-              <CardFooter className="flex justify-between pt-0 flex-wrap gap-3">
+              <CardFooter className="flex justify-between pt-0 gap-3">
                 <DialogTrigger className="w-full md:w-auto">
                   <Button variant="outline" className="w-full">
                     Détails
