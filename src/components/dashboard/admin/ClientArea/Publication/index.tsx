@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TabsContent } from '@/components/ui/tabs';
-import { ConfigProvider, Slider } from 'antd';
+import { ConfigProvider, Slider, Switch } from 'antd';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
@@ -24,6 +24,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import ReactQuill from 'react-quill';
+import { InputLabel } from '@mui/material';
 
 export default function Publication() {
     const mark = {
@@ -54,7 +56,10 @@ export default function Publication() {
     const [selectedPublicationId, setSelectedPublicationId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredPublications, setFilteredPublications] = useState<Publication[]>([]);
-
+    const [publicationData, setPublicationData] = useState<any>(null);
+    const [showServiceDialog, setShowServiceDialog] = useState(false);
+    const [showProfileDialog, setShowProfileDialog] = useState(false);
+    const [serviceData, setServiceData] = useState<any>({}); 
 
     const handleSliderChange = (value: number[]) => {
         setSliderValue(value);
@@ -96,6 +101,40 @@ export default function Publication() {
         fetchPublications();
     }, []);
 
+    const fetchPublicationData = async (id: string) => {
+        try {
+            const response = await fetch(`/api/serviceProfessional/getById/${id}`, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Expires': '0',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            const mappedData = data.map((item) => ({
+                id: item.id,
+                idUser: item.userId,
+                name: item.title,
+                imageProfil: item.user.image,
+                ville: item.user.address.city,
+                pays: item.user.address.country,
+                prix: parseFloat(item.price),
+                starRating: item.rating || 0,
+                category: item.category,
+                isAtHome: item.domicile,
+            }));
+
+            setPublicationData(mappedData[0]); // assuming you want to store just one item
+        } catch (error) {
+            console.error('Error fetching publication data:', error);
+        }
+    };
+
     const handleDeletePublication = async (id: string) => {
         try {
             const response = await fetch(`/api/serviceProfessional/delete/${id}`, {
@@ -121,7 +160,6 @@ export default function Publication() {
     };
 
     useEffect(() => {
-        // Appliquer les filtres
         const filtered = publication.filter(pub => {
             const withinPriceRange = pub.prix >= sliderValue[0] && pub.prix <= sliderValue[1];
             const matchesCategory = categoryFilter ? pub.category === categoryFilter : true;
@@ -136,7 +174,22 @@ export default function Publication() {
         setSearchTerm(e.target.value);
     };
 
+    const openServiceDialog = (id: string) => {
+        fetchPublicationData(id); 
+        setShowServiceDialog(true);
+    };
 
+    const openProfileDialog = (id: string) => {
+        //fetchProfileData(id); 
+        setShowProfileDialog(true);
+    };
+
+    const handleServiceChange = (field: string, value: any) => {
+        setServiceData(prevData => ({
+            ...prevData,
+            [field]: value,
+        }));
+    };
     function ModelPublication({ publication }: { publication: Publication }) {
         return (
             <Card style={{ margin: 0 }} className='min-w-[330px] rounded-md'>
@@ -174,7 +227,163 @@ export default function Publication() {
                     <div className='flex justify-between'>
                         <span style={{ fontWeight: '700', fontSize: '150%' }}>{publication.prix} €</span>
                         <div className='flex'>
-                            <Button><Edit /></Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger><Button><Edit /></Button></DropdownMenuTrigger>
+                            <DropdownMenuContent className='flex w-[200px]'>
+                                <DropdownMenuItem>
+                                <Button 
+                                    onClick={() => {
+                                        fetchPublicationData(publication.id); // Fetch the publication data
+                                        openServiceDialog(publication.id); // Open the service dialog
+                                    }} 
+                                    variant={'secondary'}
+                                >
+                                    Service
+                                </Button>
+
+                                    
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <Button 
+                                        onClick={(e) => openProfileDialog(publication.id)} 
+                                        
+                                    >
+                                        Profil
+                                    </Button>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <AlertDialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
+                            <AlertDialogTrigger asChild>
+                                <Button style={{ display: 'none' }}></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Edit Service</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {/* Service Form */}
+                            { (
+                                <div>
+                                    <div>
+                                        <label>Titre du service</label>
+                                        <input
+                                            className="text-lg rounded outline-none"
+                                            style={{ width: "100%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                            type="text"
+                                            value={serviceData.title}
+                                            onChange={(e) => handleServiceChange('title', e.target.value)}
+                                            placeholder="Exemple: Coloration cheveux"
+                                            required
+                                        />
+                                    </div>
+                                    <br />
+                                    <div className="flex">
+                                        <div className="flex flex-col">
+                                            <div>
+                                                Catégorie
+                                                <br />
+                                                <br />
+                                                <input
+                                                    className="text-lg rounded outline-none"
+                                                    style={{ width: "100%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                                    type="text"
+                                                    value={serviceData.category}
+                                                    onChange={(e) => handleServiceChange('category', e.target.value)}
+                                                    required
+                                                    placeholder='Exemple: Coloration + Shampoing + Brushing'
+                                                />
+                                            </div>
+                                            <br />
+                                            <div>
+                                                Tarifs
+                                                <br />
+                                                <br />
+                                                <div className='flex items-end'>
+                                                    <input
+                                                        className="text-lg rounded outline-none"
+                                                        style={{ width: "105%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                                        type="text"
+                                                        value={publicationData.price}
+                                                        onChange={(e) => handleServiceChange('price', e.target.value)}
+                                                        required
+                                                    />
+                                                    <span style={{ fontSize: '180%', marginLeft: '2%' }}>€</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br />
+                                        <div className="flex flex-col" style={{ marginLeft: '20%' }}>
+                                            <div className="flex flex-col">
+                                                <label>Service à domicile ?</label>
+                                                <span style={{ fontSize: '70%' }}>
+                                                    Ce service bénéficiera des services à domicile que vous fournissez
+                                                </span>
+                                                <div style={{ marginTop: "5px" }}>
+                                                    <Switch checked={publicationData.domicile} onChange={(e) => handleServiceChange('domicile', e.target.checked)} />
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <div className="flex flex-col" style={{ width: '200px' }}>
+                                                <div>Durée</div>
+                                                <br />
+                                                
+                                                    <InputLabel id="demo-simple-select-label">Durée</InputLabel>
+                                                    <Select
+                                                        value={serviceData.dureeRDV}
+                                                        label="Durée"
+                                                        onChange={(e) => handleServiceChange('dureeRDV', e.target.value)}
+                                                    >
+                                                        {/* Duration options */}
+                                                    </Select>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div style={{ width: "100%", height: "1px", background: "#EAEAEA" }}></div>
+                                    <br />
+                                    <div>
+                                        <div>Description</div>
+                                        <br />
+                                        <ReactQuill
+                                            value={serviceData.description}
+                                            onChange={(value) => handleServiceChange('description', value)}
+                                            placeholder="Décrivez votre service ici..."
+                                        />
+                                    </div>
+                                    <br />
+                                </div>
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowServiceDialog(false)}>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            // Handle update service logic
+                            setShowServiceDialog(false);
+                        }}>Mettre à jour</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+                        </AlertDialog>
+
+                        <AlertDialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+                            <AlertDialogTrigger asChild>
+                                <Button style={{ display: 'none' }}></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Profile Dialog</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This is the dialog content for the Profile.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setShowProfileDialog(false)}>Fermer</AlertDialogCancel>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button

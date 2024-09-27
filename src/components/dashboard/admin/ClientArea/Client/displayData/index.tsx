@@ -121,17 +121,19 @@ const DisplayClients = () => {
 
   return (
     <div>
-      <div className="mb-4 flex justify-between">
+          <div className="mb-4 flex justify-between">
         <Input
           type="text"
           placeholder="Rechercher par nom, prénom, adresse ou email"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-[300px]" // Ajoutez cette ligne pour définir la largeur
         />
+        <div className="w-[300px]">
         <Select
           onValueChange={setSelectedRole}
           value={selectedRole}
-          className="mt-2"
+          className="mt-2" // Ajoutez cette ligne pour définir la largeur
         >
           <SelectTrigger>
             <SelectValue placeholder="Filtrer par rôle" />
@@ -143,7 +145,9 @@ const DisplayClients = () => {
             <SelectItem value="PERSONAL">Particulier</SelectItem>
           </SelectContent>
         </Select>
+        </div>
       </div>
+
       <Table className="overflow-x-auto">
         <TableHeader>
           <TableRow>

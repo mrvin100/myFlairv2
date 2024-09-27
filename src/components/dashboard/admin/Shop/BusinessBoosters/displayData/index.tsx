@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
@@ -46,9 +45,6 @@ interface DisplayBusinessBoostersProps {
   setBusinessBoosters: React.Dispatch<React.SetStateAction<BusinessBooster[]>>;
 }
 
-
-
-
 const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
   businessBoosters,
   setBusinessBoosters,
@@ -68,15 +64,10 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
         return response.json();
       })
       .then((data: BusinessBooster[]) => {
-        console.log("Business Boosters fetched:", data);
-        data.forEach(booster => {
-          console.log(`Booster ${booster.id} dates:`, booster.dates);
-        });
         setBusinessBoosters(data);
       })
       .catch((error) => console.error("Error fetching business boosters", error));
   }, [setBusinessBoosters]);
-  
 
   const handleDelete = async (id: string) => {
     try {
@@ -101,29 +92,29 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
 
     return response.json();
   }
+
   const formatDates = (dates: { date: string; available: number }[]) => {
-        if (!Array.isArray(dates) || dates.length === 0) return 'Aucune date disponible';
-  
+    if (!Array.isArray(dates) || dates.length === 0) return 'Aucune date disponible';
+
     const sortedDates = dates
       .map(({ date }) => ({
         date: parseISO(date),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
-      if (sortedDates.length === 0) return 'Aucune date disponible';
-  
+    if (sortedDates.length === 0) return 'Aucune date disponible';
+
     const startDate = format(sortedDates[0].date, 'dd MMMM yyyy', { locale: fr });
     const endDate = format(sortedDates[sortedDates.length - 1].date, 'dd MMMM yyyy', { locale: fr });
-  
+
     return `Du ${startDate} au ${endDate}`;
   };
-  
-  
+
   return (
     <div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Id</TableHead>
+            <TableHead>n°</TableHead>
             <TableHead>Business Booster</TableHead>
             <TableHead>Image</TableHead>
             <TableHead>Date</TableHead>
@@ -133,9 +124,9 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {businessBoosters.map((booster) => (
+          {businessBoosters.map((booster, index) => (
             <TableRow key={booster.id}>
-              <TableCell>n° {booster.id}</TableCell>
+              <TableCell>n° {index + 1}</TableCell> {/* Display sequential number */}
               <TableCell>{booster.title}</TableCell>
               <TableCell>
                 <img

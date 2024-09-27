@@ -113,31 +113,6 @@ const DateChoice = ({ params }: { params: { id: string } }) => {
     }
   }, [params.id]);
 
-  useEffect(() => {
-    if (service) {
-      const dayOfWeek = new Intl.DateTimeFormat('fr-FR', { weekday: 'long' }).format(date);
-      const availabilities = service.user.preferencesProWeek.availabilities;
-      const specificDayAvailabilities = availabilities[dayOfWeek] || []; const defaultAvailabilities = availabilities["Tous les jours"] || [];
-      const finalAvailabilities = specificDayAvailabilities.length > 0 ? specificDayAvailabilities : defaultAvailabilities;
-
-      const availableSlots: string[] = [];
-
-
-      finalAvailabilities.forEach(({ from, to }) => {
-        const startTime = new Date(`1970-01-01T${from}:00`);
-        const endTime = new Date(`1970-01-01T${to}:00`);
-        for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + 15)) {
-          const slot = time.toTimeString().slice(0, 5);
-          availableSlots.push(slot);
-        }
-      });
-
-
-      const unavailableSlots = timeSlots.filter(slot => availableSlots.includes(slot));
-      setIndisponibilitySlots(unavailableSlots);
-    }
-  }, [service, date]);
-
   if (!service) {
     return (
       <div className='flex flex-col justify-center items-center'>
@@ -359,7 +334,6 @@ const DateChoice = ({ params }: { params: { id: string } }) => {
               </Card>
             ))}
           </div>
-
           <h2 className="text-xl my-6">Réservation :</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-1">
@@ -370,10 +344,6 @@ const DateChoice = ({ params }: { params: { id: string } }) => {
                 mode="single"
                 selected={date}
                 onSelect={(selectedDate) => {
-
-                  if (selectedDate && !unavailableDates(selectedDate)) {
-                    setDate(selectedDate);
-                  }
                 }}
                 className="rounded-md border"
                 locale={fr}

@@ -346,7 +346,8 @@ model Room {
   name   String
   stock  Int
   postId Int    @unique
-  post   Post   @relation(fields: [postId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
 }
 
 model Abonnement {
