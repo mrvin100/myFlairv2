@@ -52,7 +52,6 @@ async function main() {
         durationSaturdayEndMinute: 1,
         image: 'https://res.cloudinary.com/dqgxjbltt/image/upload/v1717710952/pahv29bejimucv5rarb2.png',
         alt: 'Description de l\'image'
-        alt: 'Description de l\'image'
       },
     });
 
@@ -83,7 +82,6 @@ async function createUser() {
       lastName: 'pro',
       address: {
         city:
-        city:
           "Compiègne",
         country: "France",
         street: "29 rue des Albertans"
@@ -113,12 +111,8 @@ async function createUser() {
       preferencesProWeek: {},
       mark: 4.5,
       biography: "J'aime faire mon métier",
-      preferencesProWeek: {},
-      mark: 4.5,
-      biography: "J'aime faire mon métier",
       numberOfRate: 255,
-      socialMedia: {}
-      socialMedia: {}
+      socialMedia: {},
 
     },
   });
