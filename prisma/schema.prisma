@@ -79,6 +79,7 @@ model User {
   reservations         ReservationServicePro[]
   clients              Client[]                @relation("ProfessionalClients")
   clientUsers          Client[]                @relation("ClientUserRelation")
+  notifications Notification[] 
 }
 
 model PreferencesProWeek {
@@ -168,7 +169,7 @@ model Formation {
   description String
   price       Float
   quantity    Int
-  dates       String
+  dates       Json
   deposit     Float
   createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
@@ -294,6 +295,7 @@ model Notification {
   title     String
   userId    String
   timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
