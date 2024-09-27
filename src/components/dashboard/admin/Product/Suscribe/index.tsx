@@ -434,7 +434,7 @@ export default function SuscribeTab() {
 }
 
 function ListeAbonnements() {
-  const initialAbonnementClients = [
+  const initialSubscriptions = [
     {
       id: "1",
       client: "Séraphine Manille",
@@ -463,16 +463,16 @@ function ListeAbonnements() {
       status: "en-cours",
     },
   ];
-  const [abonnementClients, setAbonnementClients] = React.useState(
-    initialAbonnementClients
+  const [subscriptions, setSubscriptions] = React.useState(
+    initialSubscriptions
   );
+  const [selectedStatus, setSelectedStatus] = React.useState("");
 
-  function handlefilterPerStatus(status: string) {
-    const filteredDatas = initialAbonnementClients.filter(
-      (abonnementClient) => abonnementClient.status === status
-    );
-    setAbonnementClients(filteredDatas);
-    console.log("abonement client", abonnementClients);
+  function handleDeleteSubsciption(id: string){
+    const filteredDatas = subscriptions.filter(
+      (subscription) => subscription.id !== id
+    )
+    setSubscriptions(filteredDatas)
   }
 
   return (
@@ -481,11 +481,12 @@ function ListeAbonnements() {
         Abonements Clients
       </h3>
       <div className="my-6 flex justify-between items-center gap-3">
-        <Select onValueChange={(value) => handlefilterPerStatus(value)}>
+        <Select onValueChange={(value) => setSelectedStatus(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Selectionez un status" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="tous">Tous</SelectItem>
             <SelectItem value="annule">Annulé</SelectItem>
             <SelectItem value="expire">Expiré</SelectItem>
             <SelectItem value="en-cours">En cours</SelectItem>
@@ -524,25 +525,25 @@ function ListeAbonnements() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {abonnementClients && abonnementClients.length > 0 ? (
-            abonnementClients.map((abonnementClient) => (
-              <TableRow>
+          {subscriptions && subscriptions.length > 0 ? (
+            ((selectedStatus === "tous" || selectedStatus === "") ? subscriptions : subscriptions.filter((subscription) => subscription.status === selectedStatus)).map((subscription) => (
+              <TableRow key={subscription?.id}>
                 <TableCell className="font-semibold">
-                  {abonnementClient?.id}
+                  {subscription?.id}
                 </TableCell>
                 <TableCell className="font-semibold">
-                  {abonnementClient?.client}
+                  {subscription?.client}
                 </TableCell>
-                <TableCell>{abonnementClient?.type}</TableCell>
-                <TableCell>{abonnementClient?.date_debut}</TableCell>
-                <TableCell>{abonnementClient?.date_expiration}</TableCell>
+                <TableCell>{subscription?.type}</TableCell>
+                <TableCell>{subscription?.date_debut}</TableCell>
+                <TableCell>{subscription?.date_expiration}</TableCell>
                 <TableCell className="text-center">
-                  {abonnementClient?.prochain_prelement}
+                  {subscription?.prochain_prelement}
                 </TableCell>
                 <TableCell>
-                  {abonnementClient?.status === "annule"
+                  {subscription?.status === "annule"
                     ? "Annulé"
-                    : abonnementClient?.status === "expire"
+                    : subscription?.status === "expire"
                       ? "Expiré"
                       : "En cours"}
                 </TableCell>
@@ -551,7 +552,7 @@ function ListeAbonnements() {
                     <Edit className="h-4 w-4" />
                   </Button>
                   &nbsp;
-                  <Button variant={"ghost"} size={"icon"}>
+                  <Button variant={"ghost"} size={"icon"} onClick={() => handleDeleteSubsciption(subscription?.id)}>
                     <Trash className="h-4 w-4" />
                   </Button>
                 </TableCell>
