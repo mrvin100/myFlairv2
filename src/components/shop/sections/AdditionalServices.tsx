@@ -46,6 +46,11 @@ export default function AdditionalServices() {
   );
   const { user } = useUserContext();
 
+  const serviceTypeTranslation = {
+    day: "Jour",
+    piece: "Pièce",
+    page: "Page"
+  }
   useEffect(() => {
     fetch("/api/serviceAdditionnel/get", {
       method: "GET",
@@ -139,6 +144,7 @@ export default function AdditionalServices() {
                     alt={additionalService.alt}
                     width={1000}
                     height={1000}
+
                   />
                 </CardHeader>
 

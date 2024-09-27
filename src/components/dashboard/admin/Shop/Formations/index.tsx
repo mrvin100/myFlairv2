@@ -9,11 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ReactQuill from 'react-quill';
 import { Popover } from '@/components/ui/popover';
-import { format, addDays, eachDayOfInterval } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CalendarBusinessBooster } from '@/components/calendarBusinessBooster';
 import DisplayFormations from './displayData';
-import { DateRange } from 'react-day-picker';
 import { TrashIcon } from 'lucide-react';
 
 interface Formation {
@@ -24,14 +23,20 @@ interface Formation {
   price: number;
   quantity: number;
   deposit: number;
-  dates: string[];
+  startDate: string;
+  endDate: string;
+}
+interface DateRange {
+  from: Date | undefined;
+  to: Date | undefined;
 }
 
 const AddFormation = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const formattedStartDate = from ? format(from, 'yyyy-MM-dd') : '';
+  const formattedEndDate = to ? format(to, 'yyyy-MM-dd') : '';
   const [formation, setFormation] = useState<Formation>({
     image: '',
     alt: '',
@@ -40,14 +45,14 @@ const AddFormation = () => {
     price: 0,
     quantity: 0,
     deposit: 0,
-    dates: [],
+    startDate: '',
+    endDate: '',
   });
   const [images, setImages] = useState<File[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: new Date(),
     to: addDays(new Date(), 30),
   });
-  const [dates, setDates] = useState<DateRange[]>([]);
 
   const handleFormationChange = (key: keyof Formation, value: any) => {
     setFormation((prevFormation) => ({
@@ -98,20 +103,18 @@ const AddFormation = () => {
     }
   };
 
-  const formatDates = (dates: DateRange[]): string[] => {
-    return dates.flatMap(({ from, to }) => {
-      if (!from || !to) return [];
-      return eachDayOfInterval({ start: from, end: to }).map(date =>
-        format(date, 'yyyy-MM-dd')
-      );
-    });
-  };
-
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const formattedDates = formatDates(dates);
-      const response = await axios.post('/api/formation/create', { ...formation, dates: formattedDates }, {
+      const { from, to } = dateRange;
+      const formattedStartDate = from ? format(from, 'yyyy-MM-dd') : '';
+      const formattedEndDate = to ? format(to, 'yyyy-MM-dd') : '';
+
+      const response = await axios.post('/api/formation/create', {
+        ...formation,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+      }, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -227,37 +230,28 @@ const AddFormation = () => {
                           <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
                         </div>
                       </Popover>
-
-                      {dates.length > 0 && <p className='mt-6'>Dates ajoutées:</p>}
-                      {dates.map((date, index) => (
-                        <div className="flex items-center gap-2" key={index}>
-                          {date.to ? (
-                            <>
-                              {format(date.from!, 'dd LLL y', { locale: fr })} - {format(date.to!, 'dd LLL y', { locale: fr })}
-                            </>
-                          ) : (
-                            format(date.from!, 'dd LLL y', { locale: fr })
-                          )}
+                      <p className='mt-6'>Date sélectionnée:</p>
+                      {dateRange.from && dateRange.to && (
+                        <div className="flex items-center gap-2">
+                          {format(dateRange.from, 'dd LLL y', { locale: fr })} - {format(dateRange.to, 'dd LLL y', { locale: fr })}
                           <Button
                             size="icon"
                             variant="destructive"
-                            onClick={() => {
-                              const newDates = dates.filter((_, i) => i !== index);
-                              setDates(newDates);
-                            }}
+                            onClick={() => setDateRange({ from: undefined, to: undefined })}
                           >
                             <TrashIcon className="h-4 w-4" />
                           </Button>
-                          <br />
                         </div>
-                      ))}
-
+                      )}
                       <Button
                         className="flex justify-start mt-6"
                         onClick={() => {
-                          if (dateRange) {
-                            const newDates = [...dates, dateRange];
-                            setDates(newDates);
+                          if (dateRange.from && dateRange.to) {
+                            setFormation((prev) => ({
+                              ...prev,
+                              startDate: format(dateRange.from, 'yyyy-MM-dd'),
+                              endDate: format(dateRange.to, 'yyyy-MM-dd'),
+                            }));
                           }
                         }}
                         type="button"
@@ -276,23 +270,23 @@ const AddFormation = () => {
                           className={`border-dashed border-2 p-6 flex justify-center items-center rounded-md ${images.length > 0 ? 'border-green-500' : 'border-gray-300'}`}
                         >
                           {images.length > 0 ? (
-                            <img src={formation.image} alt={formation.alt} className="h-32 w-32 object-cover" />
+                            <div className="flex flex-col justify-center items-center">
+                              <img src={URL.createObjectURL(images[0])} alt="Image" className="w-32 h-32 object-cover" />
+                              <Button onClick={handleDelete} variant="outline" className="mt-2">
+                                Supprimer l'image
+                              </Button>
+                            </div>
                           ) : (
-                            <p>Déposez votre image ici ou cliquez pour en télécharger une</p>
+                            <p className="text-gray-500">Glissez et déposez votre image ou cliquez pour sélectionner un fichier.</p>
                           )}
                         </div>
                         <input
-                          type="file"
                           ref={fileInputRef}
-                          onChange={handleFileInputChange}
+                          type="file"
                           accept="image/*"
+                          onChange={handleFileInputChange}
                           className="hidden"
                         />
-                        {images.length > 0 && (
-                          <Button variant="destructive" onClick={handleDelete}>
-                            Supprimer l'image
-                          </Button>
-                        )}
                       </div>
                       <Button
                         onClick={handleSubmit}

@@ -12,18 +12,25 @@ export async function GET(req: Request, res: NextResponse) {
       if (!serviceId) {
         return NextResponse.json({ error: 'Unauthorized' });
       }
-      const services = await prisma.service.findUnique({
+
+      const service = await prisma.service.findUnique({
         where: {
-            id: serviceId
+          id: serviceId,
         },
         include: {
-          user: true,
+          user: {
+            include: {
+              preferencesProWeek: true,
+            },
+          },
         },
       });
-      console.log(services)
-      return NextResponse.json(services);
+
+      console.log(service);
+      return NextResponse.json(service);
     } catch (error) {
-      return NextResponse.json({ error: 'Error fetching services' });
+      console.error(error); // Log the error for debugging
+      return NextResponse.json({ error: 'Error fetching service data' });
     }
   } else {
     return NextResponse.json({ error: 'Method not allowed' });

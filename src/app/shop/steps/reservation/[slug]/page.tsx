@@ -22,7 +22,7 @@ interface Props {
 const ReservationStep = ({ params }: Props) => {
   const pathname = usePathname();
   const segments = pathname.split("/");
-  const { slug: postId } = params; // Getting the post Id
+  const { slug: postId } = params;
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useUserContext();
@@ -58,7 +58,6 @@ const ReservationStep = ({ params }: Props) => {
           userId,
           parseInt(postId, 10),
           ReservationStatus.PENDING,
-          post?.price!,
           [...selectedWeekDays, ...selectedSaturdays]
         );
         if (promises) {

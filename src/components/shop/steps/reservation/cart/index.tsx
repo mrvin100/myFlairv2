@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { useDateContext } from "@/contexts/dateContext";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale"; // Assurez-vous d'importer la locale française
+import { fr } from "date-fns/locale";
 import { useWorkplaceContext } from "@/contexts/WorkplaceContext";
 import { Post } from "@prisma/client";
 import { CURRENCY } from "@/lib/constant";
@@ -38,7 +38,6 @@ const Cart = ({ post }: Props) => {
   console.log("Selected week days:");
   console.log(selectedWeekDays);
 
-  // Trouver le workplace correspondant à l'ID lastSegment
   const selectedWorkplace = workplaces.find(
     (workplace) => workplace.id === parseInt(lastSegment, 10)
   );
@@ -63,27 +62,29 @@ const Cart = ({ post }: Props) => {
     }
   }, [lastSegment]);
 
-  // Fonction pour formater les dates
   const formatDate = (dateString: string) => {
-    const date = parseISO(dateString); // Convertit la chaîne en objet Date
-    return format(date, "dd MMMM yyyy", { locale: fr }); // Formate la date
+    const date = parseISO(dateString); 
+    return format(date, "dd MMMM yyyy", { locale: fr });
   };
 
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
+    console.log("Jours de semaine sélectionnés:", selectedWeekDays);
+    console.log("Samedis sélectionnés:", selectedSaturdays);
+    
     let newTotal = 0;
 
     selectedWeekDays.forEach(() => {
-      newTotal += post?.price || 0; // Assurez-vous d'utiliser une valeur par défaut
+      newTotal += Number(post?.weekPrice) || 0;
     });
 
     selectedSaturdays.forEach(() => {
-      newTotal += post?.price || 0; // Assurez-vous d'utiliser une valeur par défaut
+      newTotal += Number(post?.saturdayPrice) || 0;
     });
 
     setTotal(newTotal);
-  }, [selectedWeekDays, selectedSaturdays, selectedWorkplace, post]);
+  }, [selectedWeekDays, selectedSaturdays, post]);
 
   const handleRemoveDate = (date: string, type: "week" | "saturday") => {
     if (type === "week") {
@@ -132,13 +133,13 @@ const Cart = ({ post }: Props) => {
                   </TableCell>
                   <TableCell className="text-center">
                     De {selectedWorkplace?.durationWeekStartHour}h
-                    {selectedWorkplace?.durationWeekStartMinute} à
+                    {selectedWorkplace?.durationWeekStartMinute} à{" "}
                     {selectedWorkplace?.durationWeekEndHour}h
                     {selectedWorkplace?.durationWeekEndMinute}
                   </TableCell>
                   <TableCell className="text-center">
-                    {post?.price !== undefined ? (
-                      `${post.price} ${CURRENCY}`
+                    {post?.weekPrice !== undefined ? (
+                      `${Number(post.weekPrice).toFixed(2)} ${CURRENCY}`
                     ) : (
                       "Prix non disponible"
                     )}
@@ -164,14 +165,14 @@ const Cart = ({ post }: Props) => {
                     <span>{formatDate(date)}</span>
                   </TableCell>
                   <TableCell className="text-center">
-                    De {selectedWorkplace?.durationSaturdayStartHour}h
-                    {selectedWorkplace?.durationSaturdayStartMinute} à
+                    {selectedWorkplace?.durationSaturdayStartHour}h
+                    {selectedWorkplace?.durationSaturdayStartMinute} à{" "}
                     {selectedWorkplace?.durationSaturdayEndHour}h
                     {selectedWorkplace?.durationSaturdayEndMinute}
                   </TableCell>
                   <TableCell className="text-center">
-                    {post?.price !== undefined ? (
-                      `${post.price} ${CURRENCY}`
+                    {post?.saturdayPrice !== undefined ? (
+                      `${Number(post.saturdayPrice).toFixed(2)} ${CURRENCY}`
                     ) : (
                       "Prix non disponible"
                     )}

@@ -99,7 +99,11 @@ export default function OverviewTab() {
 
         <h2 className="font-normal text-lg my-8">Réservations récentes</h2>
 
-        <section className="p-4 mx-auto">
+
+
+        {/* Section des réservations récentes */}
+        <section className="p-4 mx-auto ">
+
           {reservations.length > 0 ? (
             reservations.map((reservation) => (
               <Reservation
@@ -123,6 +127,7 @@ export default function OverviewTab() {
           ) : (
             <p>Aucune réservation récente</p>
           )}
+
           <div className="my-6 p-4 text-center">
             <Button>Voir toutes les réservations</Button>
           </div>

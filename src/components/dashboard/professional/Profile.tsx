@@ -62,6 +62,9 @@ export default function ProfileTab() {
   const { user } = useUserContext();
   const [images, setImages] = useState<File[]>([]);
   const [userActual, setUserActual] = useState<User | null>(null);
+  const [socials, setSocials] = useState<{ network: string; url: string }[]>([]);
+  const [newSocial, setNewSocial] = useState({ network: "", url: "" });
+
 
   const handleDelete = () => {
     setImages([]);
@@ -102,6 +105,11 @@ export default function ProfileTab() {
         }
         const data = await response.json();
         setUserActual(data);
+
+        const socialMediaLinks = response.map((item: { network: string; url: unknown }) => ({
+          network: item.network,
+          url: typeof item.url === 'string' ? item.url : '',
+        }));
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
@@ -130,6 +138,36 @@ export default function ProfileTab() {
     }
   };
 
+  const handleAddSocial = () => {
+    if (!newSocial.network || !newSocial.url) return;
+
+    const updatedSocials = [...socials, newSocial];
+    setSocials(updatedSocials);
+    setNewSocial({ network: "", url: "" });
+
+    if (userActual) {
+      const updatedUser = {
+        ...userActual,
+        socialMedia: {
+          ...userActual.socialMedia,
+          [newSocial.network.toLowerCase()]: newSocial.url,
+        },
+      };
+      setUserActual(updatedUser);
+    }
+  };
+
+  const handleRemoveSocial = (index: number) => {
+    const updatedSocials = socials.filter((_, i) => i !== index);
+    setSocials(updatedSocials);
+
+    if (userActual) {
+      const updatedSocialMedia = { ...userActual.socialMedia };
+      delete updatedSocialMedia[socials[index].network.toLowerCase()];
+
+      setUserActual({ ...userActual, socialMedia: updatedSocialMedia });
+    }
+  };
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

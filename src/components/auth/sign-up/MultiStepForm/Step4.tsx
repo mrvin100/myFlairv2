@@ -74,7 +74,7 @@ export default function Step4() {
           </InputOTPGroup>
         </InputOTP>
       </div>
-      <SubmitButton pending={pending} disabled={disabled}>
+      <SubmitButton pending={pending}>
         S&apos;inscrire
       </SubmitButton>
     </>
