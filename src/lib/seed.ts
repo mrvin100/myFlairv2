@@ -18,6 +18,7 @@ const { DateTime } = require('luxon');
 
 async function createService() {
 
+
   return await prisma.service.create({
     data: {
       image: 'h',
@@ -26,6 +27,7 @@ async function createService() {
       createdAt: DateTime.now().toJSDate(),
       updatedAt: DateTime.now().toJSDate(),
       description: 'Lorem ipsum dolor sit amet, consectetur adipicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqa. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat',
+
 
     },
   });
@@ -50,6 +52,7 @@ async function main() {
         durationSaturdayEndMinute: 1,
         image: 'https://res.cloudinary.com/dqgxjbltt/image/upload/v1717710952/pahv29bejimucv5rarb2.png',
         alt: 'Description de l\'image'
+        alt: 'Description de l\'image'
       },
     });
 
@@ -67,6 +70,7 @@ main().catch((e) => {
 });
 async function createUser() {
 
+
   return await prisma.user.create({
     data: {
       image: '',
@@ -78,6 +82,7 @@ async function createUser() {
       firstName: 'demo',
       lastName: 'pro',
       address: {
+        city:
         city:
           "Compiègne",
         country: "France",
@@ -108,7 +113,11 @@ async function createUser() {
       preferencesProWeek: {},
       mark: 4.5,
       biography: "J'aime faire mon métier",
+      preferencesProWeek: {},
+      mark: 4.5,
+      biography: "J'aime faire mon métier",
       numberOfRate: 255,
+      socialMedia: {}
       socialMedia: {}
 
     },
@@ -184,7 +193,9 @@ async function createBusinessBooster() {
 (async () => {
   console.log(await createUser());
   //console.log(await main());
+  //console.log(await main());
   //console.log(await createService())
+
 
 
   return;

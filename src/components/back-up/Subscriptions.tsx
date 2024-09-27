@@ -87,7 +87,7 @@ export default function Subscriptions() {
                     {subscription.arguments &&
                       subscription.arguments.map((argument: any) => (
                         <li
-                          className="flex items-center justify-center"
+                          className="flex items-center gap-4 max-w-64 w-full mx-auto"
                           key={argument.title}
                         >
                           {argument.type === "POSITIVE" ? (
