@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TabsContent } from '@/components/ui/tabs';
-import { ConfigProvider, Slider, Switch } from 'antd';
+import { ConfigProvider, Slider } from 'antd';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import ReactQuill from 'react-quill';
 import { InputLabel } from '@mui/material';
-
+import 'react-quill/dist/quill.snow.css';
+import { Switch } from '@/components/ui/switch';
 export default function Publication() {
     const mark = {
         0: '0',
@@ -129,7 +130,8 @@ export default function Publication() {
                 isAtHome: item.domicile,
             }));
 
-            setPublicationData(mappedData[0]); // assuming you want to store just one item
+            setPublicationData(mappedData)
+            console.log('Données de publication récupérées :', publicationData);
         } catch (error) {
             console.error('Error fetching publication data:', error);
         }
@@ -260,22 +262,21 @@ export default function Publication() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Edit Service</AlertDialogTitle>
+                        <AlertDialogTitle>Modifier Service</AlertDialogTitle>
                         <AlertDialogDescription>
                             {/* Service Form */}
                             { (
                                 <div>
                                     <div>
                                         <label>Titre du service</label>
-                                        <input
-                                            className="text-lg rounded outline-none"
-                                            style={{ width: "100%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                        <Input
                                             type="text"
-                                            value={serviceData.title}
+                                            defaultValue={publicationData?.name || ''}
                                             onChange={(e) => handleServiceChange('title', e.target.value)}
                                             placeholder="Exemple: Coloration cheveux"
                                             required
                                         />
+                                      
                                     </div>
                                     <br />
                                     <div className="flex">
@@ -284,9 +285,7 @@ export default function Publication() {
                                                 Catégorie
                                                 <br />
                                                 <br />
-                                                <input
-                                                    className="text-lg rounded outline-none"
-                                                    style={{ width: "100%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                                <Input
                                                     type="text"
                                                     value={serviceData.category}
                                                     onChange={(e) => handleServiceChange('category', e.target.value)}
@@ -300,15 +299,13 @@ export default function Publication() {
                                                 <br />
                                                 <br />
                                                 <div className='flex items-end'>
-                                                    <input
-                                                        className="text-lg rounded outline-none"
-                                                        style={{ width: "105%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                                    <Input
                                                         type="text"
-                                                        value={publicationData.price}
+                                                        value={publicationData?.price}
                                                         onChange={(e) => handleServiceChange('price', e.target.value)}
                                                         required
                                                     />
-                                                    <span style={{ fontSize: '180%', marginLeft: '2%' }}>€</span>
+                                                
                                                 </div>
                                             </div>
                                         </div>
@@ -320,7 +317,7 @@ export default function Publication() {
                                                     Ce service bénéficiera des services à domicile que vous fournissez
                                                 </span>
                                                 <div style={{ marginTop: "5px" }}>
-                                                    <Switch checked={publicationData.domicile} onChange={(e) => handleServiceChange('domicile', e.target.checked)} />
+                                                    <Switch checked={publicationData?.domicile} onChange={(e) => handleServiceChange('domicile', e.target.checked)} />
                                                 </div>
                                             </div>
                                             <br />
@@ -328,14 +325,30 @@ export default function Publication() {
                                                 <div>Durée</div>
                                                 <br />
                                                 
-                                                    <InputLabel id="demo-simple-select-label">Durée</InputLabel>
-                                                    <Select
-                                                        value={serviceData.dureeRDV}
-                                                        label="Durée"
-                                                        onChange={(e) => handleServiceChange('dureeRDV', e.target.value)}
-                                                    >
-                                                        {/* Duration options */}
-                                                    </Select>
+                                                    
+                                                <Select>
+    <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Choisir la Durée" />
+    </SelectTrigger>
+    <SelectContent>
+        <SelectGroup>
+            <SelectItem value="15">15 minutes</SelectItem>
+            <SelectItem value="30">30 minutes</SelectItem>
+            <SelectItem value="45">45 minutes</SelectItem>
+            <SelectItem value="60">1 heures</SelectItem>
+            <SelectItem value="75">1h 15 minutes</SelectItem>
+            <SelectItem value="90">1h 30 minutes</SelectItem>
+            <SelectItem value="105">1h 45 minutes</SelectItem>
+            <SelectItem value="120">2 heures</SelectItem>
+            <SelectItem value="120">2 heures</SelectItem>
+            <SelectItem value="120">2 heures</SelectItem>
+            <SelectItem value="120">2 heures</SelectItem>
+            <SelectItem value="120">2 heures</SelectItem>
+            <SelectItem value="120">2 heures</SelectItem>
+        </SelectGroup>
+    </SelectContent>
+</Select>
+
                                                 
                                             </div>
                                         </div>

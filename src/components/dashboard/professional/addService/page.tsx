@@ -5,7 +5,6 @@ import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
 import Link from 'next/link';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -22,6 +21,13 @@ interface Service {
   image: string;
   [key: string]: string | boolean;
 }
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const AjouterUnService = () => {
   const [services, setServices] = useState<Service[]>([
@@ -258,27 +264,25 @@ const AjouterUnService = () => {
                 <div>Durée</div>
                 <br />
               
-                <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label">Durée</InputLabel>
-                  <Select
-                    value={service.dureeRDV}
-                    label="Durée"
-                    onChange={(e) => handleChange(e, index)}
-                  >
-                    <MenuItem value="15">15 minutes</MenuItem>
-                    <MenuItem value="30">30 minutes</MenuItem>
-                    <MenuItem value="45">45 minutes</MenuItem>
-                    <MenuItem value="60">1 heure</MenuItem>
-                    <MenuItem value="75">1h 15 minutes</MenuItem>
-                    <MenuItem value="90">1 heure 30 minutes</MenuItem>
-                    <MenuItem value="105">1 heure 45 minutes</MenuItem>
-                    <MenuItem value="120">2 heures</MenuItem>
-                    <MenuItem value="135">2 heures 15 minutes</MenuItem>
-                    <MenuItem value="150">2 heures 30 minutes</MenuItem>
-                    <MenuItem value="165">2 heures 45 minutes</MenuItem>
-                    <MenuItem value="180">3 heures</MenuItem>
-                  </Select>
-                </FormControl>
+                <Select>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+        <SelectItem value="15">15 minutes</SelectItem>
+        <SelectItem value="30">30 minutes</SelectItem>
+        <SelectItem value="45">45 minutes</SelectItem>
+        <SelectItem value="60">1 heure</SelectItem>
+        <SelectItem value="75">1h 15 minutes</SelectItem>
+        <SelectItem value="90">1 heure 30 minutes</SelectItem>
+        <SelectItem value="105">1 heure 45 minutes</SelectItem>
+        <SelectItem value="120">2 heures</SelectItem>
+        <SelectItem value="135">2 heures 15 minutes</SelectItem>
+        <SelectItem value="150">2 heures 30 minutes</SelectItem>
+        <SelectItem value="165">2 heures 45 minutes</SelectItem>
+        <SelectItem value="180">3 heures</SelectItem>
+      </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
