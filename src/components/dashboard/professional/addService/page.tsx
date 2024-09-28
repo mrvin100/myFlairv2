@@ -20,6 +20,7 @@ interface Service {
   dureeRDV: string;
   domicile: boolean;
   image: string;
+  valueDureeRDV: string;
   [key: string]: string | boolean;
 }
 
@@ -32,12 +33,13 @@ const AjouterUnService = () => {
       description: "",
       dureeRDV: "",
       domicile: false,
+      valueDureeRDV: "",
       image: ""
     }
   ]);
 
   const addService = () => {
-    setServices([...services, { title: "", category: "", price: "", description: "", dureeRDV: "", domicile: false, image: "" }]);
+    setServices([...services, { title: "", category: "", price: "", description: "", dureeRDV: "", valueDureeRDV: "", domicile: false, image: "" }]);
   };
 
   const handleServiceChange = (index: number, key: string, value: any) => {
@@ -47,7 +49,9 @@ const AjouterUnService = () => {
   };
 
   const handleChange = (event: SelectChangeEvent<string>, index: number) => {
-    handleServiceChange(index, 'dureeRDV', event.target.value);
+    const selectedValue = event.target.value;
+    handleServiceChange(index, 'dureeRDV', selectedValue);
+    handleServiceChange(index, 'valueDureeRDV', selectedValue); 
   };
 
   const [images, setImages] = useState<File[]>([]);
@@ -118,6 +122,7 @@ const AjouterUnService = () => {
         ...servicesWithConvertedDescription[0],
       };
 
+      
       const response = await fetch('/api/service/create', {
         method: 'POST',
         headers: {

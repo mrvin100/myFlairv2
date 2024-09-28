@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TabsContent } from '@/components/ui/tabs';
-import { ConfigProvider, Slider, Switch } from 'antd';
+import { ConfigProvider, Slider } from 'antd';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import ReactQuill from 'react-quill';
 import { InputLabel } from '@mui/material';
+import 'react-quill/dist/quill.snow.css';
+import { Switch } from '@/components/ui/switch';
 
 export default function Publication() {
     const mark = {
@@ -110,26 +112,31 @@ export default function Publication() {
                     'Expires': '0',
                 },
             });
-
+    
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-
+    
             const data = await response.json();
-            const mappedData = data.map((item) => ({
-                id: item.id,
-                idUser: item.userId,
-                name: item.title,
-                imageProfil: item.user.image,
-                ville: item.user.address.city,
-                pays: item.user.address.country,
-                prix: parseFloat(item.price),
-                starRating: item.rating || 0,
-                category: item.category,
-                isAtHome: item.domicile,
-            }));
 
-            setPublicationData(mappedData[0]); // assuming you want to store just one item
+            const mappedData = {
+                id: data.id,
+                idUser: data.userId,
+                name: data.title,
+                imageProfil: data.user?.image || '',
+                ville: data.user?.address?.city || '',
+                pays: data.user?.address?.country || '',
+                prix: parseFloat(data.price),
+                starRating: data.user?.mark || 0,
+                category: data.category,
+                isAtHome: data.domicile,
+                dureeRDV: data.dureeRDV,
+                valueDureeRDV: data.valueDureeRDV,
+                description: data.description
+            };
+    
+            setPublicationData(mappedData);
+            console.log(publicationData, "hey")
         } catch (error) {
             console.error('Error fetching publication data:', error);
         }
@@ -180,7 +187,6 @@ export default function Publication() {
     };
 
     const openProfileDialog = (id: string) => {
-        //fetchProfileData(id); 
         setShowProfileDialog(true);
     };
 
@@ -190,6 +196,7 @@ export default function Publication() {
             [field]: value,
         }));
     };
+
     function ModelPublication({ publication }: { publication: Publication }) {
         return (
             <Card style={{ margin: 0 }} className='min-w-[330px] rounded-md'>
@@ -260,22 +267,20 @@ export default function Publication() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Edit Service</AlertDialogTitle>
+                        <AlertDialogTitle>Modifier Service</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {/* Service Form */}
                             { (
                                 <div>
                                     <div>
                                         <label>Titre du service</label>
-                                        <input
-                                            className="text-lg rounded outline-none"
-                                            style={{ width: "100%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                        <Input
                                             type="text"
-                                            value={serviceData.title}
+                                            defaultValue={publicationData?.name}
                                             onChange={(e) => handleServiceChange('title', e.target.value)}
-                                            placeholder="Exemple: Coloration cheveux"
+                                            placeholder="Ex: Coloration cheveux"
                                             required
                                         />
+                                      
                                     </div>
                                     <br />
                                     <div className="flex">
@@ -284,31 +289,28 @@ export default function Publication() {
                                                 Catégorie
                                                 <br />
                                                 <br />
-                                                <input
-                                                    className="text-lg rounded outline-none"
-                                                    style={{ width: "100%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                                <Input
                                                     type="text"
-                                                    value={serviceData.category}
+                                                    defaultValue={publicationData?.category}
                                                     onChange={(e) => handleServiceChange('category', e.target.value)}
                                                     required
-                                                    placeholder='Exemple: Coloration + Shampoing + Brushing'
+                                                    placeholder='Ex: Coloration + Shampoing + Brushing'
                                                 />
                                             </div>
                                             <br />
-                                            <div>
+                                            <div className='mt-3'>
                                                 Tarifs
                                                 <br />
                                                 <br />
                                                 <div className='flex items-end'>
-                                                    <input
-                                                        className="text-lg rounded outline-none"
-                                                        style={{ width: "105%", padding: "5px", border: "solid 2px #EAEAEA", marginTop: "2%" }}
+                                                    <Input
                                                         type="text"
-                                                        value={publicationData.price}
+                                                        defaultValue={publicationData?.prix}
                                                         onChange={(e) => handleServiceChange('price', e.target.value)}
                                                         required
+                                                        placeholder='Ex: 45'
                                                     />
-                                                    <span style={{ fontSize: '180%', marginLeft: '2%' }}>€</span>
+                                                
                                                 </div>
                                             </div>
                                         </div>
@@ -320,7 +322,7 @@ export default function Publication() {
                                                     Ce service bénéficiera des services à domicile que vous fournissez
                                                 </span>
                                                 <div style={{ marginTop: "5px" }}>
-                                                    <Switch checked={publicationData.domicile} onChange={(e) => handleServiceChange('domicile', e.target.checked)} />
+                                                    <Switch checked={publicationData?.isAtHome} onChange={(e) => handleServiceChange('domicile', e.target.checked)} />
                                                 </div>
                                             </div>
                                             <br />
@@ -328,14 +330,31 @@ export default function Publication() {
                                                 <div>Durée</div>
                                                 <br />
                                                 
-                                                    <InputLabel id="demo-simple-select-label">Durée</InputLabel>
-                                                    <Select
-                                                        value={serviceData.dureeRDV}
-                                                        label="Durée"
-                                                        onChange={(e) => handleServiceChange('dureeRDV', e.target.value)}
+                                                    
+                                                <Select defaultValue={String(publicationData?.valueDureeRDV) || ""}>
+                                                    <SelectTrigger className="w-[180px]">
+                                                        <SelectValue placeholder="Choisir la Durée" />
+                                                    </SelectTrigger>
+                                                    <SelectContent
                                                     >
-                                                        {/* Duration options */}
-                                                    </Select>
+                                                        <SelectGroup >
+                                                            <SelectItem value="15">15 minutes</SelectItem>
+                                                            <SelectItem value="30">30 minutes</SelectItem>
+                                                            <SelectItem value="45">45 minutes</SelectItem>
+                                                            <SelectItem value="60">1 heures</SelectItem>
+                                                            <SelectItem value="75">1h 15 minutes</SelectItem>
+                                                            <SelectItem value="90">1h 30 minutes</SelectItem>
+                                                            <SelectItem value="105">1h 45 minutes</SelectItem>
+                                                            <SelectItem value="120">2 heures</SelectItem>
+                                                            <SelectItem value="120">2 heures</SelectItem>
+                                                            <SelectItem value="120">2 heures</SelectItem>
+                                                            <SelectItem value="120">2 heures</SelectItem>
+                                                            <SelectItem value="120">2 heures</SelectItem>
+                                                            <SelectItem value="120">2 heures</SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+
                                                 
                                             </div>
                                         </div>
@@ -347,7 +366,7 @@ export default function Publication() {
                                         <div>Description</div>
                                         <br />
                                         <ReactQuill
-                                            value={serviceData.description}
+                                           value={publicationData?.description || ""}
                                             onChange={(value) => handleServiceChange('description', value)}
                                             placeholder="Décrivez votre service ici..."
                                         />

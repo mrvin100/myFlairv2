@@ -70,6 +70,7 @@ model User {
   preferencesProWeekId String?                 @unique
   preferencesProWeek   PreferencesProWeek?     @relation(fields: [preferencesProWeekId], references: [id])
   mark                 Float?
+  forfaitSuscribeFreeAvailible   Boolean?
   numberOfRate         Int?
   socialMedia          Json?
   biography            String?
@@ -130,6 +131,7 @@ model Service {
   createdAt    DateTime                @default(now())
   updatedAt    DateTime?               @updatedAt
   dureeRDV     String
+  valueDureeRDV Int?
   userId       String
   user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   reservations ReservationServicePro[]

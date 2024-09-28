@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, category, price, description, dureeRDV, domicile, userId } = body;
+    const { title, category, price, description, dureeRDV, domicile, userId, valueDureeRDV } = body;
     console.log('Données reçues:', body);
 
     const descriptionWithoutHtml = htmlToText(description);
@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
         category,
         dureeRDV: dureeRDV.toString(), 
         domicile,
-        userId
+        userId,
+        valueDureeRDV:parseInt(valueDureeRDV),
       },
     });
 

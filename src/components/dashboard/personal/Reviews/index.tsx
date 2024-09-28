@@ -156,7 +156,7 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
         ) : (
           <>
             <Button variant="destructive" onClick={() => handleDelete(review.id)}>Supprimer</Button>
-            <Link href={`/back-up/Profil/${review.professional.id}`}>
+            <Link href={`/back-up/Profil/${review?.professional?.id}`}>
               <Button className='ml-4'>Voir</Button>
             </Link>
           </>

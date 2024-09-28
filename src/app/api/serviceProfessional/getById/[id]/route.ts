@@ -26,10 +26,8 @@ export async function GET(req: Request, res: NextResponse) {
         },
       });
 
-      console.log(service);
-      return NextResponse.json(service);
+  return NextResponse.json(service);
     } catch (error) {
-      console.error(error); // Log the error for debugging
       return NextResponse.json({ error: 'Error fetching service data' });
     }
   } else {

@@ -118,8 +118,8 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
         }
     }
 
-    async function handleDelete(reviewId: string) {
-        const res = await fetch(`/api/review/archive`, {
+    async function handleArchive(reviewId: string) {
+        const res = await fetch(`/api/review/archive/${reviewId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -130,6 +130,23 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
         if (res.ok) {
             const updatedReview = await res.json();
             setReviews((prev) => prev.map((r) => (r.id === reviewId ? updatedReview : r)));
+        } else {
+            console.error("Erreur lors de la suppression de l'avis");
+        }
+    }
+
+    async function handleDelete(reviewId: string) {
+        const res = await fetch(`/api/review/delete/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reviewId }),
+        });
+
+        if (res.ok) {
+            const deleteReview = await res.json();
+            setReviews((prev) => prev.map((r) => (r.id === reviewId ? deleteReview : r)));
         } else {
             console.error("Erreur lors de la suppression de l'avis");
         }
@@ -147,15 +164,18 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
             <div className="flex justify-end">
                 {review?.status === 'await' ? (
                     <>
+                    <Button  onClick={() => handleDelete(review?.id)} variant={'destructive'}>Supprimer</Button>
                         <Link href={`/back-up/Profil/${review?.professional.id}`}>
                             <Button variant="secondary">Voir</Button>
                         </Link>
-                        <Button className="ml-3" onClick={() => handleApprove(review.id)}>Approuver</Button>
+                        <Button className="ml-3" onClick={() => handleApprove(review?.id)}>Approuver</Button>
                     </>
                 ) : (
                     <>
-                        <Button variant="destructive" onClick={() => handleDelete(review.id)}>Supprimer</Button>
-                        <Link href={`/back-up/Profil/${review.professional.id}`}>
+                    
+                        <Button variant="secondary" onClick={() => handleArchive(review?.id)}>Archiver</Button>
+                        <Button  onClick={() => handleDelete(review?.id)} variant={'destructive'}>Supprimer</Button>
+                        <Link href={`/back-up/Profil/${review?.professional?.id}`}>
                             <Button className='ml-4'>Voir</Button>
                         </Link>
                     </>

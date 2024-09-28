@@ -1,11 +1,9 @@
 "use client";
 
-import { $Enums, type Subscription } from "@prisma/client";
-
+import { $Enums } from "@prisma/client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,43 +15,49 @@ import {
 } from "@/components/ui/card";
 import clsx from "clsx";
 
-const types = {
-  MONTHLY: "mois",
-  YEARLY: "an",
-};
+interface SubscriptionArgument {
+  title: string;
+  value: string;
+}
 
-const initialSubscriptions: Subscription[] = [
-  {
-      id: 'sub_monthly_1',
-      title: 'Mensuel',
-      description: "19 € facturés chaque mois",
-      price: 19,
-      arguments: [
-          { title: 'Espace de stockage', value: '10 Go', type: "POSITIVE" },
-          { title: "Nombre d'utilisateurs", value: '1', type: "POSITIVE" },
-      ],
-      type: $Enums.SubscriptionType.MONTHLY,
-      createdAt: new Date('2023-11-22'),
-      updatedAt: new Date('2023-12-05'),
-  },
-  {
-      id: 'sub_annual_1',
-      title: 'Annuel',
-      description: '200 € facturés à l’année',
-      price: 16,
-      arguments: [
-          { title: 'Espace de stockage', value: '100 Go', type: "POSITIVE" },
-          { title: "Nombre d'utilisateurs", value: '5', type: "POSITIVE" },
-          { title: 'Support prioritaire', value: 'Oui', type: "POSITIVE" },
-      ],
-      type: $Enums.SubscriptionType.YEARLY,
-      createdAt: new Date('2023-09-15'),
-      updatedAt: null,
-  },
-];
+interface Subscription {
+  id: number;
+  title: string;
+  price: number;
+  nbrEssaisGratuit: number;
+  period: string;
+  functions: string[];
+  createdAt: Date;
+  updatedAt: Date | null;
+}
 
 export default function Subscriptions() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        const response = await fetch('/api/abonnement/get');
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const data: Subscription[] = await response.json();
+
+        // Assuming functions are stored as JSON string; parsing them here
+        const parsedData = data.map(sub => ({
+          ...sub,
+          functions: Array.isArray(sub.functions) ? sub.functions : JSON.parse(sub.functions) // Parse only if not already an array
+        }));
+        
+        setSubscriptions(parsedData);
+      } catch (err) {
+        setError('Erreur lors de la récupération des abonnements');
+        console.error(err);
+      }
+    };
+
+    fetchSubscriptions();
+  }, []);
 
   return (
     <section className="px-6 py-8 text-center lg:px-24">
@@ -65,51 +69,80 @@ export default function Subscriptions() {
         profession
       </p>
       <div>
-        {subscriptions && subscriptions.length > 0 ? (
+        {error ? (
+          <div className="text-red-500">{error}</div>
+        ) : subscriptions.length > 0 ? (
           <div className="grid justify-center grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12 max-w-5xl mx-auto">
             {subscriptions.map((subscription) => (
               <Card key={subscription.id}>
-                <CardHeader>
-                  <CardTitle className={clsx(`${subscription.type === "MONTHLY" ? "bg-secondary-foreground text-secondary" : ""}`,"text-xl p-4 uppercase border-b mb-4 rounded-md")}>
+               
+                  <CardTitle className={clsx(subscription.period === "month" ? "bg-secondary-foreground text-secondary" : "", "text-xl p-4 uppercase border-b mb-4 rounded-tr-md rounded-tl-md")}>
                     {subscription.title}
-                    
                   </CardTitle>
                   <h2 className="text-3xl font-bold tracking-tight">
                     <b>
-                      {subscription.price}/Mois
+                      {subscription.price} €/ {subscription.period === "month" && (
+                        <b>Mois</b>
+                      ) || subscription.period === "year" && (
+                        <b>Année</b>
+                      ) || subscription.period === "week" && (
+                        <b>Semaine</b>
+                      ) || subscription.period === "day" && (
+                        <b>Jours</b>
+                      )}
                     </b>
                   </h2>
-                  <CardDescription>{subscription.description}</CardDescription>
-                </CardHeader>
+                 
+                
 
                 <CardContent>
                   <ul>
-                    {subscription.arguments &&
-                      subscription.arguments.map((argument: any) => (
-                        <li
-                          className="flex items-center gap-4 max-w-64 w-full mx-auto"
-                          key={argument.title}
-                        >
-                          {argument.type === "POSITIVE" ? (
-                            <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
-                          ) : (
-                            <Cross2Icon className="mr-2 h-4 w-4 text-red-500" />
-                          )}
-                          {argument.title}
-                        </li>
-                      ))}
+                    {subscription.functions.map((func: string) => (
+                      <li
+                        className="flex items-center gap-4 max-w-64 w-full mx-auto"
+                        key={func}
+                      >
+                        <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
+                        {func} {/* Display the function directly */}
+                      </li>
+                    ))}
                   </ul>
+                  <br />
+
+                  {subscription.nbrEssaisGratuit ? (
+                    <span>Vous avez le droit à {subscription.nbrEssaisGratuit} {subscription.period === "month" && (
+                      <b>Mois</b>
+                    ) || subscription.period === "year" && (
+                      <b>Année</b>
+                    ) || subscription.period === "week" && (
+                      <b>Semaine</b>
+                    ) || subscription.period === "day" && (
+                      <b>Jours</b>
+                    )} de forfait offert</span>
+                  ): ""}
                 </CardContent>
 
                 <CardFooter className="flex flex-col space-y-2">
+                {subscription.nbrEssaisGratuit ? (
                   <Link
                     className="w-full"
-                    href={`/back-up/subscriptions/payment?type=${subscription.type.toLowerCase()}`}
+                    href={`/back-up/subscriptions/payment?type=${subscription.period.toLowerCase()}`}
+                    aria-label={`Try the ${subscription.title} subscription for free`}
                   >
                     <Button className="w-full" role="link" size="lg">
-                    J'essaye Gratuitement
+                      J'essaye Gratuitement
                     </Button>
                   </Link>
+                ) : <Link
+                className="w-full"
+                href={`/back-up/subscriptions/payment?type=${subscription.period.toLowerCase()}`}
+                aria-label={`Try the ${subscription.title} subscription for free`}
+              >
+                <Button className="w-full" role="link" size="lg">
+                  Acheter
+                </Button>
+              </Link>
+              }
                   <div className="text-sm text-muted-foreground">
                     Abonnement sans engagement et résiliable sans frais
                   </div>
