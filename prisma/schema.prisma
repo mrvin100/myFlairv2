@@ -277,8 +277,8 @@ model Review {
   comment        String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  author         User             @relation("ReviewsWritten", fields: [userId], references: [id])
-  professional   User             @relation("ReviewsReceived", fields: [professionalId], references: [id])
+  author         User             @relation("ReviewsWritten", fields: [userId], references: [id],  onDelete: Cascade)
+  professional   User             @relation("ReviewsReceived", fields: [professionalId], references: [id], onDelete: Cascade)
   responses      ReviewResponse[]
 }
 
