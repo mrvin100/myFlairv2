@@ -1,12 +1,13 @@
 import { TabsContent } from '@/components/ui/tabs';
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 import { Rate } from 'antd';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 
 // Définir les types
 interface User {
@@ -44,8 +45,10 @@ interface Service {
 }
 
 export default function Comments() {
-    const [reviews, setReviews] = useState<Review[]>([]);  
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleteReviewId, setDeleteReviewId] = useState<string | null>(null);
+    const [isAlertOpen, setAlertOpen] = useState(false);
 
     useEffect(() => {
         async function fetchReviews() {
@@ -85,6 +88,24 @@ export default function Comments() {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+    const handleDeleteConfirm = async (reviewId: string) => {
+        const res = await fetch(`/api/review/delete/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reviewId }),
+        });
+
+        if (res.ok) {
+            const deletedReview = await res.json();
+            setReviews((prev) => prev.filter((r) => r.id !== deletedReview.id));
+        } else {
+            console.error("Erreur lors de la suppression de l'avis");
+        }
+        setAlertOpen(false); // Close the alert dialog
+    };
+
     return (
         <TabsContent value='comment'>
             <div className="h-full flex-1 flex-col space-y-8 pl-8 pt-8 md:flex">
@@ -92,15 +113,33 @@ export default function Comments() {
                     <h2 className="text-2xl font-bold tracking-tight">Gestion des Avis</h2>
                 </div>
                 {sortedReviews.map((review) => (
-                    <ModelComment key={review.id} review={review} setReviews={setReviews} />
+                    <ModelComment key={review.id} review={review} setReviews={setReviews} 
+                                  setAlertOpen={setAlertOpen} setDeleteReviewId={setDeleteReviewId} />
                 ))}
             </div>
+            {/* Alert Dialog for deletion confirmation */}
+            <AlertDialog open={isAlertOpen} onOpenChange={setAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Êtes-vous sûr de vouloir supprimer cet avis ?
+                    </AlertDialogDescription>
+                    <div className="flex justify-end">
+                        <AlertDialogCancel onClick={() => setAlertOpen(false)}>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            if (deleteReviewId) {
+                                handleDeleteConfirm(deleteReviewId);
+                            }
+                        }}>Confirmer</AlertDialogAction>
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
         </TabsContent>
     );
 }
 
-
-function ModelComment({ review, setReviews }: { review: Review; setReviews: React.Dispatch<React.SetStateAction<Review[]>> }) {
+function ModelComment({ review, setReviews, setAlertOpen, setDeleteReviewId }: 
+{ review: Review; setReviews: React.Dispatch<React.SetStateAction<Review[]>>; setAlertOpen: React.Dispatch<React.SetStateAction<boolean>>; setDeleteReviewId: React.Dispatch<React.SetStateAction<string | null>>; }) {
     async function handleApprove(reviewId: string) {
         const res = await fetch(`/api/review/updateStatus/${review.id}`, {
             method: 'PUT',
@@ -131,26 +170,14 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
             const updatedReview = await res.json();
             setReviews((prev) => prev.map((r) => (r.id === reviewId ? updatedReview : r)));
         } else {
-            console.error("Erreur lors de la suppression de l'avis");
+            console.error("Erreur lors de l'archivage de l'avis");
         }
     }
 
-    async function handleDelete(reviewId: string) {
-        const res = await fetch(`/api/review/delete/${reviewId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ reviewId }),
-        });
-
-        if (res.ok) {
-            const deleteReview = await res.json();
-            setReviews((prev) => prev.map((r) => (r.id === reviewId ? deleteReview : r)));
-        } else {
-            console.error("Erreur lors de la suppression de l'avis");
-        }
-    }
+    const openDeleteDialog = (reviewId: string) => {
+        setDeleteReviewId(reviewId);
+        setAlertOpen(true);
+    };
 
     return (
         <Card className='p-5'>
@@ -161,10 +188,14 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
                 <Rate allowHalf disabled value={review.rating} />
             </div>
             <br />
+            <div className='flex justify-between items-center'>
+                <div>
+                    <Button onClick={() => openDeleteDialog(review?.id)} variant={'destructive'}>Supprimer</Button>
+                </div>
             <div className="flex justify-end">
                 {review?.status === 'await' ? (
                     <>
-                    <Button  onClick={() => handleDelete(review?.id)} variant={'destructive'}>Supprimer</Button>
+                        <Button onClick={() => openDeleteDialog(review?.id)} variant={'destructive'}>Supprimer</Button>
                         <Link href={`/back-up/Profil/${review?.professional.id}`}>
                             <Button variant="secondary">Voir</Button>
                         </Link>
@@ -172,14 +203,17 @@ function ModelComment({ review, setReviews }: { review: Review; setReviews: Reac
                     </>
                 ) : (
                     <>
-                    
-                        <Button variant="secondary" onClick={() => handleArchive(review?.id)}>Archiver</Button>
-                        <Button  onClick={() => handleDelete(review?.id)} variant={'destructive'}>Supprimer</Button>
-                        <Link href={`/back-up/Profil/${review?.professional?.id}`}>
-                            <Button className='ml-4'>Voir</Button>
-                        </Link>
+                        <div>
+                            <Button variant="secondary" onClick={() => handleArchive(review?.id)}>Archiver</Button>
+                        
+                            <Link href={`/back-up/Profil/${review?.professional?.id}`}>
+                                <Button className='ml-4'>Voir</Button>
+                            </Link>
+                        </div>
+                 
                     </>
                 )}
+            </div>
             </div>
         </Card>
     );
@@ -196,7 +230,7 @@ function ModelSkeletonPro({ review }: { review: Review }) {
                                 style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
                                 className='rounded-full object-cover'
                                 src={review?.professional?.image || '/default-image.png'}
-                                alt={`Image Of The Professional`}
+                                alt={'Image Of The Professional'}
                             />
                             <span style={{ fontSize: '130%' }} className='m-3'>{review?.professional?.firstName || 'Inconnu'}</span>
                             <span style={{ fontSize: '130%' }}>{review?.professional?.lastName || 'Inconnu'}</span>
@@ -242,28 +276,34 @@ function ModelSkeletonPro({ review }: { review: Review }) {
     );
 }
 
+
 function ModelSkeletonClient({ review }: { review: Review }) {
     return (
-        <div>
-            <div className="flex justify-between items-center">
-                <div className="flex">
-                    <img
-                        style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
-                        className='rounded-full object-cover'
-                        src={review?.author?.image || '/default-image.png'} 
-                        alt={`Image of Client ${review?.author?.firstName || ''}`}
-                    />
-                    <div className="ml-4 flex flex-col">
-                        <span>{review?.author?.firstName} {review?.author?.lastName}</span>
-                        <span style={{ color: '#74788D' }}>
-                            {formatDistanceToNow(new Date(review?.createdAt), { addSuffix: true, locale: fr })}
-                        </span>
-                    </div>
+        <div className="flex flex-col mt-2">
+            <div className='flex justify-between items-center'>
+                <div className='flex items-center'>
+                    {review?.author ? (
+                        <>
+                            <img
+                                style={{ height: '30px', width: '30px', border: 'solid 1px white' }}
+                                className='rounded-full object-cover'
+                                src={review?.author?.image || '/default-image.png'}
+                                alt={`Image Of The Client`}
+                            />
+                            <span style={{ fontSize: '90%' }} className='m-1'>{review?.author?.firstName || 'Inconnu'}</span>
+                            <span style={{ fontSize: '90%' }}>{review?.author?.lastName || 'Inconnu'}</span>
+                        </>
+                    ) : (
+                        <span>Informations de l'auteur non disponibles</span>
+                    )}
                 </div>
+                <span className='text-sm text-muted-foreground'>
+                    {review?.createdAt && formatDistanceToNow(new Date(review.createdAt), { locale: fr })}{" "}
+                </span>
             </div>
-            <br />
-            <span style={{ color: '#A6A6A6' }}>{review?.comment}</span>
+            <div className="mt-3">
+                <p className='text-gray-700'>{review?.comment}</p>
+            </div>
         </div>
     );
 }
-

@@ -84,20 +84,24 @@ const DisplayClients = () => {
 
   useEffect(() => {
     const filtered = clients.filter(client => {
-      const matchesSearchTerm =
-        client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (client.address.street + ' ' + client.address.city).toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesRole = selectedRole === 'all' || client.role === selectedRole;
-
+      
+      const searchTerms = searchTerm.toLowerCase().split(' ').filter(Boolean);
+  
+      const matchesSearchTerm = searchTerms.every(term =>
+        client.firstName.toLowerCase().includes(term) ||
+        client.lastName.toLowerCase().includes(term) ||
+        client.email.toLowerCase().includes(term) ||
+        (client.address.street + ' ' + client.address.city).toLowerCase().includes(term)
+      );
+  
+      const matchesRole = selectedRole === 'all' || client.role?.toUpperCase() === selectedRole;
+  
       return matchesSearchTerm && matchesRole;
     });
-
+  
     setFilteredClients(filtered);
   }, [searchTerm, selectedRole, clients]);
-
+  
   const handleDelete = async (id: string) => {
     try {
       await deleteClientById(id);

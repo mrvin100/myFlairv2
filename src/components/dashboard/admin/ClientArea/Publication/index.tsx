@@ -275,8 +275,8 @@ export default function Publication() {
                                 <AlertDialogTrigger asChild>
                                 <Button 
                                     onClick={() => {
-                                        fetchPublicationData(publication.id); // Fetch the publication data
-                                        openServiceDialog(publication.id); // Open the service dialog
+                                        fetchPublicationData(publication.id); 
+                                        openServiceDialog(publication.id); 
                                     }} 
                                     variant={'secondary'}
                                 >
