@@ -160,9 +160,6 @@ const AddPost = () => {
   
       if (response.status === 201) {
         toast.success('Poste créé avec succès');
-        setTimeout(() => {
-          router.push('/');
-        }, 4800);
       } else {
         toast.error('Erreur lors de la création du poste');
         console.log('Erreur lors de la création du poste:', response.data);

@@ -59,7 +59,6 @@ export default function SuscribeTab() {
   const [editId, setEditId] = useState<string | null>(null);
   const [newFunction, setNewFunction] = useState<string>("");
 
-  // Mise à jour de l'état lors du changement des champs
   const handleAbonnementChange = (field: string, value: any) => {
     setCreateSuscribe((prev) => ({
       ...prev,
@@ -298,20 +297,24 @@ export default function SuscribeTab() {
             {abonnement.map((ab, index) => (
               <Card key={index}>
                 <CardHeader>
-                  <CardTitle>{ab.title}</CardTitle>
+                  <CardTitle className="text-center text-2xl">{ab.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p>Prix: {ab.price} €</p>
-                  <p>Essai gratuit: {ab.nbrEssaisGratuit} jours</p>
-                  <p>Période: {ab.period}</p>
-                  <p>Points forts :</p>
-                  <ul>
-                    {ab.functions.map((func: any, i: number) => (
-                      <li key={i}>
-                        - {typeof func === "object" ? func.name : func}
-                      </li>
-                    ))}
-                  </ul>
+                <CardContent className="text-center ">
+                  <b className="text-5xl">{ab.price}€</b>
+                  <br />
+                  <span>
+                    {ab.nbrEssaisGratuit}{" "}
+                    {ab.period === "day" ? (
+                      ab.nbrEssaisGratuit === 1 ? "Jour " : "Jours "
+                    ) : ab.period === "week" ? (
+                      ab.nbrEssaisGratuit === 1 ? "Semaine " : "Semaines "
+                    ) : ab.period === "month" ? (
+                      "Mois "
+                    ) : ab.period === "year" ? (
+                      ab.nbrEssaisGratuit === 1 ? "Année " : "Années "
+                    ) : null}
+                    de forfait offert</span>
+
                 </CardContent>
                 <CardFooter>
                   <Button
