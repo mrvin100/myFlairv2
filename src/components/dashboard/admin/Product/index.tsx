@@ -1,6 +1,7 @@
 "use client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SuscribeTab from './Suscribe';
+import OrdersTab from './Orders';
 
 
 const tabs = [
@@ -8,11 +9,11 @@ const tabs = [
     title:'Abonnements',
     value:'suscribe',
     component:<SuscribeTab/>
-},
+  },
 {
   title:'Commandes',
   value:'orders',
-  
+  component:<OrdersTab />
 }
 ];
 
