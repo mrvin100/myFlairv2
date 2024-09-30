@@ -8,7 +8,11 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, PlusCircle, Search, Trash } from "lucide-react";
+import {
+  Edit,
+  Search,
+  Trash,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,6 +21,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import OrderDetails from "./order-details";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function OrderList() {
   enum OrderStatus {
@@ -125,7 +137,7 @@ export default function OrderList() {
                 <TableCell>{order?.etat}</TableCell>
                 <TableCell>
                   <Button variant={"ghost"} size={"icon"}>
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-4 w-4 mr-2" />
                   </Button>
                   &nbsp;
                   <Button
@@ -133,15 +145,28 @@ export default function OrderList() {
                     size={"icon"}
                     onClick={() => handleDeleteSubsciption(order?.id)}
                   >
-                    <Trash className="h-4 w-4" />
+                    <Trash className="h-4 w-4 mr-2" />
                   </Button>
+                  <Dialog>
+                    <DialogTrigger>
+                      <Button variant={"outline"} className="rounded-full">
+                        voir
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent  className="max-w-2xl md:max-w-5xl w-full">
+                      <DialogTitle>Détails Commande {order.order_number}</DialogTitle>
+                      <ScrollArea className="max-h-[28rem] md:max-h-[36rem] rounded-md">
+                        <OrderDetails order={order} />
+                      </ScrollArea>
+                    </DialogContent>
+                  </Dialog>
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
               <TableCell className="text-center border" colSpan={8}>
-                Aucune commande client présent.
+                Aucune commande client présente.
               </TableCell>
             </TableRow>
           )}
