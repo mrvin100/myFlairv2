@@ -177,6 +177,7 @@ model Formation {
   updatedAt   DateTime? @updatedAt
   idStripe    String    @unique
   product     Product   @relation(fields: [idStripe], references: [stripeId])
+  
 }
 
 model Cart {
@@ -195,6 +196,8 @@ model Product {
   prodType          ProductType
   post              Post?
   additionalService AdditionalService?
+  formationDates    Json?              
+  boosterDates      Json?
   formation         Formation[]
   businessBooster   BusinessBooster?
   cartItems         CartItem[]
@@ -362,14 +365,14 @@ model CartItem {
 model Order {
   id                 String              @id @default(cuid())
   user               User                @relation(fields: [userId], references: [id])
-  userId             String              @unique
+  userId             String              
   reservations       Reservation[]     
   boosters           BusinessBooster[]   
   additionalServices AdditionalService[] 
   cartItems          CartItem[]          
   createdAt          DateTime            @default(now())
   updatedAt          DateTime?           @updatedAt
-  sessionId         String               @unique
+  sessionId         String               @unique             
 }
 
 

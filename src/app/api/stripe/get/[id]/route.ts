@@ -11,7 +11,21 @@ export async function GET(req: NextRequest) {
   try {
     const order = await prisma.order.findUnique({
       where: { sessionId: session_id },
-      include: { cartItems: true },
+      include: { cartItems: {
+        include: {
+          product: {
+            include: {
+              formation: true,
+              businessBooster: true,
+              additionalService: true,
+            },
+          },
+        },
+      },
+      reservations: true,
+      boosters: true,
+      additionalServices: true, 
+      },
     });
 
     if (!order) {

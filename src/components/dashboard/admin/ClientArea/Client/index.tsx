@@ -148,7 +148,6 @@ const AddClient = () => {
       }
     }
   };
-
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
@@ -157,14 +156,18 @@ const AddClient = () => {
           'Content-Type': 'application/json',
         },
       });
+      console.log(response)
       if (response.status === 200) {
         toast.success('Nouveau client ajouté avec succès');
+      }
+    } catch (error: any) {
+    
+      if (error.response?.data?.error?.code === 'P2002') {
+        const fields = error.response.data.error.meta?.target || ['username or email'];
+        toast.error(`Le champ ${fields.join(', ')} existe déjà.`);
       } else {
         toast.error("Erreur lors de l'ajout du client");
-        console.log('Error adding client:', response.data);
       }
-    } catch (error) {
-      toast.error("Erreur lors de l'ajout du client");
       console.error('Error:', error);
     } finally {
       setIsLoading(false);
@@ -186,7 +189,16 @@ const AddClient = () => {
       console.error('Error uploading image:', error);
     }
   };
-
+  const handleAddressChange = (field: keyof NewClient['address'], value: string) => {
+    setNewClient((prevNewClient) => ({
+      ...prevNewClient,
+      address: {
+        ...prevNewClient.address,
+        [field]: value,
+      },
+    }));
+  };
+  
   return (
     <div>
       <ToastContainer />
@@ -245,51 +257,28 @@ const AddClient = () => {
                       <br />
                       <Input
                         type="text"
-                        onChange={(e) =>
-                          handleClientChange('address', {
-                            field: 'street',
-                            value: e.target.value,
-                          })
-                        }
+                        onChange={(e) => handleAddressChange('street', e.target.value)}
                         value={newClient.address.street}
                         placeholder="Rue"
                         required
                       />
-                      <br />
                       <Input
                         type="text"
-                        onChange={(e) =>
-                          handleClientChange('address', {
-                            field: 'city',
-                            value: e.target.value,
-                          })
-                        }
+                        onChange={(e) => handleAddressChange('city', e.target.value)}
                         value={newClient.address.city}
                         placeholder="Ville"
                         required
                       />
-                      <br />
                       <Input
                         type="text"
-                        onChange={(e) =>
-                          handleClientChange('address', {
-                            field: 'postalCode',
-                            value: e.target.value,
-                          })
-                        }
+                        onChange={(e) => handleAddressChange('postalCode', e.target.value)}
                         value={newClient.address.postalCode}
                         placeholder="Code postal"
                         required
                       />
-                      <br />
                       <Input
                         type="text"
-                        onChange={(e) =>
-                          handleClientChange('address', {
-                            field: 'country',
-                            value: e.target.value,
-                          })
-                        }
+                        onChange={(e) => handleAddressChange('country', e.target.value)}
                         value={newClient.address.country}
                         placeholder="Pays"
                         required

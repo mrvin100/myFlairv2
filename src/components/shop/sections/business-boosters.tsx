@@ -11,8 +11,7 @@ interface BusinessBooster {
   description: string;
   price: number;
   alt?: string;
-  dates?: { date: string; available: number }[]; // Include dates if necessary
-}
+  dates?: { date: string; available: number }[]; }
 
 export default function BusinessBoosters() {
   const [businessBoostersOnline, setBusinessBoostersOnline] = useState<BusinessBooster[]>([]);

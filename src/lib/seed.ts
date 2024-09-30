@@ -77,19 +77,20 @@ async function createUser() {
 
 
       role: UserRole.PROFESSIONAL,
-      username: 'demo-pro',
+      username: 'demo-pro2',
       firstName: 'demo',
       lastName: 'pro',
       address: {
         city:
           "Compiègne",
         country: "France",
-        street: "29 rue des Albertans"
+        street: "29 rue des Albertans",
+        postalCode: "60200"
       },
-      enterprise: '',
+      enterprise: 'Coupe Tif',
       homeServiceOnly: false,
-      email: 'demo-pro@myflair.fr',
-      password: hash('demo-pro'),
+      email: 'demo-pro2@myflair.fr',
+      password: hash('demo-pro2'),
       phone: '+33123456789',
       website: '',
       preferences: {
