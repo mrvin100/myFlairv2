@@ -96,15 +96,7 @@ export default function AdditionalServices() {
           title: service.title,
           price: service.price,
           idStripe: service.idStripe,
-        }),
-      });
-      const response2 = await fetch(`/api/cart/get/${user?.id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user?.id,
+          orderId: null,
         }),
       });
 

@@ -102,6 +102,7 @@ export default function Cart() {
     try {
       const checkoutSession = await axios.post("/api/stripe", {
         item: items,
+        userId: user?.id
       });
       const result = await stripe.redirectToCheckout({
         sessionId: checkoutSession.data.id,

@@ -188,18 +188,7 @@ model Cart {
   items     CartItem[]
 }
 
-model CartItem {
-  id        String    @id @default(uuid())
-  cart      Cart      @relation(fields: [cartId], references: [id])
-  cartId    String
-  product   Product   @relation(fields: [productId], references: [stripeId])
-  productId String
-  quantity  Int       @default(1)
-  title     String
-  price     Float
-  createdAt DateTime  @default(now())
-  updatedAt DateTime?
-}
+
 
 model Product {
   stripeId          String             @id @unique
@@ -308,16 +297,6 @@ model Transaction {
   createdAt          DateTime @default(now())
 }
 
-model Order {
-  id                 String              @id @default(cuid())
-  user               User                @relation(fields: [userId], references: [id])
-  userId             String              @unique
-  reservations       Reservation[]
-  boosters           BusinessBooster[]
-  additionalServices AdditionalService[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime?           @updatedAt
-}
 
 model Subscription {
   id          String           @id @default(cuid())
@@ -364,3 +343,33 @@ model Abonnement {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+model CartItem {
+  id        String    @id @default(uuid())
+  cart      Cart      @relation(fields: [cartId], references: [id])
+  cartId    String
+  product   Product   @relation(fields: [productId], references: [stripeId])
+  productId String
+  quantity  Int       @default(1)
+  title     String
+  price     Float
+  order     Order?    @relation(fields: [orderId], references: [id]) 
+  orderId   String? 
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+}
+
+
+model Order {
+  id                 String              @id @default(cuid())
+  user               User                @relation(fields: [userId], references: [id])
+  userId             String              @unique
+  reservations       Reservation[]     
+  boosters           BusinessBooster[]   
+  additionalServices AdditionalService[] 
+  cartItems          CartItem[]          
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+  sessionId         String               @unique
+}
+
+
