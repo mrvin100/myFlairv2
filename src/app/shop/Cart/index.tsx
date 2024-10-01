@@ -4,6 +4,7 @@ import { useCart } from "@/contexts/cart-global";
 import { useUserContext } from "@/contexts/user";
 import { CURRENCY } from "@/lib/constant";
 import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -15,7 +16,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const CartGlobal = () => {
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-primary/10", className)}
+      {...props}
+    />
+  );
+}
+
+export { Skeleton };
+
+const CartGlobal = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
   const { user } = useUserContext();
   const {
     reservationsWithPosts,
@@ -34,7 +52,7 @@ const CartGlobal = () => {
   if (!user) return null;
 
   return (
-    <div className="container mx-auto px-4 py-6 w-[580px]">
+    <div className={cn("", className)} {...props}>
       <h2 className="text-2xl font-bold mb-4">Votre panier</h2>
       <Table>
         <TableCaption>Liste de vos réservations et boosters</TableCaption>
@@ -56,7 +74,9 @@ const CartGlobal = () => {
               </TableCell>
               <TableCell className="text-right">
                 <button
-                  onClick={() => handleDeleteReservation(reservationWithPost.reservation.id)}
+                  onClick={() =>
+                    handleDeleteReservation(reservationWithPost.reservation.id)
+                  }
                   className="text-red-500 hover:text-red-700"
                 >
                   <Trash2 size={20} />
@@ -98,7 +118,6 @@ const CartGlobal = () => {
               </TableCell>
             </TableRow>
           ))}
-          
         </TableBody>
         <TableFooter>
           <TableRow>

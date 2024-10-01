@@ -1,10 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getBusinessBoosterById } from "@/data/business-booster";
 import Cart from "@/components/shop/steps/reservation/cart";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import Home from "@/components/shop/steps/reservation/Calendar/";
 import { WorkplaceProvider } from "@/contexts/WorkplaceContext";
 import { Post, ReservationStatus } from "@prisma/client";
@@ -79,7 +77,6 @@ const ReservationStep = ({ params }: Props) => {
   else
     return (
       <WorkplaceProvider>
-        {/* <DateProvider> */}
         <main className="flex flex-col items-center justify-center p-4">
           <img src="/logos/Rectangle_21.svg" alt="" />
           <h1 className="font-bold text-2xl flex items-center mb-4">
