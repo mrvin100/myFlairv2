@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { CircleDot } from "lucide-react";
 import Image from "next/image";
-
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 type ReservationType = {
   id: string;
@@ -39,6 +40,9 @@ type ReservationProps = {
   phone: string;
   image: string;
   dureeRDV: string;
+  firstName: string;
+  lastName:string;
+  createdAt:string;
 
 };
 
@@ -56,8 +60,10 @@ export default function Reservation({
   email,
   dureeRDV,
   phone,
+  firstName,
+  lastName,
+  createdAt
 }: ReservationProps) {
-
 
  
   const displayAddress = address && address.trim() !== "" ? address : "Sur le lieu de travail";
@@ -82,10 +88,10 @@ export default function Reservation({
           alt="client profile"
           className="rounded-full object-cover h-24 w-24"
         />
-        <h3>Miss Kitty</h3>
+        <h3>{firstName} {lastName}</h3>
         <ul className="my-2">
           <li>
-            <span className="text-sm text-gray-500">Membre depuis 2024</span>
+            <span className="text-sm text-gray-500">Membre depuis dateCreation</span>
           </li>
           <li className="underline text-sm">{email}</li>
           <li className="underline text-sm">{phone}</li>

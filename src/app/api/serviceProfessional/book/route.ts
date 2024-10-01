@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
       const currentDate = new Date();
       const reservationDate = new Date(dateOfRdv);
-      let status = "en-cours"; // Statut par défaut
+      let status = "en-cours"; 
       if (reservationDate < currentDate) {
         status = "termine";
       } else if (status === "annule") {
