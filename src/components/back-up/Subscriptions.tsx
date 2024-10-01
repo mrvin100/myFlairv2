@@ -4,6 +4,7 @@ import { $Enums } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { loadStripe } from "@stripe/stripe-js"
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import clsx from "clsx";
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface SubscriptionArgument {
   title: string;
@@ -58,6 +60,27 @@ export default function Subscriptions() {
 
     fetchSubscriptions();
   }, []);
+
+
+const handleCheckout = async (subscriptionId: number) => {
+  try {
+    const response = await fetch('/api/stripeAbonnement', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ subscriptionId }),
+    });
+
+    const session = await response.json();
+
+    const stripe = await stripePromise;
+    await stripe?.redirectToCheckout({ sessionId: session.id });
+  } catch (err) {
+    console.error('Error redirecting to checkout:', err);
+  }
+};
+
 
   return (
     <section className="px-6 py-8 text-center lg:px-24">
@@ -129,7 +152,7 @@ export default function Subscriptions() {
                     href={`/back-up/subscriptions/payment?type=${subscription.period.toLowerCase()}`}
                     aria-label={`Try the ${subscription.title} subscription for free`}
                   >
-                    <Button className="w-full" role="link" size="lg">
+                    <Button onClick={() => handleCheckout(subscription.id)} className="w-full" role="link" size="lg">
                       J'essaye Gratuitement
                     </Button>
                   </Link>

@@ -44,7 +44,7 @@ const SuccessPage = () => {
         console.log("Order details fetched successfully:", response.data);
         setOrderDetails(response.data);
 
-        // Envoyer une requête pour mettre à jour les quantités après avoir récupéré les détails
+        
         await updateProductQuantities(response.data.cartItems);
       } catch (error) {
         console.error("Erreur lors de la récupération des détails de la commande", error);
