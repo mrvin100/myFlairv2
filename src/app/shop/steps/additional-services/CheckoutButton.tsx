@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useCart } from "@/contexts/cart-global";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
@@ -13,6 +14,7 @@ const stripePromise = loadStripe(
 
 export default function CheckoutButton() {
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter()
   const {
     reservationsWithPosts,
     selectedBoosters,
@@ -88,6 +90,7 @@ export default function CheckoutButton() {
       console.error("Error creating checkout session:", error);
     } finally {
       setLoading(false);
+      router.push('/shop/steps/payment')
     }
   };
 
