@@ -12,8 +12,6 @@ import { getAllReservationsForUser, getPostById } from "@/lib/queries";
 import { getAllBusinessBoosters } from "@/data/business-booster";
 import { Calendar } from "@/components/calendar";
 import { useCart } from "@/contexts/cart-global";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Copy } from "lucide-react";
 
 import {
   Dialog,
@@ -191,19 +189,12 @@ export default function BusinessBoostersPage() {
             </div>
           ))
         ) : (
-          <div>Aucun élement ajouté au panier</div>
+          <div>Aucun business booster à ajouter au panier</div>
         )}
       </div>
     </main>
   );
 }
-// Business booster 2 h pour changer de vie
-// 100 €
-// Vous vous sentez perdue face à la multitude de formations esthétique existantes ?
-// Notre session de coaching intensif est conçue pour vous orienter vers la formation en esthétique la plus adaptée à vos ambitions.
-// En deux heures, nous explorerons ensemble vos passions, vos compétences et déterminerons la voie qui vous correspond le mieux
-// CHOISIR UNE DATE
-// Ajouter au panier
 
 type DialogCalendarProps = {
   selectedDates: { [boosterId: string]: Date | undefined };
