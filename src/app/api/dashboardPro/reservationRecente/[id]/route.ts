@@ -17,7 +17,11 @@ export async function GET(req: NextRequest, res: NextResponse) {
       where: { userId },
       include: {
         service: true,
-        client: true, 
+        client: {
+          include: {
+            clientUser:true
+          }
+        }
       },
       orderBy: {
         dateOfRdv: 'desc',

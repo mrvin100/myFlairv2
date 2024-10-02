@@ -1,20 +1,20 @@
-// src/components/dashboard/admin/Shop/BusinessBoosters/index.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as z from "zod";
 import ReactQuill from "react-quill";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { addDays } from "date-fns";
+import { addDays, format, eachDayOfInterval } from "date-fns";
 import { useRouter } from "next/navigation";
 import { fr } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 
 import { businessBoosterSchema } from "@/schemas";
 import { useToast } from "@/components/ui/use-toast";
-import { error, success, toastAction } from "@/components/toast";
-import { ImageUploader } from "@/components/image-uploader";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/calendar";
+import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
+import DisplayBusinessBoosters from "@/components/dashboard/admin/Shop/BusinessBoosters/displayData";
+import { BusinessBooster } from "@/components/dashboard/admin/Shop/BusinessBoosters/types";
 import {
   Dialog,
   DialogContent,
@@ -27,32 +27,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Form, FormItem, FormControl, FormField } from "@/components/ui/form";
 import { Popover } from "@/components/ui/popover";
-import { TabsContent } from "@/components/ui/tabs";
-import { DateRange } from "react-day-picker";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrashIcon } from "@radix-ui/react-icons";
-import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
-import DisplayBusinessBoosters from "@/components/dashboard/admin/Shop/BusinessBoosters/displayData";
-import { BusinessBooster } from "@/components/dashboard/admin/Shop/BusinessBoosters/types";
-
-import { format, eachDayOfInterval } from "date-fns";
-
 import "react-quill/dist/quill.snow.css";
+import { TabsContent } from "@/components/ui/tabs";
 
 type BusinessBoosterFormValues = z.infer<typeof businessBoosterSchema>;
 
 export default function BusinessBoostersTab() {
   const router = useRouter();
   const { toast } = useToast();
-
-  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>(
-    []
-  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [businessBoosters, setBusinessBoosters] = useState<BusinessBooster[]>([]);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: new Date(),
     to: addDays(new Date(), 30),
   });
-  
   const [dates, setDates] = useState<any[]>([]);
 
   const form = useForm<BusinessBoosterFormValues>({
@@ -68,24 +59,64 @@ export default function BusinessBoostersTab() {
     },
   });
 
+  const handleDelete = () => {
+    setImages([]);
+    form.setValue("image", "");
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error("Les variables d'environnement Cloudinary ne sont pas correctement configurées.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Erreur lors du téléchargement de l'image :", error);
+      throw error;
+    }
+  };
+
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      try {
+        const imageUrl = await uploadImage(files[0]);
+        setImages([files[0]]);
+        form.setValue("image", imageUrl);
+      } catch (error) {
+        console.error("Erreur lors du téléchargement de l'image :", error);
+      }
+    }
+  };
+
   function generateDatesWithAvailability(from: Date, to: Date, quantity: number) {
     const days = eachDayOfInterval({ start: from, end: to });
-
     return days.map((day) => ({
-      date: format(day, 'yyyy-MM-dd'),
+      date: format(day, "yyyy-MM-dd"),
       available: quantity,
     }));
   }
 
   const onSubmit: SubmitHandler<BusinessBoosterFormValues> = async (data) => {
-
     if (dateRange) {
       const generatedDates = generateDatesWithAvailability(
         dateRange.from!,
         dateRange.to!,
         data.quantity
       );
-      data.dates = generatedDates; 
+      data.dates = generatedDates;
     }
 
     try {
@@ -104,7 +135,7 @@ export default function BusinessBoostersTab() {
       }
 
       const result: BusinessBooster = await response.json();
-      setBusinessBoosters((prev) => [...prev, result]); // Mise à jour de l'état local avec le nouveau business booster
+      setBusinessBoosters((prev) => [...prev, result]);
       toast({
         title: "Succès",
         description: "Business booster créé avec succès",
@@ -129,7 +160,6 @@ export default function BusinessBoostersTab() {
         return response.json();
       })
       .then((data: BusinessBooster[]) => {
-        console.log("Business Boosters fetched:", data);
         setBusinessBoosters(data);
       })
       .catch((error) =>
@@ -153,17 +183,13 @@ export default function BusinessBoostersTab() {
               <ScrollArea>
                 <Form {...form}>
                   <form
-                    onSubmit={(e) => {
-                      console.log("Form submitted");
-                      form.handleSubmit(onSubmit)(e);
-                    }}
+                    onSubmit={form.handleSubmit(onSubmit)}
                     style={{ marginLeft: "1%", marginRight: "1%" }}
                   >
                     <DialogHeader>
                       <DialogTitle>Business booster</DialogTitle>
                       <DialogDescription>
                         Ajoutez un business booster.
-                        <br />
                         <br />
                         <div className="space-y-4">
                           <label>Titre</label>
@@ -173,11 +199,7 @@ export default function BusinessBoostersTab() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
-                                  <Input
-                                    {...field}
-                                    className=""
-                                    placeholder="Titre"
-                                  />
+                                  <Input {...field} className="" placeholder="Titre" />
                                 </FormControl>
                               </FormItem>
                             )}
@@ -191,9 +213,7 @@ export default function BusinessBoostersTab() {
                               <FormItem>
                                 <FormControl>
                                   <Input
-                                    {...form.register("quantity", {
-                                      valueAsNumber: true,
-                                    })}
+                                    {...form.register("quantity", { valueAsNumber: true })}
                                     className=""
                                     placeholder="Quantité"
                                     type="number"
@@ -211,9 +231,7 @@ export default function BusinessBoostersTab() {
                               <FormItem>
                                 <FormControl>
                                   <Input
-                                    {...form.register("price", {
-                                      valueAsNumber: true,
-                                    })}
+                                    {...form.register("price", { valueAsNumber: true })}
                                     className=""
                                     placeholder="Prix"
                                     type="number"
@@ -232,19 +250,12 @@ export default function BusinessBoostersTab() {
                               />
                             </div>
                           </Popover>
-
                           {dates.length > 0 && <p>Dates ajoutées:</p>}
                           {dates.map((date, index) => (
-                            <div
-                              className="flex items-center gap-2"
-                              key={index}
-                            >
+                            <div className="flex items-center gap-2" key={index}>
                               {date.to ? (
                                 <>
-                                  {format(date.from!, "dd LLL y", {
-                                    locale: fr,
-                                  })}{" "}
-                                  -{" "}
+                                  {format(date.from!, "dd LLL y", { locale: fr })} -{" "}
                                   {format(date.to!, "dd LLL y", { locale: fr })}
                                 </>
                               ) : (
@@ -254,9 +265,7 @@ export default function BusinessBoostersTab() {
                                 size="icon"
                                 variant="destructive"
                                 onClick={() => {
-                                  const newDates = dates.filter(
-                                    (_, i) => i !== index
-                                  );
+                                  const newDates = dates.filter((_, i) => i !== index);
                                   setDates(newDates);
                                   form.setValue("dates", newDates);
                                 }}
@@ -266,54 +275,55 @@ export default function BusinessBoostersTab() {
                               <br />
                             </div>
                           ))}
+                    <label htmlFor="image">Image de la formation</label>
+                        <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-dashed border-2 p-6 flex justify-center cursor-pointer"
+                        >
+                        <span className="text-sm">Cliquez pour ajouter une image</span>
+                        </div>
 
-                          <Button
-                            className="flex justify-start"
-                            onClick={() => {
-                              if (dateRange) {
-                                const newDates = [...dates, dateRange];
-                                setDates(newDates);
-                                form.setValue("dates", newDates);
-                              }
-                            }}
-                            type="button"
-                          >
-                            Ajouter la date
-                          </Button>
-                          <br />
-                          <label htmlFor="">Description</label>
-                          <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <ReactQuill
-                                    {...field}
-                                    placeholder="Description"
-                                    theme="snow"
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
+                        {/* Display the uploaded image below the drag-and-drop box */}
+                        {images.length > 0 && (
+                        <div className="relative w-40 h-40 mt-4"> {/* Set relative container for positioning */}
+                            <img
+                            src={URL.createObjectURL(images[0])}
+                            alt="Uploaded"
+                            className="w-full h-full object-cover rounded-lg" // Ensure the image is fully covered and rounded
+                            />
+                            {/* Trash button positioned inside the image */}
+                            <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={handleDelete}
+                            className="absolute top-0 right-0 m-1 bg-red-600 rounded-full p-1" // Positioned inside the image
+                            >
+                            <TrashIcon className="w-4 h-4 text-white" />
+                            </Button>
+                        </div>
+                        )}
+
+                        {/* Hidden file input */}
+                        <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileInputChange}
+                        className="hidden"
+                        />
+
                         </div>
                       </DialogDescription>
-                      <br />
                     </DialogHeader>
-
-                    <Button type="submit">Ajouter</Button>
+                    <DialogFooter>
+                      <Button type="submit">Enregistrer</Button>
+                    </DialogFooter>
                   </form>
                 </Form>
-                <ScrollBar orientation="vertical" />
               </ScrollArea>
             </DialogContent>
           </Dialog>
         </div>
-        <DisplayBusinessBoosters
-          businessBoosters={businessBoosters}
-          setBusinessBoosters={setBusinessBoosters}
-        />
+        <DisplayBusinessBoosters businessBoosters={businessBoosters} />
       </div>
     </TabsContent>
   );

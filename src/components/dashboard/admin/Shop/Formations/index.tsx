@@ -112,7 +112,7 @@ const AddFormation = () => {
     setIsLoading(true);
 
     try {
-      // Générer toutes les dates entre 'from' et 'to'
+  
       const generatedDates = dateRange.from && dateRange.to
         ? eachDayOfInterval({ start: dateRange.from, end: dateRange.to })
         : [];

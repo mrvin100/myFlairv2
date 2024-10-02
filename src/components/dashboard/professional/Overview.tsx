@@ -25,12 +25,21 @@ type ReservationType = {
     image?: string;
     firstName?: string;
     lastName?: string;
+    clientUser: {
+      firstName:string;
+      lastName:string;
+      image:string;
+      phone:string;
+      email:string;
+
+    }
   };
 };
 
 export default function OverviewTab() {
   const { user } = useUserContext();
   const [reservations, setReservations] = useState<ReservationType[]>([]);
+  console.log(reservations,"g")
 
   useEffect(() => {
     async function fetchReservations() {
@@ -116,21 +125,20 @@ export default function OverviewTab() {
                 note={reservation.note}
                 service={reservation.service.title}
                 price={reservation.service.price}
-                email={reservation.client?.email || 'N/A'}
-                phone={reservation.client?.phone || 'N/A'}
-                image={reservation.client?.image || '/default-image.png'}
-                firstName={reservation.client?.firstName || 'Inconnu'}
-                lastName={reservation.client?.lastName || 'Inconnu'}
+                email={reservation.client?.clientUser.email || 'N/A'}
+                phone={reservation.client?.clientUser.phone || 'N/A'}
+                image={reservation.client?.clientUser.image || '/default-image.png'}
+                firstName={reservation.client?.clientUser.firstName || 'Inconnu'}
+                lastName={reservation.client?.clientUser?.lastName || 'Inconnu'}
                 dureeRDV={reservation.service.dureeRDV}
+
               />
             ))
           ) : (
             <p>Aucune réservation récente</p>
           )}
 
-          <div className="my-6 p-4 text-center">
-            <Button>Voir toutes les réservations</Button>
-          </div>
+          
         </section>
       </div>
     </TabsContent>
