@@ -96,21 +96,8 @@ export default function BusinessBoostersPage() {
   }
 
   return (
-    <main className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:min-h-screen">
-      <div className="min-w-[26rem] w-full bg-white shadow-lg p-4 order-last xl:order-first">
-        <CartGlobal className="mx-auto xl:h-[calc(100%-4rem)]" />
-        <div className="flex items-center justify-end mt-4">
-          <Link href={"/shop/steps/reservation"}>
-            <Button className="mr-4" variant="secondary">
-              Annuler
-            </Button>
-          </Link>
-          <Link href={"/shop/steps/additional-services"}>
-            <Button>Continuer</Button>
-          </Link>
-        </div>
-      </div>
-      <div className="w-full grid grid-cols-1 gap-8 px-6 py-16 lg:px-24 md:col-span-2 space-y-6">
+    <main className="p-4 pb-12 max-w-5xl mx-auto space-y-6">
+      <div className="w-full grid grid-cols-1 gap-8 px-6 py-16 lg:px-24 space-y-6">
         {businessBoosters && businessBoosters.length > 0 ? (
           businessBoosters.map((businessBooster) => (
             <div
@@ -124,23 +111,25 @@ export default function BusinessBoostersPage() {
                 width={300}
                 height={300}
               />
-              <div className=" bg-gray-100 p-4 grid items-center">
-                <h4 className="text-[20px] font-bold">
-                  {businessBooster.title}
-                </h4>
-                <h3 className="text-[24px]">
-                  {Intl.NumberFormat("fr-FR", {
-                    style: "currency",
-                    currency: "EUR",
-                  }).format(businessBooster.price)}
-                </h3>
-                <p
-                  dangerouslySetInnerHTML={{
-                    __html: businessBooster.description,
-                  }}
-                ></p>
+              <div className=" bg-gray-100 p-4 grid items-stretch gap-3">
+                <div>
+                  <h4 className="text-[20px] font-bold">
+                    {businessBooster.title}
+                  </h4>
+                  <h3 className="text-[24px]">
+                    {Intl.NumberFormat("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(businessBooster.price)}
+                  </h3>
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: businessBooster.description,
+                    }}
+                  ></p>
+                </div>
 
-                <div className="flex justify-between items-center gap-4">
+                <div className="flex justify-between items-end gap-4">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -191,6 +180,19 @@ export default function BusinessBoostersPage() {
         ) : (
           <div>Aucun business booster à ajouter au panier</div>
         )}
+      </div>
+      <div>
+        <CartGlobal className="mx-auto xl:h-[calc(100%-4rem)]" />
+        <div className="flex items-center justify-end mt-4">
+          <Link href={"/shop/steps/reservation"}>
+            <Button className="mr-4" variant="secondary">
+              Annuler
+            </Button>
+          </Link>
+          <Link href={"/shop/steps/additional-services"}>
+            <Button>Continuer</Button>
+          </Link>
+        </div>
       </div>
     </main>
   );

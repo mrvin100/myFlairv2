@@ -12,7 +12,7 @@ export default async function AdditionalServices() {
 
   return (
     <main className="min-h-screen w-full">
-      <div className="p-4 max-w-5xl mx-auto space-y-6">
+      <div className="p-4 pb-12 max-w-5xl mx-auto space-y-6">
         <div className="flex justify-center items-center">
           <img style={{ width: "70%" }} src="/logos/Rectangle_21.svg" alt="" />
         </div>
