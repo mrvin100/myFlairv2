@@ -1,8 +1,9 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { HeaderSection } from "@/components/shop/layout";
+import { Loader } from "lucide-react";
 
 interface BusinessBooster {
   id: string;
@@ -11,10 +12,13 @@ interface BusinessBooster {
   description: string;
   price: number;
   alt?: string;
-  dates?: { date: string; available: number }[]; }
+  dates?: { date: string; available: number }[];
+}
 
 export default function BusinessBoosters() {
-  const [businessBoostersOnline, setBusinessBoostersOnline] = useState<BusinessBooster[]>([]);
+  const [businessBoostersOnline, setBusinessBoostersOnline] = useState<
+    BusinessBooster[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +32,7 @@ export default function BusinessBoosters() {
         return response.json();
       })
       .then((data) => {
-        console.log('Données reçues :', data); 
+        console.log("Données reçues :", data);
         setBusinessBoostersOnline(data);
         setLoading(false);
       })
@@ -37,19 +41,26 @@ export default function BusinessBoosters() {
         setLoading(false);
       });
   }, []);
-  
+
   return (
     <main>
       <HeaderSection title="Business Boosters" />
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(24rem,28rem))] gap-8 justify-center px-4 py-16 mx-auto w-full">
         {loading ? (
-          <p className="text-center">Chargement des business boosters...</p>
+          <div className="flex items-center justify-center h-[50vh]">
+            <Loader className="animate-spin h-5 w-5 text-gray-900" />
+          </div>
         ) : businessBoostersOnline.length === 0 ? (
           <div className="flex justify-center items-center w-full">
             <div className="bg-black text-white border border-gray-300 p-8 rounded-lg shadow-md max-w-md text-center">
-              <h3 className="text-[1.5rem] font-bold mb-4">Aucun business booster</h3>
-              <p className="text-[1rem]">Il n'y a pas de business boosters disponibles pour le moment. Revenez plus tard !</p>
+              <h3 className="text-[1.5rem] font-bold mb-4">
+                Aucun business booster
+              </h3>
+              <p className="text-[1rem]">
+                Il n'y a pas de business boosters disponibles pour le moment.
+                Revenez plus tard !
+              </p>
             </div>
           </div>
         ) : (
@@ -57,7 +68,7 @@ export default function BusinessBoosters() {
             <div className="w-full" key={businessBooster.id}>
               <Image
                 className="w-full max-w-md max-h-[15rem] h-full object-cover"
-                src={businessBooster.image || "/default-image.webp"}
+                src={businessBooster.image || "/nail-salon.webp"}
                 alt={businessBooster.alt || "image alt"}
                 width={1000}
                 height={1000}
