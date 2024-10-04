@@ -1,11 +1,12 @@
-"use client"
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Bell, CircleMinus, Plus } from "lucide-react";
 import { TabsContent } from "@/components/ui/tabs";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import axios from "axios";
 import { useUserContext } from "@/contexts/user";
@@ -24,6 +25,7 @@ const initialAvailabilities = {
   Samedi: [],
   Dimanche: [],
 };
+
 const initialAvailabilitiesPeriods = [
   {
     from: "16 janvier 2024",
@@ -47,9 +49,29 @@ const formatTime = (input: string) => {
 export default function AvailabilitiesTab() {
   const [selectedDay, setSelectedDay] = useState("Tous les jours");
   const [availabilities, setAvailabilities] = useState(initialAvailabilities);
-  const [availabilitiesPeriods, setAvailabilitiesPeriods] = useState(
-    initialAvailabilitiesPeriods
-  );
+  const [availabilitiesPeriods, setAvailabilitiesPeriods] = useState(initialAvailabilitiesPeriods);
+  const { user } = useUserContext();
+
+  useEffect(() => {
+    const fetchAvailabilityData = async () => {
+      try {
+        const response = await axios.get(`/api/availability/get/${user?.id}`);
+        const { availabilities, availabilitiesPeriods } = response.data || {};
+        if (availabilities) {
+          setAvailabilities(availabilities);
+        }
+        if (availabilitiesPeriods) {
+          setAvailabilitiesPeriods(availabilitiesPeriods);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des disponibilités", error);
+      }
+    };
+
+    if (user?.id) {
+      fetchAvailabilityData();
+    }
+  }, [user]);
 
   const daysOfWeek = [
     "Lundi",
@@ -60,7 +82,7 @@ export default function AvailabilitiesTab() {
     "Samedi",
     "Dimanche",
   ];
-  const { user } = useUserContext();
+
   const addAvailability = () => {
     const newAvailability = { from: "", to: "" };
     setAvailabilities({
@@ -106,6 +128,19 @@ export default function AvailabilitiesTab() {
     setAvailabilities({
       ...availabilities,
       [selectedDay]: updatedAvailabilities,
+    });
+  };
+
+  const markDayAsUnavailable = () => {
+    const updatedAvailability = { from: "indisponible", to: "indisponible" };
+    const allDays = selectedDay === "Tous les jours" ? daysOfWeek : [selectedDay];
+
+    allDays.forEach(day => {
+      // Supprime toutes les plages horaires de la journée et marque comme indisponible
+      setAvailabilities(prev => ({
+        ...prev,
+        [day]: [updatedAvailability],
+      }));
     });
   };
 
@@ -174,35 +209,41 @@ export default function AvailabilitiesTab() {
                   key={index}
                   className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end"
                 >
-                  <div>
-                    <Label htmlFor={`from-${index}`}>De</Label>
-                    <Input
-                      id={`from-${index}`}
-                      value={time.from}
-                      onChange={(e) =>
-                        handleInputChange(index, "from", e.target.value)
-                      }
-                      maxLength={5}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`to-${index}`}>à</Label>
-                    <Input
-                      id={`to-${index}`}
-                      value={time.to}
-                      onChange={(e) =>
-                        handleInputChange(index, "to", e.target.value)
-                      }
-                      maxLength={5}
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="p-2 h-10 w-10"
-                    onClick={() => removeAvailability(index)}
-                  >
-                    <CircleMinus className="h-4 w-4 text-red-500" />
-                  </Button>
+                  {time.from === "indisponible" ? (
+                    <div className="text-red-500 font-bold">Journée indisponible</div>
+                  ) : (
+                    <>
+                      <div>
+                        <Label htmlFor={`from-${index}`}>De</Label>
+                        <Input
+                          id={`from-${index}`}
+                          value={time.from}
+                          onChange={(e) =>
+                            handleInputChange(index, "from", e.target.value)
+                          }
+                          maxLength={5}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`to-${index}`}>à</Label>
+                        <Input
+                          id={`to-${index}`}
+                          value={time.to}
+                          onChange={(e) =>
+                            handleInputChange(index, "to", e.target.value)
+                          }
+                          maxLength={5}
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="p-2 h-10 w-10"
+                        onClick={() => removeAvailability(index)}
+                      >
+                        <CircleMinus className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               ))
             ) : (
@@ -217,89 +258,83 @@ export default function AvailabilitiesTab() {
               </div>
             )}
           </div>
-          <Button variant="link" className="mt-4" onClick={addAvailability}>
-            <Plus className="mr-2 h-4 w-4" /> Ajouter une autre horaire
-          </Button>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-normal">Vacance et jours férié</h2>
-          <Separator className="my-4" />
-          <h3 className="text-lg font-normal mb-4">
-            Configurer les dates d'indisponibilité
-          </h3>
-          <div className="space-y-4">
-            {availabilitiesPeriods.map((period, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end"
-              >
-                <div>
-                  <Label htmlFor={`date-from-${index}`}>Du</Label>
-                  <Input
-                    id={`date-from-${index}`}
-                    value={period.from}
-                    onChange={(e) =>
-                      handleInputChangePeriod(index, "from", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`date-to-${index}`}>au</Label>
-                  <Input
-                    id={`date-to-${index}`}
-                    value={period.to}
-                    onChange={(e) =>
-                      handleInputChangePeriod(index, "to", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`time-from-${index}`}>De</Label>
-                  <Input
-                    id={`time-from-${index}`}
-                    value={period.timeFrom}
-                    onChange={(e) =>
-                      handleInputChangePeriod(index, "timeFrom", e.target.value)
-                    }
-                    maxLength={5}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`time-to-${index}`}>à</Label>
-                  <Input
-                    id={`time-to-${index}`}
-                    value={period.timeTo}
-                    onChange={(e) =>
-                      handleInputChangePeriod(index, "timeTo", e.target.value)
-                    }
-                    maxLength={5}
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  className="p-2 h-10 w-10"
-                  onClick={() => removeAvailabilityPeriod(index)}
-                >
-                  <CircleMinus className="h-4 w-4 text-red-500" />
-                </Button>
-              </div>
-            ))}
+          <div className="flex justify-between mt-4">
+            <Button variant="outline" onClick={addAvailability}>
+              Ajouter une plage horaire
+            </Button>
+            <Button variant="destructive" onClick={markDayAsUnavailable}>
+              Rendre Indisponible
+            </Button>
           </div>
-          <Button
-            variant="link"
-            className="mt-4"
-            onClick={addAvailabilityPeriod}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Ajouter une période
+        </section>
+        <section>
+          <h3 className="text-xl font-normal">Périodes de disponibilité</h3>
+          <Separator className="my-4" />
+          {availabilitiesPeriods.map((period, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end"
+            >
+              <div>
+                <Label htmlFor={`period-from-${index}`}>De</Label>
+                <Input
+                  id={`period-from-${index}`}
+                  value={period.from}
+                  onChange={(e) =>
+                    handleInputChangePeriod(index, "from", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor={`period-to-${index}`}>à</Label>
+                <Input
+                  id={`period-to-${index}`}
+                  value={period.to}
+                  onChange={(e) =>
+                    handleInputChangePeriod(index, "to", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor={`timeFrom-${index}`}>De l'heure</Label>
+                <Input
+                  id={`timeFrom-${index}`}
+                  value={period.timeFrom}
+                  onChange={(e) =>
+                    handleInputChangePeriod(index, "timeFrom", e.target.value)
+                  }
+                  maxLength={5}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`timeTo-${index}`}>À l'heure</Label>
+                <Input
+                  id={`timeTo-${index}`}
+                  value={period.timeTo}
+                  onChange={(e) =>
+                    handleInputChangePeriod(index, "timeTo", e.target.value)
+                  }
+                  maxLength={5}
+                />
+              </div>
+              <Button
+                variant="ghost"
+                className="p-2 h-10 w-10"
+                onClick={() => removeAvailabilityPeriod(index)}
+              >
+                <CircleMinus className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
+          ))}
+          <Button variant="link" className="mt-4" onClick={addAvailabilityPeriod}>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une période de d'indisponibilité
           </Button>
         </section>
-
-        <Button variant="default" className="mt-6" onClick={handleSubmit}>
-          Enregistrer les disponibilités
+        <Button variant="primary" className="mt-4" onClick={handleSubmit}>
+          Sauvegarder
         </Button>
       </div>
     </TabsContent>
   );
 }
-

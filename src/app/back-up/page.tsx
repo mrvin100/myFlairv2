@@ -77,12 +77,14 @@ const ProfessionalDiscoverCard = () => {
           >
             {publication.category}
           </button>
+          <Link href={`/back-up/Profil/${publication.idUser}`}>
           <img
             style={{ width: "40px", height: "40px", border: "solid 2px white" }}
             className="object-cover absolute bottom-2 right-2 rounded-full"
             src={publication.imageProfil}
             alt=""
           />
+          </Link>
         </div>
         <br />
         <CardContent>
@@ -128,7 +130,9 @@ const ProfessionalDiscoverCard = () => {
                 {publication.prix} €
               </span>
             </span>
-            <Button>Réserver</Button>
+            <Link href={`/back-up/servicePage/${publication.id}`}>
+              <Button>Réserver</Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

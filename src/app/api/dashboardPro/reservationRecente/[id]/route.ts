@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   try {
     const reservations = await prisma.reservationServicePro.findMany({
-      where: { userId },
+      where: { userId, hiddenForPro: false,},
       include: {
         service: true,
         client: {

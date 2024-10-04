@@ -56,7 +56,7 @@ model User {
   enterprise           String?
   homeServiceOnly      Boolean                 @default(false)
   email                String                  @unique
-  password             String
+  password             String?
   forgotPassword       String                  @unique @default(uuid())
   phone                String
   website              String?
@@ -111,15 +111,20 @@ model ReservationServicePro {
   addressComplement String?
   note              String?
   status            String?
-  service           Service  @relation(fields: [serviceId], references: [id])
+  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId         String
-  user              User     @relation(fields: [userId], references: [id])
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String
-  client            Client?  @relation(fields: [clientId], references: [id])
+  client            Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId          String?
+  clientIdTest      String
   dateOfRdv         String
   createdAt         DateTime @default(now())
+  reason            String?
+  hiddenForPro      Boolean   @default(false)
+  hiddenForUser     Boolean   @default(false)
 }
+
 
 model Service {
   id           String                  @id @default(cuid())

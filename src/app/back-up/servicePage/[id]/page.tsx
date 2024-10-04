@@ -243,7 +243,7 @@ const normalizeDateString = (dateString) => {
           title: "Réservation confirmée",
           description: "Votre rendez-vous a été réservé avec succès."
         });
-        router.push('/confirmation');
+        router.push('/');
       } else {
         const errorData = await response.json();
         toast({

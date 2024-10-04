@@ -70,6 +70,43 @@ export default function ProfileTab() {
     setImages([]);
   };
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+  
+    if (!userActual) return;
+  
+    // Regrouper toutes les données dans updateData
+    const updateData = {
+      gallery: userActual.gallery, 
+      enterprise: userActual.enterprise, 
+      biography: userActual.biography, 
+      address: {
+        ...userActual.address,
+        street: userActual.address.street, 
+        city: userActual.address.city,
+        postalCode: userActual.address.postalCode, 
+        country: userActual.address.country, 
+        complementAddress: userActual.address.complementAddress,
+      },
+      email: userActual.email,
+      phone: userActual.phone,
+      homeServiceOnly: userActual.homeServiceOnly,
+      socialMedia: socials, // Les réseaux sociaux à jour
+    };
+  
+    console.log('Données mises à jour:', updateData);
+  
+    try {
+      const response = await axios.put(`/api/ProfilPro/update/${user?.id}`, updateData);
+      if (response.status === 200) {
+        alert("Profile updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
+  };
+
   const uploadImage = async (file: File): Promise<string> => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -95,7 +132,7 @@ export default function ProfileTab() {
       throw error;
     }
   };
-
+ 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -193,8 +230,9 @@ export default function ProfileTab() {
 
 
   return (
-    <TabsContent title="Mon Profile" value="profile">
+    <TabsContent title="" value="profile">
       <div className="max-w-5xl w-full">
+      <h2 className="text-xl font-normal mb-8">Mon Profile</h2>
         <h2 className="font-normal text-lg my-4">Image profil</h2>
         <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start ">
 
@@ -226,7 +264,7 @@ export default function ProfileTab() {
           </label>
           <Input
             type="text"
-            onChange={(e) => "fallback function"}
+            onChange={() => "Lorem"}
             placeholder="Ex: Milana Beauty"
             required
             id="entreprise"
@@ -417,7 +455,7 @@ export default function ProfileTab() {
             <div>
               <h3 className="my-4">Sélectionner une image par défaut</h3>
               <div className="flex flex-wrap">
-                {userActual.gallery.map((imageUrl, index) => (
+                {userActual?.gallery.map((imageUrl, index) => (
                   <div
                     key={index}
                     style={{
@@ -456,7 +494,7 @@ export default function ProfileTab() {
 
         </div>
         <div className="flex justify-end">
-          <SubmitButton pending={false} onClick={() => "handleSubmit"}>
+          <SubmitButton pending={false} onClick={() => handleSubmit}>
             Mettre a jour
           </SubmitButton>
         </div>

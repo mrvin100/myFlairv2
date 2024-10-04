@@ -56,14 +56,6 @@ export async function POST(req: NextRequest) {
         
       }
 
-      const currentDate = new Date();
-      const reservationDate = new Date(dateOfRdv);
-      let status = "en-cours"; 
-      if (reservationDate < currentDate) {
-        status = "termine";
-      } else if (status === "annule") {
-        status = "annule";
-      }
 
       const reservation = await prisma.reservationServicePro.create({
         data: {
@@ -74,6 +66,7 @@ export async function POST(req: NextRequest) {
           postalCode,
           addressComplement,
           note,
+          clientIdTest:clientId,
           service: {
             connect: { id: serviceId },
           },
@@ -84,7 +77,7 @@ export async function POST(req: NextRequest) {
             connect: { id: existingClient.id },
           },
           dateOfRdv: new Date(dateOfRdv).toISOString(),
-          status,
+          status:'en-cours' 
         },
       });
 

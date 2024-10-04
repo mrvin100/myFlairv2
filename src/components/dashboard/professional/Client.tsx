@@ -1,17 +1,15 @@
-'use client';
-
+"use client";
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import clsx from "clsx";
-import { Phone, Upload, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useUserContext } from "@/contexts/user";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface User {
   id: string;
@@ -34,9 +32,27 @@ interface Client {
   clientUser: User;
 }
 
-export default function Client() {
+interface Reservation {
+  id: string;
+  date: string;
+  status: string;
+  service: {
+    title: string;
+  };
+}
+
+interface ClientsListProps {
+  searchTerm: string;
+  statusFilter: string;
+}
+
+export default function ClientsList({ searchTerm, statusFilter }: ClientsListProps) {  // Corrected the component name here
   const [clients, setClients] = useState<Client[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const { user } = useUserContext();
+  const [showDialog, setShowDialog] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
 
   useEffect(() => {
     if (!user) return;
@@ -54,14 +70,68 @@ export default function Client() {
     fetchClients();
   }, [user]);
 
+  const handleDeleteClient = async (clientId: string) => {
+    try {
+      const response = await fetch(`/api/client/delete/${clientId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setClients(prevClients => prevClients.filter(client => client.id !== clientId));
+        setShowDialog(false);
+      } else {
+        console.error('Erreur lors de la suppression du client.');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la requête de suppression:', error);
+    }
+  };
+
+  const openDeleteDialog = (clientId: string) => {
+    setSelectedClientId(clientId);
+    setShowDialog(true);
+  };
+
+  const handleViewReservations = async (clientId: string) => {
+    try {
+      const response = await fetch(`/api/client/getReservation/${clientId}`);
+      const data = await response.json();
+      setReservations(data);
+      console.log('Client reservations:', data);
+    } catch (error) {
+      console.error('Error fetching reservations:', error);
+    }
+  };
+
+  const filteredClients = clients.filter(client => {
+    const matchesSearchTerm = client.clientUser.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.clientUser.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.clientUser.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || client.status === statusFilter;
+    return matchesSearchTerm && matchesStatus;
+  });
+
   return (
     <div>
-      {clients.length === 0 ? (
+      <div className="flex items-center mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Rechercher des clients..."
+            className="pr-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)} // Update search query on change
+          />
+        </div>
+      </div>
+
+      {filteredClients.length === 0 ? (
         <div className="p-4 text-center text-gray-500">
-          Aucun client trouvé pour cet utilisateur.
+          Aucun client trouvé.
         </div>
       ) : (
-        clients.map(client => (
+        filteredClients.map(client => (
           <div key={client.id} className="bg-white w-full border rounded-sm p-4 max-w-4xl mx-auto mb-4">
             <div>
               <Image
@@ -75,7 +145,7 @@ export default function Client() {
                 className={clsx(
                   client.status === "boutique"
                     ? "bg-blue-100 text-blue-600"
-                    : "text-black-500 bg-gray-300",
+                    : "text-[#FFA500] bg-[#FFF4E5]",
                   "rounded-sm py-2 px-3 text-[.7rem] w-auto inline-block"
                 )}
               >
@@ -102,11 +172,17 @@ export default function Client() {
               </ul>
             </div>
             <div className="flex gap-4 items-center flex-wrap justify-end">
-              <Button variant={"outline"}>Supprimer</Button>
+              <Button variant={"outline"} onClick={() => openDeleteDialog(client.id)}>
+                Supprimer
+              </Button>
+
               <Link href={`/dashboard/professional/Client/${client.clientUser.id}`}>
                 <Button variant={"outline"}>Créer une réservation</Button>
               </Link>
-              <Button variant={"outline"}>Consulter ses réservations</Button>
+              <Button variant={"outline"} onClick={() => handleViewReservations(client.clientUser.id)}>
+                Consulter ses réservations
+              </Button>
+
               <Dialog>
                 <DialogTrigger asChild>
                   <Button>Modifier</Button>
@@ -130,6 +206,27 @@ export default function Client() {
                   </div>
                 </DialogContent>
               </Dialog>
+
+              <AlertDialog open={showDialog && selectedClientId === client.id} onOpenChange={setShowDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Voulez-vous vraiment supprimer ce client ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible, voulez-vous vraiment supprimer ce client ?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setShowDialog(false)}>
+                      Annuler
+                    </AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDeleteClient(client.id)}>
+                      Valider
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         ))

@@ -90,23 +90,32 @@ export default function ServicesTab() {
     handleServiceChange('domicile', event.target.checked);
   };
 
+  
   useEffect(() => {
-    fetch('/api/service', {
-      method: 'GET'
+    if (!user?.id) return;
+
+    fetch(`/api/serviceProfessional/getByProId/${user?.id}`, {
+      method: 'GET',
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
       })
       .then((data: Service[]) => {
-        console.log('Services fetched:', data);
         setServices(data);
+        console.log(services,'tyu') 
       })
-      .catch(error => console.error('Error fetching services:', error));
-  }, []);
+      .catch((error) => console.error('Error fetching services:', error));
+  }, [user?.id]);
 
+
+  useEffect(() => {
+    if (services.length > 0) {
+      console.log('Updated services:', services);
+    }
+  }, [services]);
   
   const handleSortChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const selectedOption = event.target.value as string;
@@ -182,9 +191,12 @@ export default function ServicesTab() {
   console.log("services a afficher: ", services);
   return (
     <TabsContent value="services" className="space-y-4">
-      <div className="h-full flex-1 space-y-8 p-8 md:flex items-start justify-between  gap-4">
-        <div className="flex items-center justify-between space-y-2 gap-4">
-          <h2 className="text-2xl font-bold tracking-tight">Services</h2>
+      <div className="h-full flex-1 space-y-8 p-8  gap-4">
+        <div className="flex justify-between">
+          <div>
+            <h2 className="text-xl font-normal tracking-tight">Services</h2>
+          </div>
+          <div>
           <Dialog>
             <DialogTrigger asChild><Button onClick={() => setShowAddServiceDialog(true)}>Ajouter un Service</Button></DialogTrigger>
             <DialogContent className='rounded'>
@@ -290,42 +302,41 @@ export default function ServicesTab() {
               </DialogDescription>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
         <hr />
+        <br />
         <div>
-          {services.length > 0 ? (
-            <ul>
-              {services.map((service: Service) => (
-                <div key={service.id} style={{ border: 'solid 2px #ECECEC', padding: '25px', marginTop: '5%' }} className="flex justify-between items-start rounded">
-                  <div className="flex flex-col justify-start items-start" style={{ width: '70%' }}>
-                    <div className='flex'>
-                      <button style={{ background: '#ECECEC' }} className="text-lg rounded py-2 px-4">{service.category}</button>
-                      {service.domicile && (
-                        <button style={{ color: '#2DB742', background: '#ABEAB5' }}>Service à domicile</button>
-                      )}
-                    </div>
-                    <br />
-                    <h1>{service.title}</h1>
-                    <br />
-                    <p>{service.description}</p>
+        {services.length > 0 ? (
+          <ul>
+            {services.map((service: Service) => (
+              <div key={service.id} className="flex justify-between items-start rounded border-2 p-6 mb-4">
+                <div className="flex flex-col justify-start items-start w-3/4">
+                  <div className="flex space-x-4">
+                    <button className="bg-gray-200 text-lg rounded py-2 px-4">{service.category}</button>
+                    {service.domicile && (
+                      <button className="bg-green-200 text-green-700 rounded py-2 px-4">Service à domicile</button>
+                    )}
                   </div>
-                  <div className="flex flex-col items-end justify-between p-4">
-                    <h1 style={{ fontSize: '250%' }} className="font-bold">{service.price} €</h1>
-                    <span style={{ color: '#EAEAEA' }}>Durée {service.dureeRDV}</span>
-                    <Link href={'/dashboard_pro/services/modifierService'}>
-                      <button style={{ width: '150px' }} className="cursor-pointer bg-black text-lg text-white rounded py-3 px-6 mt-4">Modifier</button>
-                    </Link>
-                    <br />
-                    <Link href={'/dashboard_pro/services/modifierService'}>
-                      <button style={{ background: '#EAEAEA', width: '150px' }} className="cursor-pointer text-lg text-black rounded py-3 px-6 mt-4">Supprimer</button>
-                    </Link>
-                  </div>
+                  <h1 className="mt-4 font-bold">{service.title}</h1>
+                  <p className="mt-2">{service.description}</p>
                 </div>
-              ))}
-            </ul>
-          ) : (
-            <p>Aucun service disponible.</p>
-          )}
+                <div className="flex flex-col items-end p-4">
+                  <h1 className="text-3xl font-bold">{service.price} €</h1>
+                  <span className="text-gray-400">Durée: {service.dureeRDV}</span>
+                  <Link href={`/dashboard_pro/services/modifierService`}>
+                    <button className="bg-black text-white mt-4 py-3 px-6 rounded">Modifier</button>
+                  </Link>
+                  <Link href={`/dashboard_pro/services/supprimerService`}>
+                    <button className="bg-gray-200 mt-4 py-3 px-6 rounded">Supprimer</button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </ul>
+        ) : (
+          <p>Aucun service disponible.</p>
+        )}
         </div>
       </div>
       <br />

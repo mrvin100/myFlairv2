@@ -3,92 +3,150 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from '@fullcalendar/interaction'
+import interactionPlugin from '@fullcalendar/interaction';
 import { TabsContent } from "@/components/tabs";
 import { fr } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
-import clsx from "clsx";
-
+import Modal from "antd/es/modal/Modal";
+import { useEffect, useState } from "react";
+import { useUserContext } from "@/contexts/user";
 
 const CalendarTab = () => {
-interface Reservation{
-  status: string,
-  title: string,
-  time: string,
-}
-interface DayReservation{
-  day: string,
-  reservations:Reservation[],
-}
+  interface Reservation {
+    status: string;
+    title: string;
+    time: string;
+  }
 
-// status :  'complete' | 'annule' | 'en-cours'
+  interface DayReservation {
+    day: string;
+    reservations: Reservation[];
+  }
 
-const singleReservation:DayReservation = {
-  day: 'September 15 2024',
-  reservations: [
-    {status: 'complete', title: 'nom du service', time: '11:00' },
-    {status: 'annule', title: 'nom du service', time: '12:00' },
-    {status: 'en-cours', title: 'nom du service', time: '13:00' },
-  ]
-}
+  type ReservationType = {
+    id: string;
+    service: {
+      typeClient: string;
+      title: string;
+      price: number;
+      dureeRDV: string;
+    };
+    status: string;
+    dateOfRdv: string;
+    time: string;
+    address: string;
+    note: string;
+    user: {
+      email: string;
+      phone: string;
+      image: string;
+    };
+  };
 
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
+  const { user } = useUserContext();
 
-const todayDate = new Date('September 20 2024 11:30')
-console.log('date of today : ',todayDate);
-console.log('time of today : ',todayDate.getHours());
+  useEffect(() => {
+    async function fetchReservations() {
+      try {
+        const response = await fetch(`/api/dashboardPro/reservationAll/${user?.id}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        
+        if (Array.isArray(data)) {
+          const updatedEvents = data.map((reservation: ReservationType) => ({
+            id: reservation.id,
+            title: reservation.service.title,
+            start: reservation.dateOfRdv, // Utiliser seulement la date pour le début
+            end: reservation.dateOfRdv, // Utiliser seulement la date pour la fin
+            description: `Client: ${reservation.user.email}, Note: ${reservation.note}`, // Autres informations si nécessaire
+          }));
+          setEvents(updatedEvents);
+        } else {
+          console.error("Data is not an array", data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reservations:", error);
+      }
+    }
 
-const allReservations = [
-  { title: "event1", start: new Date('September 14 2024 11:30'), resourceId: "a" },
-  { title: "event2", start: new Date('September 15 2024 12:30'), resourceId: "a" },
-  { title: "event3", start: new Date('September 15 2024 13:30'), resourceId: "c" },
-  { title: "event4", start: new Date('September 17 2024 11:30'), resourceId: "b" },
-  { title: "event5", start: new Date('September 18 2024 12:30'), resourceId: "c" },
-  { title: 'nice event', start: new Date('September 18 2024 13:30'), resourceId: 'b' }
-]
+    if (user?.id) {
+      fetchReservations();
+    }
+  }, [user?.id]);
 
+  const handleEventClick = (clickInfo: any) => {
+    const { event } = clickInfo;
+    const { title, start, extendedProps } = event;
+    
+    setSelectedEvent({
+      title,
+      start: new Date(start).toLocaleString(), // Affichage de la date
+      email: extendedProps.email,
+      note: extendedProps.note,
+      user: extendedProps.user,
+    });
+
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const renderEventContent = (info: any) => {
+    const { title } = info.event;
+
+    return (
+      <div className="event-content">
+        <strong>{title}</strong>
+      </div>
+    );
+  };
 
   return (
     <TabsContent title="Calendar" value="calendar">
       <div className="calendar-container">
-        
-      <div className="flex justify-end gap-2 items-center my-4">
-        <Badge className="bg-green-100 text-green-600 hover:bg-transparent">Terminé</Badge>
-        <Badge className="bg-red-100 text-red-600 hover:bg-transparent">Annulé</Badge>
-        <Badge className="bg-blue-100 text-blue-600 hover:bg-transparent">En cours</Badge>
-      </div>
+        <nav className="flex justify-between mb-12 border-b border-violet-100 p-4">
+          <h1 className="font-bold text-2xl text-gray-700">Calendrier</h1>
+        </nav>
+
         <FullCalendar
-          plugins={[ dayGridPlugin, interactionPlugin, timeGridPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          locale={fr}
           headerToolbar={{
-            left: "prev,next today",
-            center: "title",
+            left: 'prev,next today',
+            center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
           }}
-          locale={fr}
-          themeSystem={"standard"}
           initialView="dayGridMonth"
-          nowIndicator={true}
-          editable={true}
-          selectable={true}
-          selectMirror={true}
-          resources={[
-            { id: "a", title: "Auditorium A" },
-            { id: "b", title: "Auditorium B", eventColor: "green", },
-            { id: "c", title: "Auditorium C", eventColor: "orange", },
-          ]}
-          initialEvents={allReservations}
-          eventContent={(eventInfo) => {
-            return (
-              <span className={clsx(`${ eventInfo.event.textColor}`, "text-center border p-2 w-full bg-gray-100/50 block whitespace-nowrap overflow-hidden text-ellipsis")}>
-                <b className="mr-1">{eventInfo.timeText}</b>
-                <i>{eventInfo.event.title}</i>
-              </span>
-            );
-          }}
+          events={events}
+          eventContent={renderEventContent}
+          eventClick={handleEventClick}
         />
+
+        {selectedEvent && (
+          <Modal
+            title="Détails de la Réservation"
+            visible={isModalOpen}
+            onCancel={handleOk}
+            footer={null}
+          >
+            <div>
+              <h3>{selectedEvent.title}</h3>
+              <p>Date: {selectedEvent.start}</p>
+              <p>Email: {selectedEvent.email}</p>
+              <p>Note: {selectedEvent.note}</p>
+              {/* Ajoutez d'autres détails si nécessaire */}
+            </div>
+          </Modal>
+        )}
       </div>
     </TabsContent>
   );
 };
-
 
 export default CalendarTab;

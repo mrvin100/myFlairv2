@@ -15,7 +15,10 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   try {
     const reservations = await prisma.reservationServicePro.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        hiddenForPro: false,
+      },
       include: {
         service: true,
         user: true,
@@ -26,9 +29,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
     });
     
     return NextResponse.json(reservations, { status: 200 });
-  }  catch (error) {
+  } catch (error) {
     console.error(error); 
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-  
 }
