@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     const client = await prisma.client.findFirst({
       where: { clientId: userId },
       include: {
-        clientUser: true, 
+        clientUser: true,
       },
     });
     return NextResponse.json(client);

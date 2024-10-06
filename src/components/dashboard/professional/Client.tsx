@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,6 +11,7 @@ import { useUserContext } from "@/contexts/user";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import Reservation from './Reservation';
 
 interface User {
   id: string;
@@ -24,6 +26,7 @@ interface User {
     city: string;
     country: string;
   };
+
 }
 
 interface Client {
@@ -32,13 +35,39 @@ interface Client {
   clientUser: User;
 }
 
-interface Reservation {
+interface Reservations {
   id: string;
-  date: string;
-  status: string;
   service: {
+    typeClient: string;
     title: string;
+    price: number;
+    dureeRDV: string;
   };
+  status: string;
+  dateOfRdv: string;
+  time: string;
+  address: string;
+  note: string;
+  user: {
+    email: string;
+    phone: string;
+    image: string;
+  };
+  client?: {
+    email?: string;
+    phone?: string;
+    image?: string;
+    firstName?: string;
+    lastName?: string;
+    clientUser: {
+      firstName: string;
+      lastName: string;
+      image: string;
+      phone: string;
+      email: string;
+
+    }
+  }
 }
 
 interface ClientsListProps {
@@ -46,13 +75,14 @@ interface ClientsListProps {
   statusFilter: string;
 }
 
-export default function ClientsList({ searchTerm, statusFilter }: ClientsListProps) {  // Corrected the component name here
+export default function ClientsList({ searchTerm, statusFilter }: ClientsListProps) {
   const [clients, setClients] = useState<Client[]>([]);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [reservations, setReservations] = useState<Reservations[]>([]);
   const { user } = useUserContext();
   const [showDialog, setShowDialog] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [isReservationsDialogOpen, setIsReservationsDialogOpen] = useState(false); // New state for the reservations dialog
 
   useEffect(() => {
     if (!user) return;
@@ -61,13 +91,14 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
       try {
         const response = await fetch(`/api/client/get/${user?.id}`);
         const data = await response.json();
-        setClients(data);
+        setClients(data); 
+        console.log("Clients fetched:", data);  
       } catch (error) {
         console.error('Error fetching clients:', error);
       }
     }
 
-    fetchClients();
+    fetchClients();  // Appeler la fonction de récupération des clients
   }, [user]);
 
   const handleDeleteClient = async (clientId: string) => {
@@ -97,6 +128,7 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
       const response = await fetch(`/api/client/getReservation/${clientId}`);
       const data = await response.json();
       setReservations(data);
+      setIsReservationsDialogOpen(true); 
       console.log('Client reservations:', data);
     } catch (error) {
       console.error('Error fetching reservations:', error);
@@ -121,7 +153,7 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
             placeholder="Rechercher des clients..."
             className="pr-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Update search query on change
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
@@ -183,6 +215,48 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
                 Consulter ses réservations
               </Button>
 
+              {/* Dialog for displaying reservations */}
+              <Dialog open={isReservationsDialogOpen} onOpenChange={setIsReservationsDialogOpen}>
+                <DialogContent className="w-[1000px]">
+                  <DialogHeader>
+                    <DialogTitle>Réservations du client</DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="h-[28rem]">
+                    {reservations.length > 0 ? (
+                      reservations.map((reservation) => (
+                        <Reservation
+                          key={reservation.id}
+                          id={reservation.id}
+                          typeClient={reservation.service.typeClient}
+                          status={reservation.status}
+                          date={reservation.dateOfRdv}
+                          time={reservation.time}
+                          address={reservation.address}
+                          note={reservation.note}
+                          service={reservation.service.title}
+                          price={reservation.service.price}
+                          email={reservation.client?.clientUser?.email || 'N/A'}
+                          phone={reservation.client?.clientUser?.phone || 'N/A'}
+                          image={reservation.client?.clientUser?.image || '/default-image.png'}
+                          firstName={reservation.client?.clientUser?.firstName || 'Inconnu'}
+                          lastName={reservation.client?.clientUser?.lastName || 'Inconnu'}
+                          dureeRDV={reservation.service.dureeRDV}
+
+                        />
+                      ))
+                    ) : (
+                      <p>Aucune réservation trouvée pour ce client.</p>
+                    )}
+                  </ScrollArea>
+                  <div className="flex justify-end space-x-4 mt-4">
+                    <DialogClose asChild>
+                      <Button variant="outline">Fermer</Button>
+                    </DialogClose>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Button "Modifier" */}
               <Dialog>
                 <DialogTrigger asChild>
                   <Button>Modifier</Button>

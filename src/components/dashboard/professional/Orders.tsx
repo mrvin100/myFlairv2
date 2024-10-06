@@ -27,17 +27,17 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-interface DataTbaleProps<TData, TValue>{
+interface DataTbaleProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
 }
 
 function DataTable<TData, TValue>({
   columns, data,
-}: DataTbaleProps<TData, TValue>){
+}: DataTbaleProps<TData, TValue>) {
   const table = useReactTable({
-    data, 
-    columns, 
+    data,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   })
   return (
@@ -50,11 +50,11 @@ function DataTable<TData, TValue>({
                 return (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
-                    ?null
-                    :flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
+                      ? null
+                      : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 )
               })}
@@ -64,21 +64,21 @@ function DataTable<TData, TValue>({
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow 
-              key={row.id}
-              data-state={row.getIsSelected() && "selected"}
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
               >{
-                row.getVisibleCells().map(cell => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>))
-              }
+                  row.getVisibleCells().map(cell => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>))
+                }
                 <TableCell>
                   <OrderDetailsPage />
                 </TableCell>
               </TableRow>
             ))
-          ): (
+          ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className='h-24 text-center'>No results.</TableCell>
             </TableRow>
@@ -103,7 +103,7 @@ const orders: Order[] = [
     date: "23 février 2024",
     status: "En cours",
     total: "119,94 € pour 6 articles",
-  } ,
+  },
   {
     order: "n°23061",
     date: "26 janvier 2024",
@@ -115,15 +115,15 @@ const orders: Order[] = [
 const columns: ColumnDef<Order>[] = [
   {
     accessorKey: "order",
-    header: "Commande", 
+    header: "Commande",
   },
   {
     accessorKey: "date",
-    header: "Date", 
+    header: "Date",
   },
   {
     accessorKey: "status",
-    header: "État", 
+    header: "État",
   },
   {
     accessorKey: "total",
@@ -138,11 +138,11 @@ const columns: ColumnDef<Order>[] = [
 export default function OrdersTab() {
   return (
     <TabsContent value="orders" className="space-y-4">
-      <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
-          <h2 className="text-2xl font-normal tracking-tight">Mes Commandes</h2>
-          <div className="container mx-auto py-10">
-            <DataTable columns={columns} data={orders} />
-          </div>
+      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+        <h2 className="text-2xl font-normal tracking-tight">Mes Commandes</h2>
+        <div className="container mx-auto py-10">
+          <DataTable columns={columns} data={orders} />
+        </div>
       </div>
     </TabsContent>
   );
@@ -159,11 +159,11 @@ function OrderDetailsPage() {
     <div className="container mx-auto p-4">
       <Button className='rounded-[1.3rem]' onClick={() => setOpen(true)}>Voir</Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-2xl w-[90%] scroll-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-normal">Mes commandes</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
+          <div className="space-y-6 ">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
               <div>
                 <p className="font-semibold">NUMÉRO de commande :</p>
@@ -202,13 +202,13 @@ function OrderDetailsPage() {
                   <TableRow>
                     <TableCell className="font-semibold">Location Poste Coiffure & make up</TableCell>
                     <TableCell>
-                      04.06.2024 <br/>
-                      06.06.2024 <br/>
+                      04.06.2024 <br />
+                      06.06.2024 <br />
                       07.06.2024
                     </TableCell>
                     <TableCell>
-                      1 <br/>
-                      1 <br/>
+                      1 <br />
+                      1 <br />
                       1
                     </TableCell>
                     <TableCell>

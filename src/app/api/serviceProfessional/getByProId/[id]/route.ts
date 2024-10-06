@@ -12,9 +12,9 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
       }
 
-      const user = await prisma.user.findUnique({
-        where: { id: idPro },
-        include: { services: true },
+      const user = await prisma.service.findMany({
+        where: { userId: idPro },
+
       });
 
       if (!user) {

@@ -258,7 +258,7 @@ export default function AvailabilitiesTab() {
               </div>
             )}
           </div>
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between mt-8">
             <Button variant="outline" onClick={addAvailability}>
               Ajouter une plage horaire
             </Button>

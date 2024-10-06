@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { CircleDot } from "lucide-react";
 import Image from "next/image";
-import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; 
+import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -111,9 +111,8 @@ export default function Reservation({
   return (
     <div className="bg-white flex md:justify-between justify-start md:flex-row flex-col gap-2 mb-4">
       <div className="shadow-md rounded-sm md:max-w-[16rem] w-full p-4 text-center border flex flex-col gap-3 justify-center items-center">
-        <div className={`${
-          status === "boutique" ? "text-[#4C40ED] bg-[#F7F7FF]" : "text-[#FFA500] bg-[#FFF4E5]"
-        } py-2 px-3 rounded-md text-[.7rem]`}>
+        <div className={`${status === "boutique" ? "text-[#4C40ED] bg-[#F7F7FF]" : "text-[#FFA500] bg-[#FFF4E5]"
+          } py-2 px-3 rounded-md text-[.7rem]`}>
           Client {typeClient === "boutique" ? "en boutique" : "flair"}
         </div>
         <Image
@@ -142,8 +141,8 @@ export default function Reservation({
                 status === "en-cours"
                   ? "text-blue-600 bg-blue-100"
                   : status === "annule"
-                  ? "text-red-600 bg-red-100"
-                  : "text-green-600 bg-green-100",
+                    ? "text-red-600 bg-red-100"
+                    : "text-green-600 bg-green-100",
                 "rounded-sm text-[.7rem] py-2 px-3 text-center inline-block"
               )}
             >
@@ -189,29 +188,29 @@ export default function Reservation({
             )}
             {status === "annule" && (
               <>
-              <Dialog open={isReasonDialogOpen} onOpenChange={setIsReasonDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="secondary" onClick={handleOpenReasonDialog}>Raison</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Raison de l'annulation</DialogTitle>
-                  </DialogHeader>
-                  <p>{cancelReason}</p>
-                  <DialogFooter>
-                    <Button onClick={() => setIsReasonDialogOpen(false)}>Fermer</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <Button variant="destructive" onClick={handleHideReservation} disabled={isDeleting}>
-                Supprimer
-              </Button>
-            </>
+                <Dialog open={isReasonDialogOpen} onOpenChange={setIsReasonDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="secondary" onClick={handleOpenReasonDialog}>Raison</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Raison de l'annulation</DialogTitle>
+                    </DialogHeader>
+                    <p>{cancelReason}</p>
+                    <DialogFooter>
+                      <Button onClick={() => setIsReasonDialogOpen(false)}>Fermer</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Button variant="destructive" onClick={handleHideReservation} disabled={isDeleting}>
+                  Supprimer
+                </Button>
+              </>
             )}
             {status === "termine" && (
               <Button variant="destructive" onClick={handleHideReservation} disabled={isDeleting}>
-              Supprimer
-            </Button>
+                Supprimer
+              </Button>
             )}
           </div>
         </div>

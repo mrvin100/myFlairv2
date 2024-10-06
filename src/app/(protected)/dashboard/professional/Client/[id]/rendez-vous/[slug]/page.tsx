@@ -20,6 +20,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { fr } from 'date-fns/locale';
 import { useToast } from "@/components/ui/use-toast";
 import { Services } from "@/components/dashboard/professional";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
+
 
 interface Service {
   id: string;
@@ -40,7 +44,7 @@ interface Client {
     firstName: string;
     lastName: string;
   };
-  services: Service[]; // Changer ici pour services au lieu de service
+  services: Service[];
 }
 
 interface User {
@@ -75,6 +79,8 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
   const [note, setNote] = useState<string>('');
   const { toast } = useToast();
   const [service, setService] = useState<Service | null>(null);
+  const router = useRouter();
+
 
   useEffect(() => {
     async function fetchClient() {
@@ -94,32 +100,26 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
   }, [id]);
 
   useEffect(() => {
-    async function fetchServices() {
-      if (!client?.proId || !slug) return;
-  
+    const fetchService = async () => {
       try {
-        const response = await fetch(`/api/serviceProfessional/getByProId/${client.proId}`);
+        const response = await fetch(`/api/serviceProfessional/getById/${params.slug}`);
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data = await response.json();
-        const services: Service[] = Array.isArray(data) ? data : []; // Assure-toi que `services` est un tableau
-  
-        console.log('Fetched services:', services);
-  
-        const foundService = services.find((service) => service.id === slug);
-  
-        if (foundService) {
-          setService(foundService);
-        }
+        const data: Service = await response.json();
+        setService(data);
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching service:', error);
       }
+    };
+
+    if (params.id) {
+      fetchService();
     }
-  
-    fetchServices();
-  }, [client, slug]);
-  
+  }, [params.id]);
+
+
+
 
   const timeSlots = [
     "09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45",
@@ -129,7 +129,7 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
     "21:00", "21:15", "21:30", "21:45", "22:00", "22:15", "22:30", "22:45", "23:00", "23:15", "23:30"
   ];
   const unavailableSlots = ["13:30", "14:00", "18:30"];
-  const indisponibilitySlots = ["21:00","21:15", "21:30","21:45", "22:00","22:15", "22:30","22:45", "23:00","23:15", "23:30"];
+  const indisponibilitySlots = ["21:00", "21:15", "21:30", "21:45", "22:00", "22:15", "22:30", "22:45", "23:00", "23:15", "23:30"];
 
   const unavailableDates = (date: Date) => {
     const today = new Date();
@@ -148,7 +148,7 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
     }
 
     try {
-      const response = await fetch('/api/client/book', {
+      const response = await fetch('/api/serviceProfessional/book', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -161,8 +161,9 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
           postalCode,
           addressComplement,
           note,
-          clientId: client?.id,
+          clientId: params.id,
           userId: client?.proId,
+          serviceId: service?.id
         }),
       });
 
@@ -171,6 +172,8 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
           title: "Réservation confirmée",
           description: "Votre rendez-vous a été réservé avec succès."
         });
+        router.push('/');
+
       } else {
         const errorData = await response.json();
         toast({
@@ -195,7 +198,7 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
         <div className="w-full max-w-3xl mx-auto mt-8 space-y-8">
           <section>
             <h2 className="text-lg font-normal mb-4">
-              Créer une réservation pour : {client?.clientUser.firstName} {client?.clientUser.lastName} {params.id}
+              Créer une réservation pour : {client?.clientUser.firstName} {client?.clientUser.lastName}
             </h2>
             <div className="flex items-center mb-4 md:mb-0">
               <Avatar className="w-16 h-16 mr-4">
@@ -204,11 +207,10 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
               <div>
                 <div className="flex items-center text-sm text-muted-foreground mt-1">
                   <div
-                    className={`${
-                      client?.status === "boutique"
-                      ? "text-[#4C40ED] bg-[#F7F7FF]" 
-                      : "text-[#FFA500] bg-[#FFF4E5]" 
-                    } py-2 px-3 rounded-md text-[.7rem]`}
+                    className={`${client?.status === "boutique"
+                      ? "text-[#4C40ED] bg-[#F7F7FF]"
+                      : "text-[#FFA500] bg-[#FFF4E5]"
+                      } py-2 px-3 rounded-md text-[.7rem]`}
                   >
                     {client?.status === "boutique" ? "Client Boutique" : "Client Flair"}
                   </div>
@@ -217,20 +219,14 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
                   <User className="w-4 h-4 mr-1" />
                   <span>{client?.clientUser.firstName} {client?.clientUser.lastName}</span>
                 </div>
-                {service && (
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold">Détails du service</h3>
-                    <p className="mt-2"><strong>Nom : </strong>{service.name}</p>
-                    <p className="mt-1"><strong>Description : </strong>{service.description}</p>
-                  </div>
-                )}
+
               </div>
             </div>
           </section>
-
+          <h1 className="text-2xl">Sélectionnez la date et l'heure de la réservation : </h1>
           <section>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1">
+            <div className="">
+              <div className="">
                 <h3 className="font-normal mb-4">
                   Sélectionner la date du rendez-vous
                 </h3>
@@ -247,6 +243,7 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
                   disabled={date => unavailableDates(date)}
                 />
               </div>
+              <br />
               <div className="md:col-span-2">
                 <h3 className="font-normal mb-4">
                   Choisir l'heure du rendez-vous
@@ -259,10 +256,10 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
                         unavailableSlots.includes(time)
                           ? "destructive"
                           : indisponibilitySlots.includes(time)
-                          ? "ghost"
-                          : selectedTime === time
-                          ? "default"
-                          : "outline"
+                            ? "ghost"
+                            : selectedTime === time
+                              ? "default"
+                              : "outline"
                       }
                       className={`w-full ${unavailableSlots.includes(time) ? "cursor-not-allowed" : ""}`}
                       onClick={() =>
@@ -285,39 +282,39 @@ const RendezVous = ({ params }: { params: { id: string, slug: string } }) => {
                 Informations supplémentaires
               </h3>
               <div className="grid grid-cols-1 gap-4">
-                <input
+                <Input
                   type="text"
                   placeholder="Adresse"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="p-2 border rounded-md"
+
                 />
-                <input
+                <Input
                   type="text"
                   placeholder="Ville"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="p-2 border rounded-md"
+
                 />
-                <input
+                <Input
                   type="text"
                   placeholder="Code postal"
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
-                  className="p-2 border rounded-md"
+
                 />
-                <input
+                <Input
                   type="text"
                   placeholder="Complément d'adresse (optionnel)"
                   value={addressComplement}
                   onChange={(e) => setAddressComplement(e.target.value)}
-                  className="p-2 border rounded-md"
+
                 />
-                <textarea
+                <Textarea
                   placeholder="Note (optionnel)"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="p-2 border rounded-md"
+
                 />
               </div>
             </section>

@@ -40,6 +40,7 @@ interface Client {
   codePostal: string;
   complement: string;
   remarque: string;
+  image: string;
 }
 
 export default function ClientsTab() {
@@ -58,6 +59,7 @@ export default function ClientsTab() {
     remarque: "",
     proId: "",
     status: "active",
+    image: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
@@ -81,7 +83,7 @@ export default function ClientsTab() {
 
   const handleDelete = (index: number) => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
-    handlePostChange(index, "image", "");
+    handleInputChange(index, "image");
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -161,18 +163,19 @@ export default function ClientsTab() {
             remarque: "",
             proId: user?.id || "",
             status: "active",
+            image: ""
           });
-          setImages([]); // Réinitialiser les images après l'ajout du client
+          setImages([]);
         } catch (error) {
           console.error("Erreur lors de l'ajout du client:", error);
         } finally {
-          setIsSubmitting(false); // Réinitialiser le drapeau de soumission
+          setIsSubmitting(false);
         }
       };
 
       addClient();
     }
-  }, [isSubmitting, clientData, user?.id]); // Dépendre du drapeau de soumission et des données client
+  }, [isSubmitting, clientData, user?.id]);
 
   return (
     <TabsContent value="clients" className="space-y-4">
@@ -385,7 +388,8 @@ export default function ClientsTab() {
             </Dialog>
           </div>
         </div>
-        <ClientsList searchTerm={searchTerm} />
+        <ClientsList searchTerm={searchTerm} statusFilter={statusFilter} />
+
       </div>
     </TabsContent>
   );

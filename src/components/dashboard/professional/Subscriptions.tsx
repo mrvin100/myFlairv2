@@ -8,10 +8,10 @@ export default function SubscriptionsTab() {
   const isSubcribed = false
   return (
     <TabsContent value="subscriptions" className="space-y-4">
-          <h2 className="text-xl font-normal tracking-tight">Abonnements</h2>
-          {
-            isSubcribed? <Subscribed /> : <NotSubscribed />
-          }
+      <h2 className="text-xl font-normal tracking-tight">Abonnements</h2>
+      {
+        isSubcribed ? <Subscribed /> : <NotSubscribed />
+      }
     </TabsContent>
   );
 }
@@ -55,7 +55,7 @@ function Subscribed() {
       <h2 className="text-xl font-normal mb-8">Abonnement actuel : Gestion planning mensuel</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2  gap-6">
         {subscriptions.map((sub, index) => (
-          <Card key={index} className={clsx(sub.status != "En cours"? 'shadow-red-300' : '', "flex flex-col")}>
+          <Card key={index} className={clsx(sub.status != "En cours" ? 'shadow-red-300' : '', "flex flex-col")}>
             <CardHeader>
               <CardTitle>{sub.title}</CardTitle>
             </CardHeader>
@@ -67,14 +67,14 @@ function Subscribed() {
                   ))}
                 </ul>
                 <div className="text-right">
-                  <p><Badge className='mb-4 font-normal' variant={sub.status === "En cours"? 'secondary' : 'destructive'}>{sub.status}</Badge></p>
+                  <p><Badge className='mb-4 font-normal' variant={sub.status === "En cours" ? 'secondary' : 'destructive'}>{sub.status}</Badge></p>
                   <p className="text-xl font-bold">{sub.price.split('/')[0]}<br /><sup className='font-normal text-sm'>/{sub.price.split('/')[1]}</sup></p>
                 </div>
               </div>
             </CardContent>
             <CardFooter className='flex justify-between gap-4 items-center'>
               <Button variant={'secondary'}>Gerer l&apos;abonnement</Button>
-              {sub.status === "En cours"? '' : <Button>Renouveler</Button>}
+              {sub.status === "En cours" ? '' : <Button>Renouveler</Button>}
             </CardFooter>
           </Card>
         ))}

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
 interface Service {
+  id: string;
   title: string;
   category: string;
   price: string;
@@ -37,8 +38,8 @@ interface Client {
 }
 
 const AjouterUneReservation = () => {
-  const { id } = useParams(); 
-  const [loading, setLoading] = useState(true); 
+  const { id } = useParams();
+  const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<Client | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<{ [category: string]: Service[] }>({});
@@ -60,45 +61,45 @@ const AjouterUneReservation = () => {
     fetchClient();
   }, [id]);
 
-  
+
   useEffect(() => {
     async function fetchServices() {
       if (!client?.proId) return;
-  
+
       try {
         const response = await fetch(`/api/serviceProfessional/getByProId/${client.proId}`);
-  
+
         if (!response.ok) {
           throw new Error(`Erreur HTTP ! statut : ${response.status}`);
         }
-  
+
         const data = await response.json();
-        
-        console.log('Réponse API des services :', data); 
-  
-       
+
+        console.log('Réponse API des services :', data);
+
+
         if (!data || !Array.isArray(data.services)) {
           throw new Error('La réponse API ne contient pas un tableau de services valide');
         }
 
         const services = data.services;
-  
+
         const groupedServices = services.reduce((acc: any, service: Service) => {
           acc[service.category] = acc[service.category] || [];
           acc[service.category].push(service);
           return acc;
         }, {});
-  
+
         setServices(services);
         setFilteredServices(groupedServices);
       } catch (error) {
         console.error('Erreur lors de la récupération des services :', error);
       }
     }
-  
+
     fetchServices();
   }, [client]);
-  
+
 
   if (loading) {
     return (
@@ -124,11 +125,10 @@ const AjouterUneReservation = () => {
             <div>
               <div className="flex items-center text-sm text-muted-foreground mt-1">
                 <div
-                  className={`${
-                    client?.status === "boutique"
-                    ? "text-[#4C40ED] bg-[#F7F7FF]" 
-                    : "text-[#FFA500] bg-[#FFF4E5]" 
-                  } py-2 px-3 rounded-md text-[.7rem]`}
+                  className={`${client?.status === "boutique"
+                    ? "text-[#4C40ED] bg-[#F7F7FF]"
+                    : "text-[#FFA500] bg-[#FFF4E5]"
+                    } py-2 px-3 rounded-md text-[.7rem]`}
                 >
                   {client?.status === "boutique" ? "Client Boutique" : "Client Flair"}
                 </div>
@@ -154,11 +154,11 @@ const AjouterUneReservation = () => {
               />
             </div>
           </form>
-  
+
           {Object.keys(filteredServices).map((category) => (
             <div key={category} className="mb-6">
               <Badge variant="secondary" className="mb-4">Catégorie : {category}</Badge>
-      
+
               {filteredServices[category].map((service, index) => (
                 <Card key={index} className="mb-4">
                   <CardContent className="p-6">
@@ -169,14 +169,16 @@ const AjouterUneReservation = () => {
                         <p className="text-sm text-muted-foreground">{service.description}</p>
                       </div>
                       <div className="flex flex-col items-end justify-between">
-                        <Badge variant="outline" className={`bg-${service.domicile ? 'green' : 'red'}-100 text-green-800`}>
-                          {service.domicile ? 'Service à domicile' : 'En boutique'}
-                        </Badge>
+                        {service.domicile && (
+                          <Badge variant="outline" className={`bg-${service.domicile ? 'green' : 'red'}-100 text-green-800`}>
+                            Service à domicile
+                          </Badge>
+                        )}
                         <div className="text-right mt-4">
                           <p className="text-2xl font-semibold">{service.price} €</p>
                           <p className="text-sm text-muted-foreground">Durée : {service.dureeRDV}</p>
                         </div>
-                        <Link href={`/dashboard/professional/Client/${id}/rendez-vous/${index}`}>
+                        <Link href={`/dashboard/professional/Client/${id}/rendez-vous/${service.id}`}>
                           <Button className="mt-4">Réserver</Button>
                         </Link>
                       </div>
@@ -185,7 +187,7 @@ const AjouterUneReservation = () => {
                 </Card>
               ))}
 
-              
+
             </div>
           ))}
         </section>

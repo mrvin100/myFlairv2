@@ -8,15 +8,15 @@ export async function GET(req: Request) {
     const segments = url.pathname.split('/');
     const clientId = segments[segments.length - 1];
 
-    console.log(clientId,"ClientID")
+    console.log(clientId, "ClientID")
     const reservations = await prisma.reservationServicePro.findMany({
       where: {
-        clientIdTest:clientId
+        clientIdTest: clientId, hiddenForPro: false
       },
       include: {
-        service: true,  
-        user: true,    
-        client: true,   
+        service: true,
+        user: true,
+        client: true,
       },
     });
 
