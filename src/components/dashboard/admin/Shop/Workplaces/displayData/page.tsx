@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 interface Workplace {
   id: number;
-  image: string; 
+  image: string;
   title: string;
   description: string;
   durationWeekStartHour: number;
@@ -82,7 +82,7 @@ const DisplayWorkPlace = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Id</TableHead>
+              <TableHead>n°</TableHead>
               <TableHead>Poste</TableHead>
               <TableHead>Image</TableHead>
               <TableHead>Tarif</TableHead>
@@ -90,14 +90,14 @@ const DisplayWorkPlace = () => {
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
-          {workplaces.map((workplace) => (
+          {workplaces.map((workplace, index) => (
             <TableBody key={workplace.id}>
               <TableRow>
-                <TableCell>n° {workplace.id}</TableCell>
+                <TableCell>n° {index + 1}</TableCell>
                 <TableCell>{workplace.title}</TableCell>
                 <TableCell>
                   <img
-                    src={workplace.image} 
+                    src={workplace.image}
                     alt={workplace.alt || workplace.title}
                     style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
                     className="rounded-lg"
@@ -108,7 +108,7 @@ const DisplayWorkPlace = () => {
                 <TableCell>
                   <div className="flex">
                     <Link href={`/dashboard/administrator/workPlace/${encodeURIComponent(workplace.id)}`} ><img src="/iconWorkPlace/edit.svg" alt="" /></Link>
-                    <AlertDialogTrigger asChild style={{marginLeft:'20px'}}>
+                    <AlertDialogTrigger asChild style={{ marginLeft: '20px' }}>
                       <img src="/iconWorkPlace/trash-2.svg" alt="" onClick={() => {
                         setShowDialog(true);
                         setSelectedWorkplaceId(workplace.id);

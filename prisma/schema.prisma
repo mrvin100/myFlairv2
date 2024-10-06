@@ -43,44 +43,44 @@ enum ProductType {
 
 // Modèles
 model User {
-  id                   String                  @id @default(cuid())
-  stripeCustomerId     String?
-  image                String
-  gallery              String[]
-  role                 UserRole
-  username             String                  @unique
-  firstName            String
-  lastName             String
-  address              Json
-  billingAddress       Json?
-  enterprise           String?
-  homeServiceOnly      Boolean                 @default(false)
-  email                String                  @unique
-  password             String?
-  forgotPassword       String                  @unique @default(uuid())
-  phone                String
-  website              String?
-  nameOfSociety        String?
-  services             Service[]
-  orders               Order[]
-  reviewsWritten       Review[]                @relation("ReviewsWritten")
-  reviewsReceived      Review[]                @relation("ReviewsReceived")
-  cart                 Cart?
-  preferences          Json?
-  preferencesProWeekId String?                 @unique
-  preferencesProWeek   PreferencesProWeek?     @relation(fields: [preferencesProWeekId], references: [id])
-  mark                 Float?
-  forfaitSuscribeFreeAvailible   Boolean?
-  numberOfRate         Int?
-  socialMedia          Json?
-  biography            String?
-  subscription         SubscriptionType?
-  createdAt            DateTime                @default(now())
-  updatedAt            DateTime?               @updatedAt
-  reservations         ReservationServicePro[]
-  clients              Client[]                @relation("ProfessionalClients")
-  clientUsers          Client[]                @relation("ClientUserRelation")
-  notifications Notification[] 
+  id                           String                  @id @default(cuid())
+  stripeCustomerId             String?
+  image                        String
+  gallery                      String[]
+  role                         UserRole
+  username                     String                  @unique
+  firstName                    String
+  lastName                     String
+  address                      Json
+  billingAddress               Json?
+  enterprise                   String?
+  homeServiceOnly              Boolean                 @default(false)
+  email                        String                  @unique
+  password                     String?
+  forgotPassword               String                  @unique @default(uuid())
+  phone                        String
+  website                      String?
+  nameOfSociety                String?
+  services                     Service[]
+  orders                       Order[]
+  reviewsWritten               Review[]                @relation("ReviewsWritten")
+  reviewsReceived              Review[]                @relation("ReviewsReceived")
+  cart                         Cart?
+  preferences                  Json?
+  preferencesProWeekId         String?                 @unique
+  preferencesProWeek           PreferencesProWeek?     @relation(fields: [preferencesProWeekId], references: [id])
+  mark                         Float?
+  forfaitSuscribeFreeAvailible Boolean?
+  numberOfRate                 Int?
+  socialMedia                  Json?
+  biography                    String?
+  subscription                 SubscriptionType?
+  createdAt                    DateTime                @default(now())
+  updatedAt                    DateTime?               @updatedAt
+  reservations                 ReservationServicePro[]
+  clients                      Client[]                @relation("ProfessionalClients")
+  clientUsers                  Client[]                @relation("ClientUserRelation")
+  notifications                Notification[]
 }
 
 model PreferencesProWeek {
@@ -121,25 +121,24 @@ model ReservationServicePro {
   dateOfRdv         String
   createdAt         DateTime @default(now())
   reason            String?
-  hiddenForPro      Boolean   @default(false)
-  hiddenForUser     Boolean   @default(false)
+  hiddenForPro      Boolean  @default(false)
+  hiddenForUser     Boolean  @default(false)
 }
 
-
 model Service {
-  id           String                  @id @default(cuid())
-  title        String
-  description  String
-  category     String
-  price        String
-  domicile     Boolean
-  createdAt    DateTime                @default(now())
-  updatedAt    DateTime?               @updatedAt
-  dureeRDV     String
+  id            String                  @id @default(cuid())
+  title         String
+  description   String
+  category      String
+  price         String
+  domicile      Boolean
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime?               @updatedAt
+  dureeRDV      String
   valueDureeRDV Int?
-  userId       String
-  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservations ReservationServicePro[]
+  userId        String
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations  ReservationServicePro[]
 }
 
 model Post {
@@ -182,7 +181,6 @@ model Formation {
   updatedAt   DateTime? @updatedAt
   idStripe    String    @unique
   product     Product   @relation(fields: [idStripe], references: [stripeId])
-  
 }
 
 model Cart {
@@ -194,14 +192,12 @@ model Cart {
   items     CartItem[]
 }
 
-
-
 model Product {
   stripeId          String             @id @unique
   prodType          ProductType
   post              Post?
   additionalService AdditionalService?
-  formationDates    Json?              
+  formationDates    Json?
   boosterDates      Json?
   formation         Formation[]
   businessBooster   BusinessBooster?
@@ -241,7 +237,7 @@ model BusinessBooster {
   dates       Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  idStripe    String?  @unique
+  idStripe    String   @unique
   product     Product? @relation(fields: [idStripe], references: [stripeId])
   order       Order?   @relation(fields: [orderId], references: [id])
   orderId     String?
@@ -274,7 +270,7 @@ model Review {
   comment        String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  author         User             @relation("ReviewsWritten", fields: [userId], references: [id],  onDelete: Cascade)
+  author         User             @relation("ReviewsWritten", fields: [userId], references: [id], onDelete: Cascade)
   professional   User             @relation("ReviewsReceived", fields: [professionalId], references: [id], onDelete: Cascade)
   responses      ReviewResponse[]
 }
@@ -304,7 +300,6 @@ model Transaction {
   amountIncludingTax Int
   createdAt          DateTime @default(now())
 }
-
 
 model Subscription {
   id          String           @id @default(cuid())
@@ -336,7 +331,6 @@ model Room {
   stock  Int
   postId Int    @unique
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
 }
 
 model Abonnement {
@@ -352,6 +346,7 @@ model Abonnement {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
 model CartItem {
   id        String    @id @default(uuid())
   cart      Cart      @relation(fields: [cartId], references: [id])
@@ -361,24 +356,21 @@ model CartItem {
   quantity  Int       @default(1)
   title     String
   price     Float
-  order     Order?    @relation(fields: [orderId], references: [id]) 
-  orderId   String? 
+  order     Order?    @relation(fields: [orderId], references: [id])
+  orderId   String?
   createdAt DateTime  @default(now())
   updatedAt DateTime?
 }
 
-
 model Order {
   id                 String              @id @default(cuid())
   user               User                @relation(fields: [userId], references: [id])
-  userId             String              
-  reservations       Reservation[]     
-  boosters           BusinessBooster[]   
-  additionalServices AdditionalService[] 
-  cartItems          CartItem[]          
+  userId             String
+  reservations       Reservation[]
+  boosters           BusinessBooster[]
+  additionalServices AdditionalService[]
+  cartItems          CartItem[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime?           @updatedAt
-  sessionId         String               @unique             
+  sessionId          String              @unique
 }
-
-

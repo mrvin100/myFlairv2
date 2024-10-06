@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Body reçu :', body);
 
-    const items = body.item;
+    const items = body.items;
     const userId = body.userId
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Aucun article dans le panier' }, { status: 400 });
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     }));
     console.log('Articles transformés :', transformedItems);
 
-   
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: transformedItems,
@@ -49,8 +49,8 @@ export async function POST(req: Request) {
     console.log('ID de session Stripe créé :', session.id);
 
     const successUrl = `${redirectURL}/success/${session.id}`;
-    
-   
+
+
     await prisma.order.create({
       data: {
         userId: userId,
@@ -60,10 +60,9 @@ export async function POST(req: Request) {
             title: item.title,
             price: item.price,
             quantity: item.quantity,
-            
             cart: { connect: { id: item.cartId } },
             product: { connect: { stripeId: item.product.stripeId } },
-            
+
           })),
         },
       },

@@ -14,9 +14,9 @@ export default async function AdditionalServices() {
     <main className="min-h-screen w-full">
       <div className="p-4 pb-12 max-w-5xl mx-auto space-y-6">
         <div className="flex justify-center items-center">
-          <img style={{ width: "70%" }} src="/logos/Rectangle_21.svg" alt="" />
+          <img style={{ width: "60%" }} src="/logos/myflair-black.png" alt="" />
         </div>
-        <h1 className="text-2xl  text-center">Il ne vous manques rien ?</h1>
+        <h1 className="text-2xl  text-center mt-8">Il ne vous manques rien ?</h1>
         <div className="mt-10 flex flex-col justify-center items-center ">
           {additionalServices.map((additionalService) => (
             <div key={additionalService.id}>

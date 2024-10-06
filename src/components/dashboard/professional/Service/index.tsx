@@ -343,26 +343,4 @@ export default function ServicesTab() {
                           <Badge className="bg-[#EAF7EC] text-[#2DB742] outline-none shadow-none">Service à domicile</Badge>
                         )}
                         <div className="text-right mt-4">
-                          <p className="text-2xl font-bold">{service.price} €</p>
-                          <p className="text-sm text-muted-foreground">Durée : {service.dureeRDV}</p>
-                        </div>
-                        <Link href={`/back-up/servicePage/${service.id}`}>
-                          <Button className="mt-4">Réserver</Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </ul>
-
-          ) : (
-            <p>Aucun service disponible.</p>
-          )}
-        </div>
-      </div>
-      <br />
-      <br />
-    </TabsContent>
-  );
-};
+                      

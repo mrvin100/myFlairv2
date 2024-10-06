@@ -83,6 +83,8 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
   const [isReservationsDialogOpen, setIsReservationsDialogOpen] = useState(false); // New state for the reservations dialog
+  const [updatedClient, setUpdatedClient] = useState<User | null>(null);
+
 
   useEffect(() => {
     if (!user) return;
@@ -91,15 +93,13 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
       try {
         const response = await fetch(`/api/client/get/${user?.id}`);
         const data = await response.json();
-        setClients(data); 
-        console.log("Clients fetched:", data);  
+        setClients(data);
+        console.log("Clients fetched:", data);
       } catch (error) {
         console.error('Error fetching clients:', error);
       }
     }
-
-    fetchClients();  // Appeler la fonction de récupération des clients
-  }, [user]);
+  })
 
   const handleDeleteClient = async (clientId: string) => {
     try {
@@ -128,7 +128,7 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
       const response = await fetch(`/api/client/getReservation/${clientId}`);
       const data = await response.json();
       setReservations(data);
-      setIsReservationsDialogOpen(true); 
+      setIsReservationsDialogOpen(true);
       console.log('Client reservations:', data);
     } catch (error) {
       console.error('Error fetching reservations:', error);
@@ -142,6 +142,27 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
     const matchesStatus = statusFilter === "all" || client.status === statusFilter;
     return matchesSearchTerm && matchesStatus;
   });
+
+  const handleUpdateClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`/api/client/update/${selectedClientId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedClient),
+      });
+      if (response.ok) {
+        fetchClients();
+        setShowDialog(false);
+      } else {
+        console.error('Erreur lors de la mise à jour du client');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la requête de mise à jour :', error);
+    }
+  };
 
   return (
     <div>
@@ -267,8 +288,64 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
                   </DialogHeader>
                   <ScrollArea className="h-[28rem]">
                     <div className="p-4">
-                      <form className="space-y-8">
-                        {/* Form content here */}
+                      <form className="space-y-4" onSubmit={handleUpdateClient}>
+                        <div>
+                          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                            Prénom
+                          </label>
+                          <Input
+                            id="firstName"
+                            name="firstName"
+                            type="text"
+                            defaultValue={updatedClient?.firstName || ""}
+                            onChange={(e) => setUpdatedClient({ ...updatedClient, firstName: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                            Nom
+                          </label>
+                          <Input
+                            id="lastName"
+                            name="lastName"
+                            type="text"
+                            defaultValue={updatedClient.lastName || ""}
+                            onChange={(e) => setUpdatedClient({ ...updatedClient, lastName: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            Email
+                          </label>
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            defaultValue={selectedClient?.clientUser.email || ""}
+                            onChange={(e) => setUpdatedClient({ ...updatedClient, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                            Téléphone
+                          </label>
+                          <Input
+                            id="phone"
+                            name="phone"
+                            type="text"
+                            defaultValue={selectedClient?.clientUser.phone || ""}
+                            onChange={(e) => setUpdatedClient({ ...updatedClient, phone: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="flex justify-end space-x-4">
+                          <Button type="submit" variant="outline">
+                            Mettre à jour
+                          </Button>
+                        </div>
                       </form>
                     </div>
                   </ScrollArea>
