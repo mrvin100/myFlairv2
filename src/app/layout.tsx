@@ -8,7 +8,7 @@ import { auth } from "@/auth";
 
 import { UserContextProvider } from "@/components/providers";
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/custom-toast";
 
 import "@/app/globals.css";
 import { DateProvider } from "@/contexts/dateContext";
