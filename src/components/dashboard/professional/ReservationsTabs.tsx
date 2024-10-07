@@ -1,7 +1,6 @@
 "use client"
 import {
     Calendar,
-    Notifications,
   } from '@/components/dashboard/professional/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Reservations from './Reservations';

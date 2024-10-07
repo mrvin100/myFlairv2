@@ -1,15 +1,35 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import { useUserContext } from "@/contexts/user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Bell, CircleMinus, Plus } from "lucide-react";
 import { TabsContent } from "@/components/ui/tabs";
-import { useContext, useEffect, useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import axios from "axios";
-import { useUserContext } from "@/contexts/user";
+import { Bell, CircleMinus, Plus, AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast, CustomToast } from "@/components/ui/custom-toast"
+
+const daysOfWeek = [
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+  "Dimanche",
+];
 
 const initialAvailabilities = {
   "Tous les jours": [
@@ -50,6 +70,7 @@ export default function AvailabilitiesTab() {
   const [selectedDay, setSelectedDay] = useState("Tous les jours");
   const [availabilities, setAvailabilities] = useState(initialAvailabilities);
   const [availabilitiesPeriods, setAvailabilitiesPeriods] = useState(initialAvailabilitiesPeriods);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { user } = useUserContext();
 
   useEffect(() => {
@@ -65,6 +86,12 @@ export default function AvailabilitiesTab() {
         }
       } catch (error) {
         console.error("Erreur lors du chargement des disponibilités", error);
+        toast.custom((t) => (
+          <CustomToast
+            description="Impossible de charger vos disponibilités. Veuillez réessayer."
+            variant="error"
+          />
+        ));
       }
     };
 
@@ -73,90 +100,71 @@ export default function AvailabilitiesTab() {
     }
   }, [user]);
 
-  const daysOfWeek = [
-    "Lundi",
-    "Mardi",
-    "Mercredi",
-    "Jeudi",
-    "Vendredi",
-    "Samedi",
-    "Dimanche",
-  ];
+  const isDayUnavailable = useCallback((day: string) => {
+    return availabilities[day].length === 1 && availabilities[day][0].from === "indisponible";
+  }, [availabilities]);
 
-  const addAvailability = () => {
-    const newAvailability = { from: "", to: "" };
-    setAvailabilities({
-      ...availabilities,
-      [selectedDay]: [...availabilities[selectedDay], newAvailability],
-    });
-  };
+  const addAvailability = useCallback(() => {
+    setAvailabilities((prev) => ({
+      ...prev,
+      [selectedDay]: isDayUnavailable(selectedDay) ? [{ from: "", to: "" }] : [...prev[selectedDay], { from: "", to: "" }],
+    }));
+    toast.custom((t) => (
+      <CustomToast
+        title="Plage horaire ajoutée"
+        // description="Une nouvelle plage horaire a été ajoutée."
+        variant="info"
+      />
+    ))
+  }, [selectedDay, isDayUnavailable]);
 
-  const addAvailabilityPeriod = () => {
-    const newAvailabilityPeriods = [
-      ...availabilitiesPeriods,
-      { from: "", to: "", timeFrom: "", timeTo: "" },
-    ];
-    setAvailabilitiesPeriods(newAvailabilityPeriods);
-  };
+  const removeAvailability = useCallback((index: number) => {
+    setAvailabilities((prev) => ({
+      ...prev,
+      [selectedDay]: prev[selectedDay].filter((_, i) => i !== index),
+    }));
+    toast.custom((t) => (
+      <CustomToast
+        title="Plage horaire supprimée"
+        // description="La plage horaire a été supprimée."
+        variant="delete"
+      />
+    ))
+  }, [selectedDay]);
 
-  const removeAvailability = (index: number) => {
-    const updatedAvailabilities = availabilities[selectedDay].filter(
-      (_, i) => i !== index
-    );
-    setAvailabilities({
-      ...availabilities,
-      [selectedDay]: updatedAvailabilities,
-    });
-  };
-
-  const removeAvailabilityPeriod = (index: number) => {
-    const updatedAvailabilitiesPeriods = availabilitiesPeriods.filter(
-      (_, i) => i !== index
-    );
-    setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
-  };
-
-  const handleInputChange = (
+  const handleInputChange = useCallback((
     index: number,
     field: "from" | "to",
     value: string
   ) => {
     const formattedValue = formatTime(value);
-    const updatedAvailabilities = availabilities[selectedDay].map((time, i) =>
-      i === index ? { ...time, [field]: formattedValue } : time
-    );
-    setAvailabilities({
-      ...availabilities,
-      [selectedDay]: updatedAvailabilities,
-    });
-  };
+    setAvailabilities((prev) => ({
+      ...prev,
+      [selectedDay]: prev[selectedDay].map((time, i) =>
+        i === index ? { ...time, [field]: formattedValue } : time
+      ),
+    }));
+  }, [selectedDay]);
 
-  const markDayAsUnavailable = () => {
-    const updatedAvailability = { from: "indisponible", to: "indisponible" };
+  const markDayAsUnavailable = useCallback(() => {
     const allDays = selectedDay === "Tous les jours" ? daysOfWeek : [selectedDay];
 
-    allDays.forEach(day => {
-      // Supprime toutes les plages horaires de la journée et marque comme indisponible
-      setAvailabilities(prev => ({
+    allDays.forEach((day) => {
+      setAvailabilities((prev) => ({
         ...prev,
-        [day]: [updatedAvailability],
+        [day]: [{ from: "indisponible", to: "indisponible" }],
       }));
     });
-  };
 
-  const handleInputChangePeriod = (
-    index: number,
-    field: "from" | "to" | "timeFrom" | "timeTo",
-    value: string
-  ) => {
-    const formattedValue =
-      field === "timeFrom" || field === "timeTo" ? formatTime(value) : value;
-    const updatedAvailabilitiesPeriods = availabilitiesPeriods.map(
-      (period, i) =>
-        i === index ? { ...period, [field]: formattedValue } : period
-    );
-    setAvailabilitiesPeriods(updatedAvailabilitiesPeriods);
-  };
+    setIsDialogOpen(false);
+toast.custom((t) => (
+      <CustomToast
+        // title="Jour(s) marqué(s) comme indisponible(s)"
+        description={`${selectedDay === "Tous les jours" ? "Tous les jours ont" : selectedDay + " a"} été marqué(s) comme indisponible(s).`}
+        variant="info"
+      />
+    ))
+  }, [selectedDay]);
 
   const handleSubmit = async () => {
     try {
@@ -165,16 +173,53 @@ export default function AvailabilitiesTab() {
         availabilitiesPeriods,
       });
       if (response.status === 200) {
-        alert("Disponibilités mises à jour avec succès !");
+        toast.custom((t) => (
+          <CustomToast
+            title="Disponibilités mises à jour"
+            // description="Vos disponibilités ont été mises à jour avec succès."
+            variant="success"
+          />
+        ))
       }
-    } catch (error) {
+      }catch (error) {
       console.error("Erreur lors de la mise à jour des disponibilités", error);
+      toast.custom((t) => (
+        <CustomToast
+          // title="Erreur"
+          description="Impossible de mettre à jour vos disponibilités. Veuillez réessayer."
+          variant="error"
+        />
+      ))
     }
   };
 
+  const addAvailabilityPeriod = useCallback(() => {
+    setAvailabilitiesPeriods((prev) => [
+      ...prev,
+      { from: "", to: "", timeFrom: "", timeTo: "" },
+    ]);
+  }, []);
+
+  const removeAvailabilityPeriod = useCallback((index: number) => {
+    setAvailabilitiesPeriods((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleInputChangePeriod = useCallback((
+    index: number,
+    field: "from" | "to" | "timeFrom" | "timeTo",
+    value: string
+  ) => {
+    const formattedValue = field === "timeFrom" || field === "timeTo" ? formatTime(value) : value;
+    setAvailabilitiesPeriods((prev) =>
+      prev.map((period, i) =>
+        i === index ? { ...period, [field]: formattedValue } : period
+      )
+    );
+  }, []);
+
   return (
     <TabsContent value="availabilities" className="space-y-4">
-      <div className="container mx-auto p-4 space-y-8">
+      <div className="mx-auto p-4 px-8 space-y-8">
         <h2 className="text-2xl font-normal tracking-tight">Disponibilité</h2>
         <section>
           <h3 className="text-xl font-normal">Horaire d'ouverture</h3>
@@ -185,9 +230,7 @@ export default function AvailabilitiesTab() {
           <div className="flex flex-wrap gap-2 mb-4">
             <Button
               onClick={() => setSelectedDay("Tous les jours")}
-              variant={
-                selectedDay === "Tous les jours" ? "default" : "secondary"
-              }
+              variant={selectedDay === "Tous les jours" ? "default" : "secondary"}
             >
               Tous les jours
             </Button>
@@ -203,68 +246,96 @@ export default function AvailabilitiesTab() {
           </div>
           <h4 className="text-lg font-normal mb-4">{selectedDay}</h4>
           <div className="space-y-4">
-            {availabilities[selectedDay].length > 0 ? (
+            {isDayUnavailable(selectedDay) ? (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-red-500">
+                    <AlertTriangle className="mr-2" />
+                    Journée indisponible
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Cette journée a été marquée comme indisponible.</p>
+                </CardContent>
+              </Card>
+            ) : availabilities[selectedDay].length > 0 ? (
               availabilities[selectedDay].map((time, index) => (
                 <div
                   key={index}
                   className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end"
                 >
-                  {time.from === "indisponible" ? (
-                    <div className="text-red-500 font-bold">Journée indisponible</div>
-                  ) : (
-                    <>
-                      <div>
-                        <Label htmlFor={`from-${index}`}>De</Label>
-                        <Input
-                          id={`from-${index}`}
-                          value={time.from}
-                          onChange={(e) =>
-                            handleInputChange(index, "from", e.target.value)
-                          }
-                          maxLength={5}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`to-${index}`}>à</Label>
-                        <Input
-                          id={`to-${index}`}
-                          value={time.to}
-                          onChange={(e) =>
-                            handleInputChange(index, "to", e.target.value)
-                          }
-                          maxLength={5}
-                        />
-                      </div>
-                      <Button
-                        variant="ghost"
-                        className="p-2 h-10 w-10"
-                        onClick={() => removeAvailability(index)}
-                      >
-                        <CircleMinus className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </>
-                  )}
+                  <div>
+                    <Label htmlFor={`from-${index}`}>De</Label>
+                    <Input
+                      id={`from-${index}`}
+                      value={time.from}
+                      onChange={(e) =>
+                        handleInputChange(index, "from", e.target.value)
+                      }
+                      maxLength={5}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`to-${index}`}>à</Label>
+                    <Input
+                      id={`to-${index}`}
+                      value={time.to}
+                      onChange={(e) =>
+                        handleInputChange(index, "to", e.target.value)
+                      }
+                      maxLength={5}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="p-2 h-10 w-10"
+                    onClick={() => removeAvailability(index)}
+                  >
+                    <CircleMinus className="h-4 w-4 text-red-500" />
+                  </Button>
                 </div>
               ))
             ) : (
-              <div>
-                <Alert className="text-center">
-                  <Bell className="h-6 w-6 text-muted" />
-                  <AlertTitle className="ml-4 mb-2">Oups!</AlertTitle>
-                  <AlertDescription className="ml-4">
-                    Veuillez Configurer vos plages horaires.
-                  </AlertDescription>
-                </Alert>
-              </div>
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Bell className="mr-2" />
+                    Aucune plage horaire configurée
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Veuillez configurer vos plages horaires pour cette journée.</p>
+                </CardContent>
+              </Card>
             )}
           </div>
           <div className="flex justify-between mt-8">
             <Button variant="outline" onClick={addAvailability}>
               Ajouter une plage horaire
             </Button>
-            <Button variant="destructive" onClick={markDayAsUnavailable}>
-              Rendre Indisponible
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" disabled={isDayUnavailable(selectedDay)}>
+                  Rendre Indisponible
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirmation</DialogTitle>
+                  <DialogDescription>
+                    Êtes-vous sûr de vouloir rendre {selectedDay === "Tous les jours" ? "tous les jours" : "ce jour"} indisponible(s) ?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button variant="default" onClick={markDayAsUnavailable}>
+                    Confirmer
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </section>
         <section>
@@ -273,7 +344,7 @@ export default function AvailabilitiesTab() {
           {availabilitiesPeriods.map((period, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end"
+              className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end mb-4"
             >
               <div>
                 <Label htmlFor={`period-from-${index}`}>De</Label>
@@ -326,12 +397,16 @@ export default function AvailabilitiesTab() {
               </Button>
             </div>
           ))}
-          <Button variant="link" className="mt-4" onClick={addAvailabilityPeriod}>
+          <Button
+            variant="link"
+            className="mt-4"
+            onClick={addAvailabilityPeriod}
+          >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter une période de d'indisponibilité
+            Ajouter une période de disponibilité
           </Button>
         </section>
-        <Button variant="primary" className="mt-4" onClick={handleSubmit}>
+        <Button variant="default" className="mt-4" onClick={handleSubmit}>
           Sauvegarder
         </Button>
       </div>
