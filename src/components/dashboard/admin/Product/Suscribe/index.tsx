@@ -234,6 +234,8 @@ export default function SuscribeTab() {
                       handleAbonnementChange("nbrEssaisGratuit", e.target.value)
                     }
                   />
+                  <br />
+                  <label>Période</label>
                   <Select
                     onValueChange={(value) =>
                       handleAbonnementChange("period", value)
@@ -252,19 +254,10 @@ export default function SuscribeTab() {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                  <br />
+               
                   <label className="mt-4">Points forts</label>
-                  <div className="flex mt-4">
-                    <Input
-                      className="flex-1"
-                      type="text"
-                      placeholder="Ajouter un point fort"
-                      value={newFunction}
-                      onChange={(e) => handleFunctionChange(e.target.value)}
-                    />
-                    <Button className="ml-2" onClick={addFunction}>
-                      Ajouter
-                    </Button>
-                  </div>
+                 
                   <div className="mt-4">
                     {createSuscribe.functions.map((func, index) => (
                       <div
@@ -277,10 +270,22 @@ export default function SuscribeTab() {
                           size="sm"
                           onClick={() => removeFunction(index)}
                         >
-                          <TrashIcon className="mr-2" /> Supprimer
+                          <TrashIcon className="mr-2" />
                         </Button>
                       </div>
                     ))}
+                  </div>
+                  <div className="flex mt-4">
+                    <Input
+                      className="flex-1"
+                      type="text"
+                      placeholder="Ajouter un point fort"
+                      value={newFunction}
+                      onChange={(e) => handleFunctionChange(e.target.value)}
+                    />
+                    <Button className="ml-2" onClick={addFunction}>
+                      Ajouter
+                    </Button>
                   </div>
                   <Button onClick={handleCreateAbonnement} className="mt-4">
                     Ajouter

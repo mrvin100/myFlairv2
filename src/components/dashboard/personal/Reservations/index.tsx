@@ -161,33 +161,7 @@ export default function Reservations() {
   const { user } = useUserContext();
   const [reservations, setReservations] = useState<ReservationType[]>(initialReservations);
 
-  useEffect(() => {
-    async function fetchReservations() {
-      try {
-        const response = await fetch(`/api/dashboardPro/reservationAll/${user?.id}`);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          const updatedReservations = data.map((reservation: ReservationType) => ({
-            ...reservation,
-            status: getReservationStatus(reservation.dateOfRdv),
-          }));
-          setReservations(updatedReservations);
-        } else {
-          console.error("Data is not an array", data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch reservations:", error);
-      }
-    }
-
-    if (user?.id) {
-      fetchReservations();
-    }
-  }, [user?.id]);
-
+  
   return (
     <TabsContent value="reservations" className="space-y-4">
       <div className=" h-full flex-1 flex-col space-y-8 p-8 md:flex">

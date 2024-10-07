@@ -15,7 +15,7 @@ import {
 } from './Cards';
 
 import { SubmitButton } from '@/components/button';
-import { Calendar } from '@/components/calendar';
+import { CalendarBusinessBooster } from "@/components/calendarBusinessBooster";
 import { error, success } from '@/components/toast';
 
 import { TabsContent } from '@/components/ui/tabs';
@@ -59,7 +59,7 @@ export default function Overview() {
         <h2 className="text-2xl font-bold tracking-tight">Aperçu</h2>
         <div className="flex items-center space-x-2">
           <div className="grid gap-2">
-            <Calendar dateRange={dateRange} setDateRange={setDateRange} />
+            <CalendarBusinessBooster dateRange={dateRange} setDateRange={setDateRange} />
           </div>
           <SubmitButton pending={loading} onClick={onSubmit}>
             Mettre à jour

@@ -44,6 +44,7 @@ export default function BusinessBoostersTab() {
     from: new Date(),
     to: addDays(new Date(), 30),
   });
+  const [description, setDescription] = useState("");
   const [dates, setDates] = useState<any[]>([]);
 
   const form = useForm<BusinessBoosterFormValues>({
@@ -118,6 +119,9 @@ export default function BusinessBoostersTab() {
       );
       data.dates = generatedDates;
     }
+
+    // Ajoutez la description formatée au form data
+    data.description = description;
 
     try {
       const response = await fetch("/api/businessBoosters/create", {
@@ -235,6 +239,23 @@ export default function BusinessBoostersTab() {
                                     className=""
                                     placeholder="Prix"
                                     type="number"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                         <br />
+                          <label>Description</label>
+                          <FormField
+                            control={form.control}
+                            name="description"
+                            render={() => (
+                              <FormItem>
+                                <FormControl>
+                                  <ReactQuill
+                                    value={description}
+                                    onChange={setDescription}
+                                    placeholder="Description du business booster"
                                   />
                                 </FormControl>
                               </FormItem>

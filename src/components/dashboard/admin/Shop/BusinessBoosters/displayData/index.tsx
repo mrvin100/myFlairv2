@@ -23,8 +23,7 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { fr } from 'date-fns/locale'; 
-
+import { fr } from "date-fns/locale";
 
 interface BusinessBooster {
   id: string;
@@ -101,7 +100,6 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
         date: parseISO(date),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
-    if (sortedDates.length === 0) return 'Aucune date disponible';
 
     const startDate = format(sortedDates[0].date, 'dd MMMM yyyy', { locale: fr });
     const endDate = format(sortedDates[sortedDates.length - 1].date, 'dd MMMM yyyy', { locale: fr });
@@ -126,7 +124,7 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
         <TableBody>
           {businessBoosters.map((booster, index) => (
             <TableRow key={booster.id}>
-              <TableCell>n° {index + 1}</TableCell> {/* Display sequential number */}
+              <TableCell>n° {index + 1}</TableCell>
               <TableCell>{booster.title}</TableCell>
               <TableCell>
                 <img

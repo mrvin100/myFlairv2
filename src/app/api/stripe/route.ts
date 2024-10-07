@@ -1,20 +1,22 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-
-
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-
 
 export async function POST(req: Request) {
   try {
+    // Lire et loguer le corps de la requête
     const body = await req.json();
     console.log('Body reçu :', body);
 
-    const items = body.items;
-    const userId = body.userId
+    const items = body.item;
+    const userId = body.userId;
+
+    console.log('Body reçu :', body);
+
+    // Vérifier si les articles sont valides
     if (!Array.isArray(items) || items.length === 0) {
+      console.warn('Aucun article dans le panier pour l’utilisateur:', userId);
       return NextResponse.json({ error: 'Aucun article dans le panier' }, { status: 400 });
     }
 
@@ -37,7 +39,7 @@ export async function POST(req: Request) {
     }));
     console.log('Articles transformés :', transformedItems);
 
-
+    // Créer une session Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: transformedItems,
@@ -50,8 +52,8 @@ export async function POST(req: Request) {
 
     const successUrl = `${redirectURL}/success/${session.id}`;
 
-
-    await prisma.order.create({
+    // Enregistrer la commande dans la base de données
+    const order = await prisma.order.create({
       data: {
         userId: userId,
         sessionId: session.id,
@@ -62,13 +64,13 @@ export async function POST(req: Request) {
             quantity: item.quantity,
             cart: { connect: { id: item.cartId } },
             product: { connect: { stripeId: item.product.stripeId } },
-
           })),
         },
       },
     });
 
-    return NextResponse.json({ id: session.id, successUrl })
+    console.log('Commande enregistrée avec succès:', order);
+    return NextResponse.json({ id: session.id, successUrl });
   } catch (error) {
     console.error('Erreur lors de la création de la session Stripe :', error);
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });

@@ -114,9 +114,9 @@ const DisplayFormations = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {formations.map((formation) => (
+            {formations.map((formation, index) => (
               <TableRow key={formation.id}>
-                <TableCell>n° {formation.id}</TableCell>
+                <TableCell>n° {index+1}</TableCell>
                 <TableCell>{formation.title}</TableCell>
                 <TableCell>{formatDates(formation.dates)}</TableCell>
                 <TableCell>

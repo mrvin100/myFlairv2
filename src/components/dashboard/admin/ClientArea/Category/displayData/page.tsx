@@ -73,9 +73,9 @@ const DisplayCategory = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <TableRow key={category.id}>
-              <TableCell>{category.id}</TableCell>
+              <TableCell>{index + 1}</TableCell>
               <TableCell>{category.title}</TableCell>
               <TableCell>
                 <img src={category.imageMinia} alt={category.title} style={{ width: '100px', height: 'auto' }} />

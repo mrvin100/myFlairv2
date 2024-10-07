@@ -338,7 +338,6 @@ model Abonnement {
   title            String
   price            Int
   nbrEssaisGratuit Int
-  freePeriod       Int
   period           String
   functions        Json
   stripeProductId  String?

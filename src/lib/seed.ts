@@ -76,8 +76,8 @@ async function createUser() {
       gallery: [],
 
 
-      role: UserRole.PROFESSIONAL,
-      username: 'demo-pro2',
+      role: UserRole.PERSONAL,
+      username: 'demo-parti',
       firstName: 'demo',
       lastName: 'pro',
       address: {
@@ -89,8 +89,8 @@ async function createUser() {
       },
       enterprise: 'Coupe Tif',
       homeServiceOnly: false,
-      email: 'demo-pro2@myflair.fr',
-      password: hash('demo-pro2'),
+      email: 'demo-pro21@myflair.fr',
+      password: hash('demo-pro'),
       phone: '+33123456789',
       website: '',
       preferences: {

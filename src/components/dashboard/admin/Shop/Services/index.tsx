@@ -105,9 +105,7 @@ const AddService = () => {
       });
       if (response.status === 200) {
         toast.success('Service ajouté avec succès');
-        setTimeout(() => {
-          router.push('/dashboard/professional');
-        }, 2000);
+       
       } else {
         toast.error('Erreur lors de l\'ajout du service');
         console.log('Error adding service:', response.data);

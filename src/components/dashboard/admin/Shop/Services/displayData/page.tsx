@@ -94,10 +94,10 @@ const DisplayServices = () => {
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
-          {services.map((service) => (
+          {services.map((service, index) => (
             <TableBody key={service.id}>
               <TableRow>
-                <TableCell>n° {service.id}</TableCell>
+                <TableCell>n° {index + 1}</TableCell>
                 <TableCell>{service.title}</TableCell>
                 <TableCell>
                   <img

@@ -261,7 +261,7 @@ export default function Publication() {
                             )},</span>
                             <span style={{ color: "#CECECE", marginLeft: '5px' }}>{publication.pays}</span>
                         </div>
-                        <div className='flex items-center' style={{ color: '#CECECE', marginTop: '3%', marginRight: '2px' }}><StarFilled style={{ color: '#F7F74A', fontSize: '24px', marginRight: '5px' }} /> {publication.starRating}/5</div>
+                        <div className='flex items-center' style={{ color: '#CECECE', marginTop: '3%', marginRight: '2px' }}><StarFilled style={{ color: '#F7F74A', fontSize: '24px', marginRight: '5px' }} /> 3/5</div>
                     </div>
                     <br />
                     <div className='flex justify-between'>
