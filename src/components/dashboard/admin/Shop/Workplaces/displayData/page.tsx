@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ReactQuill from "react-quill";
 import axios from "axios";
-import { CircleMinus, Edit } from "lucide-react";
+import { CircleMinus, Edit, Trash, Trash2 } from "lucide-react";
 
 interface Workplace {
   id: number;
@@ -38,7 +38,8 @@ interface Workplace {
 
 const DisplayWorkPlace = () => {
   const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
-  const [showDialog, setShowDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedWorkplace, setSelectedWorkplace] = useState<Workplace | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -46,7 +47,10 @@ const DisplayWorkPlace = () => {
   useEffect(() => {
     fetch(`${window.location.origin}/api/post/get`, { method: 'GET' })
       .then(response => response.json())
-      .then((data: Workplace[]) => setWorkplaces(data))
+      .then((data: Workplace[]) => {
+        setWorkplaces(data);
+        console.log(data);
+      })
       .catch(error => console.error('Error fetching workplace', error));
   }, []);
 
@@ -55,7 +59,7 @@ const DisplayWorkPlace = () => {
     handlePostChange('image', '');
   };
 
-  const updatePost = async (workPlaceId, postData) => {
+  const updatePost = async (workPlaceId: number, postData: Workplace) => {
     const response = await fetch(`/api/post/edit/${workPlaceId}`, {
       method: 'PUT',
       headers: {
@@ -85,8 +89,8 @@ const DisplayWorkPlace = () => {
     formData.append('upload_preset', uploadPreset);
 
     try {
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      const response = await axios.post(`
+        https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         formData
       );
       return response.data.secure_url;
@@ -156,7 +160,7 @@ const DisplayWorkPlace = () => {
     if (selectedWorkplace) {
       try {
         await updatePost(selectedWorkplace.id, selectedWorkplace);
-        setShowDialog(false);
+        setShowEditDialog(false);
       } catch (error) {
         console.error('Erreur lors de la mise à jour du poste:', error);
       }
@@ -165,16 +169,14 @@ const DisplayWorkPlace = () => {
 
   const handleEditClick = (workplace: Workplace) => {
     setSelectedWorkplace(workplace);
-    setShowDialog(true);
+    setShowEditDialog(true);
   };
 
-  const handleDeleteCurrentImage = () => {
-    setSelectedWorkplace((prev) => ({
-      ...prev!,
-      image: null,
-    }));
+  const handleDeleteClick = (workplace: Workplace) => {
+    setSelectedWorkplace(workplace);
+    setShowDeleteDialog(true);
   };
-  
+
   return (
 <div>
   <Table>
@@ -212,7 +214,7 @@ const DisplayWorkPlace = () => {
                     onClick={() => handleEditClick(workplace)}
                   />
                 </AlertDialogTrigger>
-                {showDialog && selectedWorkplace && (
+                {showEditDialog && selectedWorkplace && (
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Modifier le poste de travail</AlertDialogTitle>
@@ -242,7 +244,6 @@ const DisplayWorkPlace = () => {
                       <div>
                         <label>Heures d'ouverture en semaine</label><br />
                         <div className="flex space-x-2 items-center">
-                          {/* Gestion des heures d'ouverture en semaine */}
                           <Input
                             className="text-lg rounded outline-none"
                             type="number"
@@ -379,90 +380,71 @@ const DisplayWorkPlace = () => {
                           accept="image/jpeg, image/png, image/jpg, image/svg, image/webp"
                           style={{ display: "none" }}
                           onChange={handleFileInputChange}
-                        />
-
-                        {/* Affichage de l'image actuelle en dessous de la zone de drag and drop */}
-                        {selectedWorkplace?.image && (
-                          <div style={{ marginBottom: "20px" }}>
-                            <img
-                              src={selectedWorkplace.image}
-                              alt={selectedWorkplace.alt || selectedWorkplace.title}
-                              style={{
-                                width: "100px",
-                                height: "auto",
-                                borderRadius: "5px",
-                              }}
-                            />
-                            <div
-                              style={{
-                                cursor: "pointer",
-                                color: "red",
-                                marginTop: "5px",
-                                textAlign: "center",
-                              }}
-                              onClick={() => handleDeleteCurrentImage()} // Fonction pour supprimer l'image actuelle
+            />
+                     {selectedWorkplace?.image && (
+                        <div style={{ position: "relative", marginBottom: "20px", display: "inline-block" }}> 
+                          <img
+                            src={selectedWorkplace.image}
+                            alt={selectedWorkplace.alt || selectedWorkplace.title}
+                            style={{
+                              width: "100px",
+                              height: "auto",
+                              borderRadius: "5px",
+                            }}
+                          />
+                          <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
+                            <button
+                              className="rounded-full"
+                              style={{ padding: '5px', background: 'red' }}
+                              onClick={() => handleDeleteImage()}  // Utilisation de votre fonction pour supprimer l'image
                             >
-                              Supprimer l'image
-                            </div>
+                              <Trash2 style={{color:"#fff"}} />
+                            </button>
                           </div>
-                        )}
-
-                        {selectedWorkplace?.image?.length > 0 && (
-                          <div>
-                            <h3 className="my-4">Sélectionner une image par défaut</h3>
-                            <div className="flex flex-wrap">
-                              {selectedWorkplace.image.map((imageUrl, index) => (
-                                <div
-                                  key={index}
-                                  style={{
-                                    position: "relative",
-                                    display: "inline-block",
-                                    marginRight: "10px",
-                                  }}
-                                >
-                                  <img
-                                    src={imageUrl}
-                                    alt={`Image ${index + 1}`}
-                                    style={{
-                                      width: "100px",
-                                      height: "auto",
-                                      marginBottom: "5px",
-                                    }}
-                                    className="rounded-lg"
-                                  />
-                                  <div
-                                    style={{
-                                      position: "absolute",
-                                      top: "5px",
-                                      right: "5px",
-                                      cursor: "pointer",
-                                    }}
-                                    onClick={() => handleDeleteImage(index)}
-                                  >
-                                    <CircleMinus size={24} color="red" />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
+                        </div>
+                      )}
                     </div>
                     <AlertDialogFooter>
-                      <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
+                      <AlertDialogCancel onClick={() => setShowEditDialog(false)}>Annuler</AlertDialogCancel>
                       <AlertDialogAction onClick={handleSaveChanges}>Valider</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 )}
               </AlertDialog>
-              <button onClick={() => handleDelete(workplace.id)}>Supprimer</button>
-            </div>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</div>
+              
+              <div style={{ marginLeft: '20px' }}>
+                <Trash2 onClick={() => handleDeleteClick(workplace)} />
+                {showDeleteDialog && selectedWorkplace?.id === workplace.id && (
+                  <AlertDialog>
+                    <AlertDialogContent key={workplace.id}>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Voulez-vous vraiment supprimer ce Poste ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Cette action est irréversible, voulez-vous vraiment le supprimer ?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            handleDelete(workplace.id);  
+                            setShowDeleteDialog(false);  
+                          }}
+                        >
+                          Valider
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+                </div>
+                </TableCell>
+                </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

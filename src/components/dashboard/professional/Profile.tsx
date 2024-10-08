@@ -74,8 +74,7 @@ export default function ProfileTab() {
     event.preventDefault();
   
     if (!userActual) return;
-  
-    // Regrouper toutes les données dans updateData
+
     const updateData = {
       gallery: userActual.gallery, 
       enterprise: userActual.enterprise, 
@@ -494,9 +493,9 @@ export default function ProfileTab() {
 
         </div>
         <div className="flex justify-end">
-          <SubmitButton pending={false} onClick={() => handleSubmit}>
+          <Button onClick={() => handleSubmit}>
             Mettre a jour
-          </SubmitButton>
+          </Button>
         </div>
       </div>
     </TabsContent>

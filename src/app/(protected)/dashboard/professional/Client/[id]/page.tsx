@@ -61,7 +61,6 @@ const AjouterUneReservation = () => {
     fetchClient();
   }, [id]);
 
-
   useEffect(() => {
     async function fetchServices() {
       if (!client?.proId) return;
@@ -75,14 +74,12 @@ const AjouterUneReservation = () => {
 
         const data = await response.json();
 
-        console.log('Réponse API des services :', data);
-
-
-        if (!data || !Array.isArray(data.services)) {
+        // Vérifiez si 'data' est un tableau directement
+        if (!Array.isArray(data)) {
           throw new Error('La réponse API ne contient pas un tableau de services valide');
         }
 
-        const services = data.services;
+        const services = data; // Utilisez directement 'data'
 
         const groupedServices = services.reduce((acc: any, service: Service) => {
           acc[service.category] = acc[service.category] || [];
@@ -99,7 +96,6 @@ const AjouterUneReservation = () => {
 
     fetchServices();
   }, [client]);
-
 
   if (loading) {
     return (
@@ -127,8 +123,7 @@ const AjouterUneReservation = () => {
                 <div
                   className={`${client?.status === "boutique"
                     ? "text-[#4C40ED] bg-[#F7F7FF]"
-                    : "text-[#FFA500] bg-[#FFF4E5]"
-                    } py-2 px-3 rounded-md text-[.7rem]`}
+                    : "text-[#FFA500] bg-[#FFF4E5]"} py-2 px-3 rounded-md text-[.7rem]`}
                 >
                   {client?.status === "boutique" ? "Client Boutique" : "Client Flair"}
                 </div>
@@ -160,7 +155,7 @@ const AjouterUneReservation = () => {
               <Badge variant="secondary" className="mb-4">Catégorie : {category}</Badge>
 
               {filteredServices[category].map((service, index) => (
-                <Card key={index} className="mb-4">
+                <Card key={service.id} className="mb-4"> {/* Utilisez service.id pour la clé */}
                   <CardContent className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -170,7 +165,7 @@ const AjouterUneReservation = () => {
                       </div>
                       <div className="flex flex-col items-end justify-between">
                         {service.domicile && (
-                          <Badge variant="outline" className={`bg-${service.domicile ? 'green' : 'red'}-100 text-green-800`}>
+                          <Badge className={`bg-[#EAF8ED] shadow-none  text-[#2DB742]`}>
                             Service à domicile
                           </Badge>
                         )}
@@ -186,8 +181,6 @@ const AjouterUneReservation = () => {
                   </CardContent>
                 </Card>
               ))}
-
-
             </div>
           ))}
         </section>
