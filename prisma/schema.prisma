@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,37 +8,6 @@ datasource db {
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
-// Énumérations
-enum SubscriptionArgumentType {
-  NEGATIVE
-  POSITIVE
-}
-
-enum SubscriptionType {
-  MONTHLY
-  YEARLY
-}
-
-enum ReservationStatus {
-  CANCELED
-  PENDING
-  DONE
-}
-
-enum UserRole {
-  PERSONAL
-  PROFESSIONAL
-  ADMINISTRATOR
-}
-
-enum ProductType {
-  POST
-  ADDITIONAL_SERVICE
-  FORMATION
-  BUSINESS_BOOSTER
-}
-
-// Modèles
 model User {
   id                           String                  @id @default(cuid())
   stripeCustomerId             String?
@@ -52,7 +18,6 @@ model User {
   firstName                    String
   lastName                     String
   address                      Json
-  billingAddress               Json?
   enterprise                   String?
   homeServiceOnly              Boolean                 @default(false)
   email                        String                  @unique
@@ -60,69 +25,70 @@ model User {
   forgotPassword               String                  @unique @default(uuid())
   phone                        String
   website                      String?
-  nameOfSociety                String?
-  services                     Service[]
-  orders                       Order[]
-  reviewsWritten               Review[]                @relation("ReviewsWritten")
-  reviewsReceived              Review[]                @relation("ReviewsReceived")
-  cart                         Cart?
   preferences                  Json?
-  preferencesProWeekId         String?                 @unique
-  preferencesProWeek           PreferencesProWeek?     @relation(fields: [preferencesProWeekId], references: [id])
-  mark                         Float?
-  forfaitSuscribeFreeAvailible Boolean?
-  numberOfRate                 Int?
-  socialMedia                  Json?
-  biography                    String?
   subscription                 SubscriptionType?
   createdAt                    DateTime                @default(now())
   updatedAt                    DateTime?               @updatedAt
-  reservations                 ReservationServicePro[]
-  clients                      Client[]                @relation("ProfessionalClients")
+  biography                    String?
+  mark                         Float?
+  numberOfRate                 Int?
+  socialMedia                  Json?
+  billingAddress               Json?
+  nameOfSociety                String?
+  preferencesProWeekId         String?                 @unique
+  forfaitSuscribeFreeAvailible Boolean?
+  cart                         Cart?
   clientUsers                  Client[]                @relation("ClientUserRelation")
+  clients                      Client[]                @relation("ProfessionalClients")
   notifications                Notification[]
+  orders                       Order[]
+  reservations                 ReservationServicePro[]
+  reviewsReceived              Review[]                @relation("ReviewsReceived")
+  reviewsWritten               Review[]                @relation("ReviewsWritten")
+  services                     Service[]
+  preferencesProWeek           PreferencesProWeek?     @relation(fields: [preferencesProWeekId], references: [id])
 }
 
 model PreferencesProWeek {
   id                    String @id @default(cuid())
   availabilities        Json?
   availabilitiesPeriods Json?
-  user                  User?  @relation
+  user                  User?
 }
 
 model Client {
   id           String                  @id @default(cuid())
   proId        String
-  clientId     String
   status       String?
-  user         User                    @relation("ProfessionalClients", fields: [userId], references: [id], onDelete: Cascade)
+  clientId     String
   userId       String
   clientUser   User                    @relation("ClientUserRelation", fields: [clientId], references: [id])
+  user         User                    @relation("ProfessionalClients", fields: [userId], references: [id], onDelete: Cascade)
   reservations ReservationServicePro[]
 }
 
 model ReservationServicePro {
   id                String   @id @default(cuid())
-  date              String
-  time              String
   address           String?
   city              String?
   postalCode        String?
   addressComplement String?
   note              String?
-  status            String?
-  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId         String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String
-  client            Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId          String?
-  clientIdTest      String
+  time              String
+  date              String
   dateOfRdv         String
+  clientId          String?
   createdAt         DateTime @default(now())
+  status            String?
+  clientIdTest      String
   reason            String?
   hiddenForPro      Boolean  @default(false)
   hiddenForUser     Boolean  @default(false)
+  client            Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Service {
@@ -135,10 +101,10 @@ model Service {
   createdAt     DateTime                @default(now())
   updatedAt     DateTime?               @updatedAt
   dureeRDV      String
-  valueDureeRDV Int?
   userId        String
-  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  valueDureeRDV Int?
   reservations  ReservationServicePro[]
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Post {
@@ -154,7 +120,6 @@ model Post {
   durationSaturdayStartMinute Int
   durationSaturdayEndHour     Int
   durationSaturdayEndMinute   Int
-  price                       Int      @default(0)
   weekPrice                   String
   saturdayPrice               String
   stock                       Int
@@ -163,6 +128,7 @@ model Post {
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
   idStripe                    String   @unique
+  price                       Int      @default(0)
   product                     Product  @relation(fields: [idStripe], references: [stripeId])
   room                        Room?
 }
@@ -175,33 +141,33 @@ model Formation {
   description String
   price       Float
   quantity    Int
-  dates       Json
-  deposit     Float
   createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
   idStripe    String    @unique
+  deposit     Float
+  dates       Json
   product     Product   @relation(fields: [idStripe], references: [stripeId])
 }
 
 model Cart {
   id        String     @id @default(uuid())
-  user      User       @relation(fields: [userId], references: [id])
   userId    String     @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime?  @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
   items     CartItem[]
 }
 
 model Product {
   stripeId          String             @id @unique
   prodType          ProductType
-  post              Post?
-  additionalService AdditionalService?
-  formationDates    Json?
   boosterDates      Json?
-  formation         Formation[]
+  formationDates    Json?
+  additionalService AdditionalService?
   businessBooster   BusinessBooster?
   cartItems         CartItem[]
+  formation         Formation?
+  post              Post?
 }
 
 model AdditionalService {
@@ -217,9 +183,9 @@ model AdditionalService {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   idStripe    String   @unique
+  orderId     String?
   product     Product  @relation(fields: [idStripe], references: [stripeId])
   order       Order?   @relation(fields: [orderId], references: [id])
-  orderId     String?
 }
 
 model Test {
@@ -234,44 +200,44 @@ model BusinessBooster {
   description String
   quantity    Int
   price       Float
-  dates       Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   idStripe    String   @unique
-  product     Product? @relation(fields: [idStripe], references: [stripeId])
-  order       Order?   @relation(fields: [orderId], references: [id])
   orderId     String?
+  dates       Json
+  product     Product  @relation(fields: [idStripe], references: [stripeId])
+  order       Order?   @relation(fields: [orderId], references: [id])
 }
 
 model Reservation {
   id             String            @id @default(cuid())
   personalId     String?
   professionalId String?
-  userId         String
-  postId         Int
-  roomId         String?
   status         ReservationStatus
   reason         String?
   price          Float
   date           DateTime
   createdAt      DateTime          @default(now())
   updatedAt      DateTime?         @updatedAt
-  order          Order?            @relation(fields: [orderId], references: [id])
+  postId         Int
+  roomId         String?
+  userId         String
   orderId        String?
+  order          Order?            @relation(fields: [orderId], references: [id])
 }
 
 model Review {
   id             String           @id @default(uuid())
   userId         String
-  status         String
-  professionalId String
   rating         Int
-  archived       Boolean?
-  comment        String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  author         User             @relation("ReviewsWritten", fields: [userId], references: [id], onDelete: Cascade)
+  comment        String?
+  professionalId String
+  status         String
+  archived       Boolean?
   professional   User             @relation("ReviewsReceived", fields: [professionalId], references: [id], onDelete: Cascade)
+  author         User             @relation("ReviewsWritten", fields: [userId], references: [id], onDelete: Cascade)
   responses      ReviewResponse[]
 }
 
@@ -281,8 +247,7 @@ model ReviewResponse {
   response  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -313,12 +278,12 @@ model Subscription {
 }
 
 model Category {
-  id         String    @id @default(cuid())
   title      String
-  imageLogo  String
-  imageMinia String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime? @updatedAt
+  imageLogo  String
+  imageMinia String
+  id         String    @id @default(cuid())
 }
 
 model Try {
@@ -326,10 +291,10 @@ model Try {
 }
 
 model Room {
-  id     Int    @id @default(autoincrement())
   name   String
-  stock  Int
   postId Int    @unique
+  stock  Int
+  id     Int    @id @default(autoincrement())
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
@@ -339,37 +304,66 @@ model Abonnement {
   price            Int
   nbrEssaisGratuit Int
   period           String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
   functions        Json
   stripeProductId  String?
   stripePriceId    String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
 }
 
 model CartItem {
   id        String    @id @default(uuid())
-  cart      Cart      @relation(fields: [cartId], references: [id])
   cartId    String
-  product   Product   @relation(fields: [productId], references: [stripeId])
   productId String
   quantity  Int       @default(1)
   title     String
   price     Float
-  order     Order?    @relation(fields: [orderId], references: [id])
-  orderId   String?
   createdAt DateTime  @default(now())
   updatedAt DateTime?
+  orderId   String?
+  cart      Cart      @relation(fields: [cartId], references: [id])
+  order     Order?    @relation(fields: [orderId], references: [id])
+  product   Product   @relation(fields: [productId], references: [stripeId])
 }
 
 model Order {
   id                 String              @id @default(cuid())
-  user               User                @relation(fields: [userId], references: [id])
   userId             String
-  reservations       Reservation[]
-  boosters           BusinessBooster[]
-  additionalServices AdditionalService[]
-  cartItems          CartItem[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime?           @updatedAt
   sessionId          String              @unique
+  additionalServices AdditionalService[]
+  boosters           BusinessBooster[]
+  cartItems          CartItem[]
+  user               User                @relation(fields: [userId], references: [id])
+  reservations       Reservation[]
+}
+
+enum SubscriptionArgumentType {
+  NEGATIVE
+  POSITIVE
+}
+
+enum SubscriptionType {
+  MONTHLY
+  YEARLY
+}
+
+enum ReservationStatus {
+  CANCELED
+  PENDING
+  DONE
+}
+
+enum UserRole {
+  PERSONAL
+  PROFESSIONAL
+  ADMINISTRATOR
+}
+
+enum ProductType {
+  POST
+  ADDITIONAL_SERVICE
+  FORMATION
+  BUSINESS_BOOSTER
 }

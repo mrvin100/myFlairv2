@@ -262,7 +262,7 @@ toast.custom((t) => (
               availabilities[selectedDay].map((time, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
                 >
                   <div>
                     <Label htmlFor={`from-${index}`}>De</Label>
@@ -339,12 +339,12 @@ toast.custom((t) => (
           </div>
         </section>
         <section>
-          <h3 className="text-xl font-normal">Périodes de disponibilité</h3>
+          <h3 className="text-xl font-normal">Périodes d'indisponibilité</h3>
           <Separator className="my-4" />
           {availabilitiesPeriods.map((period, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end mb-4"
+              className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-4"
             >
               <div>
                 <Label htmlFor={`period-from-${index}`}>De</Label>
