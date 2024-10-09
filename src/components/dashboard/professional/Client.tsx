@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,7 +24,6 @@ interface User {
     city: string;
     country: string;
   };
-
 }
 
 interface Client {
@@ -65,7 +62,6 @@ interface Reservations {
       image: string;
       phone: string;
       email: string;
-
     }
   }
 }
@@ -81,25 +77,24 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
   const { user } = useUserContext();
   const [showDialog, setShowDialog] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
-  const [isReservationsDialogOpen, setIsReservationsDialogOpen] = useState(false); // New state for the reservations dialog
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isReservationsDialogOpen, setIsReservationsDialogOpen] = useState(false);
   const [updatedClient, setUpdatedClient] = useState<User | null>(null);
 
-
   useEffect(() => {
-    if (!user) return;
+    fetchClients();
+  }, []);
 
-    async function fetchClients() {
-      try {
-        const response = await fetch(`/api/client/get/${user?.id}`);
-        const data = await response.json();
-        setClients(data);
-        console.log("Clients fetched:", data);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-      }
+  async function fetchClients() {
+    try {
+      const response = await fetch(`/api/client/get/${user?.id}`);
+      const data = await response.json();
+      setClients(data);
+      console.log("Clients fetched:", data);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
     }
-  })
+  }
 
   const handleDeleteClient = async (clientId: string) => {
     try {
@@ -145,22 +140,24 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
 
   const handleUpdateClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await fetch(`/api/client/update/${selectedClientId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedClient),
-      });
-      if (response.ok) {
-        fetchClients();
-        setShowDialog(false);
-      } else {
-        console.error('Erreur lors de la mise à jour du client');
+    if (updatedClient?.id) {
+      try {
+        const response = await fetch(`/api/client/update/${selectedClientId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedClient),
+        });
+        if (response.ok) {
+          fetchClients();
+          setShowDialog(false);
+        } else {
+          console.error('Erreur lors de la mise à jour du client');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la requête de mise à jour :', error);
       }
-    } catch (error) {
-      console.error('Erreur lors de la requête de mise à jour :', error);
     }
   };
 
@@ -196,8 +193,8 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
               />
               <div
                 className={clsx(
-                  client.status === "boutique"
-                    ? "bg-blue-100 text-blue-600"
+                  client?.status === "boutique"
+                    ? "text-[#4C40ED] bg-[#F7F7FF]"
                     : "text-[#FFA500] bg-[#FFF4E5]",
                   "rounded-sm py-2 px-3 text-[.7rem] w-auto inline-block"
                 )}
@@ -225,163 +222,134 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
               </ul>
             </div>
             <div className="flex gap-4 items-center flex-wrap justify-end">
-              <Button variant={"outline"} onClick={() => openDeleteDialog(client.id)}>
-                Supprimer
-              </Button>
-
-              <Link href={`/dashboard/professional/Client/${client.clientUser.id}`}>
-                <Button variant={"outline"}>Créer une réservation</Button>
-              </Link>
-              <Button variant={"outline"} onClick={() => handleViewReservations(client.clientUser.id)}>
-                Consulter ses réservations
-              </Button>
-
-              {/* Dialog for displaying reservations */}
-              <Dialog open={isReservationsDialogOpen} onOpenChange={setIsReservationsDialogOpen}>
-                <DialogContent className="w-[1000px]">
-                  <DialogHeader>
-                    <DialogTitle>Réservations du client</DialogTitle>
-                  </DialogHeader>
-                  <ScrollArea className="h-[28rem]">
-                    {reservations.length > 0 ? (
-                      reservations.map((reservation) => (
-                        <Reservation
-                          key={reservation.id}
-                          id={reservation.id}
-                          typeClient={reservation.service.typeClient}
-                          status={reservation.status}
-                          date={reservation.dateOfRdv}
-                          time={reservation.time}
-                          address={reservation.address}
-                          note={reservation.note}
-                          service={reservation.service.title}
-                          price={reservation.service.price}
-                          email={reservation.client?.clientUser?.email || 'N/A'}
-                          phone={reservation.client?.clientUser?.phone || 'N/A'}
-                          image={reservation.client?.clientUser?.image || '/default-image.png'}
-                          firstName={reservation.client?.clientUser?.firstName || 'Inconnu'}
-                          lastName={reservation.client?.clientUser?.lastName || 'Inconnu'}
-                          dureeRDV={reservation.service.dureeRDV}
-
-                        />
-                      ))
-                    ) : (
-                      <p>Aucune réservation trouvée pour ce client.</p>
-                    )}
-                  </ScrollArea>
-                  <div className="flex justify-end space-x-4 mt-4">
-                    <DialogClose asChild>
-                      <Button variant="outline">Fermer</Button>
-                    </DialogClose>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              {/* Button "Modifier" */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button>Modifier</Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle className="font-normal">Modifier un client</DialogTitle>
-                  </DialogHeader>
-                  <ScrollArea className="h-[28rem]">
-                    <div className="p-4">
-                      <form className="space-y-4" onSubmit={handleUpdateClient}>
-                        <div>
-                          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                            Prénom
-                          </label>
-                          <Input
-                            id="firstName"
-                            name="firstName"
-                            type="text"
-                            defaultValue={updatedClient?.firstName || ""}
-                            onChange={(e) => setUpdatedClient({ ...updatedClient, firstName: e.target.value })}
-                            required
-                          />
+              {client.status === "boutique" ? (
+                <>
+                  <Button variant={"outline"} onClick={() => openDeleteDialog(client.id)}>
+                    Supprimer
+                  </Button>
+                  <Link href={`/dashboard/professional/Client/${client.clientUser.id}`}>
+                    <Button variant={"outline"}>Créer une réservation</Button>
+                  </Link>
+                  <Button variant={"outline"} onClick={() => handleViewReservations(client.clientUser.id)}>
+                    Consulter ses réservations
+                  </Button>
+                  {/* Dialog pour modifier le client */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>Modifier</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle className="font-normal">Modifier un client</DialogTitle>
+                      </DialogHeader>
+                      <ScrollArea className="h-[28rem]">
+                        <div className="p-4">
+                          <form className="space-y-4" onSubmit={handleUpdateClient}>
+                            <div>
+                              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                                Prénom
+                              </label>
+                              <Input
+                                id="firstName"
+                                name="firstName"
+                                type="text"
+                                defaultValue={updatedClient?.firstName || ""}
+                                onChange={(e) => setUpdatedClient({ ...updatedClient, firstName: e.target.value } as User)}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                                Nom
+                              </label>
+                              <Input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                defaultValue={updatedClient?.lastName || ""}
+                                onChange={(e) => setUpdatedClient({ ...updatedClient, lastName: e.target.value } as User)}
+                                required
+                              />
+                            </div>
+                            {/* Autres champs à ajouter ici */}
+                          </form>
                         </div>
-                        <div>
-                          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                            Nom
-                          </label>
-                          <Input
-                            id="lastName"
-                            name="lastName"
-                            type="text"
-                            defaultValue={updatedClient.lastName || ""}
-                            onChange={(e) => setUpdatedClient({ ...updatedClient, lastName: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                            Email
-                          </label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            defaultValue={selectedClient?.clientUser.email || ""}
-                            onChange={(e) => setUpdatedClient({ ...updatedClient, email: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                            Téléphone
-                          </label>
-                          <Input
-                            id="phone"
-                            name="phone"
-                            type="text"
-                            defaultValue={selectedClient?.clientUser.phone || ""}
-                            onChange={(e) => setUpdatedClient({ ...updatedClient, phone: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div className="flex justify-end space-x-4">
-                          <Button type="submit" variant="outline">
-                            Mettre à jour
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
-                  </ScrollArea>
-                  <div className="flex justify-end space-x-4 mt-4">
-                    <DialogClose asChild>
-                      <Button variant="outline">Annuler</Button>
-                    </DialogClose>
-                    <Button>Ajouter</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <AlertDialog open={showDialog && selectedClientId === client.id} onOpenChange={setShowDialog}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Voulez-vous vraiment supprimer ce client ?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action est irréversible, voulez-vous vraiment supprimer ce client ?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setShowDialog(false)}>
-                      Annuler
-                    </AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDeleteClient(client.id)}>
-                      Valider
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      </ScrollArea>
+                      <div className="flex justify-end space-x-4 mt-4">
+                        <DialogClose asChild>
+                          <Button variant="outline">Annuler</Button>
+                        </DialogClose>
+                        <Button type="submit">Ajouter</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              ) : (
+                <Button variant={"outline"} onClick={() => handleViewReservations(client.clientUser.id)}>
+                  Consulter ses réservations
+                </Button>
+              )}
             </div>
           </div>
         ))
       )}
+
+      {/* Dialog de confirmation pour supprimer le client */}
+      <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (selectedClientId) {
+                handleDeleteClient(selectedClientId);
+              }
+            }}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog pour afficher les réservations du client */}
+      <Dialog open={isReservationsDialogOpen} onOpenChange={setIsReservationsDialogOpen}>
+        <DialogContent className='max-w-3xl'>
+          <DialogHeader>
+            <DialogTitle>Réservations du client</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[28rem]">
+            <div className="p-4">
+              {reservations.length === 0 ? (
+                <div>Aucune réservation trouvée.</div>
+              ) : (
+                Array.isArray(reservations) && reservations.map(reservation => (
+                  <Reservation key={reservation.id}
+                    id={reservation.id} 
+                    typeClient={reservation.service.typeClient}
+                    status={reservation.status}
+                    date={reservation.dateOfRdv}
+                    time={reservation.time}
+                    address={reservation.address}
+                    note={reservation.note}
+                    service={reservation.service.title}
+                    price={reservation.service.price}
+                    email={reservation.user.email}
+                    phone={reservation.user.phone}
+                    image={reservation.user.image}
+                    dureeRDV={reservation.service.dureeRDV} />
+                ))
+              )}
+            </div>
+          </ScrollArea>
+
+          <DialogClose asChild className='flex items-start w-[80px]'>
+            <Button variant="outline">Fermer</Button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
