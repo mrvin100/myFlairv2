@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect, useRef } from "react"; // Import useRef ici
+import { useState, useEffect, useRef } from "react"; 
 import axios from "axios";
 import { useUserContext } from "@/contexts/user";
 import ClientsList from "./Client";
@@ -57,7 +57,7 @@ export default function ClientsTab() {
     codePostal: "",
     complement: "",
     remarque: "",
-    proId: "",
+    proId: user?.id || "",
     status: "active",
     image: "",
   });
@@ -65,9 +65,16 @@ export default function ClientsTab() {
   const [images, setImages] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  useEffect(() => {
+    if (user?.id) {
+      setClientData((prevData) => ({
+        ...prevData,
+        proId: user.id || "", 
+      }));
+    }
+  }, [user?.id]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setClientData((prevData) => ({
       ...prevData,
@@ -83,7 +90,10 @@ export default function ClientsTab() {
 
   const handleDelete = (index: number) => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
-    handleInputChange(index, "image");
+    setClientData((prevData) => ({
+      ...prevData,
+      image: "", 
+    }));
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -91,9 +101,7 @@ export default function ClientsTab() {
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName || !uploadPreset) {
-      throw new Error(
-        "Les variables d'environnement Cloudinary ne sont pas correctement configurées."
-      );
+      throw new Error("Les variables d'environnement Cloudinary ne sont pas correctement configurées.");
     }
 
     const formData = new FormData();
@@ -112,15 +120,16 @@ export default function ClientsTab() {
     }
   };
 
-  const handleFileInputChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       setImages([files[0]]);
       try {
         const imageUrl = await uploadImage(files[0]);
-        handlePostChange(0, "image", imageUrl);
+        setClientData((prevData) => ({
+          ...prevData,
+          image: imageUrl,
+        }));
       } catch (error) {
         console.error("Erreur lors du téléchargement de l'image:", error);
       }
@@ -134,7 +143,10 @@ export default function ClientsTab() {
       setImages([files[0]]);
       try {
         const imageUrl = await uploadImage(files[0]);
-        handlePostChange(0, "image", imageUrl);
+        setClientData((prevData) => ({
+          ...prevData,
+          image: imageUrl,
+        }));
       } catch (error) {
         console.error("Erreur lors du téléchargement de l'image:", error);
       }
@@ -143,7 +155,13 @@ export default function ClientsTab() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true); // Définir le drapeau de soumission à true
+
+    if (!clientData.proId) {
+      console.error("proId non défini !");
+      return;
+    }
+
+    setIsSubmitting(true);
   };
 
   useEffect(() => {
@@ -163,7 +181,7 @@ export default function ClientsTab() {
             remarque: "",
             proId: user?.id || "",
             status: "active",
-            image: ""
+            image: "",
           });
           setImages([]);
         } catch (error) {
@@ -186,30 +204,20 @@ export default function ClientsTab() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Filtrer
-                  </span>
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filtrer</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuLabel>Filtrer par</DropdownMenuLabel>
                 <DropdownMenuCheckboxItem
                   checked={statusFilter === "flair"}
-                  onCheckedChange={() =>
-                    setStatusFilter(
-                      statusFilter === "flair" ? "all" : "flair"
-                    )
-                  }
+                  onCheckedChange={() => setStatusFilter(statusFilter === "flair" ? "all" : "flair")}
                 >
                   Flair
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={statusFilter === "boutique"}
-                  onCheckedChange={() =>
-                    setStatusFilter(
-                      statusFilter === "boutique" ? "all" : "boutique"
-                    )
-                  }
+                  onCheckedChange={() => setStatusFilter(statusFilter === "boutique" ? "all" : "boutique")}
                 >
                   Boutique
                 </DropdownMenuCheckboxItem>
@@ -219,24 +227,18 @@ export default function ClientsTab() {
               <DialogTrigger asChild>
                 <Button size="sm" className="h-8 gap-1">
                   <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Ajouter un client
-                  </span>
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Ajouter un client</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle className="font-normal">
-                    Ajouter un client
-                  </DialogTitle>
+                  <DialogTitle className="font-normal">Ajouter un client</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="h-[28rem]">
                   <div className="p-4">
                     <form className="space-y-8" onSubmit={handleSubmit}>
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">
-                          Informations générales
-                        </h3>
+                        <h3 className="text-lg font-semibold">Informations générales</h3>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="nom">Nom</Label>
@@ -258,14 +260,11 @@ export default function ClientsTab() {
                               onChange={handleInputChange}
                             />
                           </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
                               id="email"
                               name="email"
-                              type="email"
                               placeholder="Email du client"
                               value={clientData.email}
                               onChange={handleInputChange}
@@ -276,30 +275,27 @@ export default function ClientsTab() {
                             <Input
                               id="telephone"
                               name="telephone"
-                              type="tel"
                               placeholder="Téléphone du client"
                               value={clientData.telephone}
                               onChange={handleInputChange}
                             />
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="adresse">Adresse</Label>
-                          <Input
-                            id="adresse"
-                            name="adresse"
-                            placeholder="Adresse"
-                            value={clientData.adresse}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="adresse">Adresse</Label>
+                            <Textarea
+                              id="adresse"
+                              name="adresse"
+                              placeholder="Adresse du client"
+                              value={clientData.adresse}
+                              onChange={handleInputChange}
+                            />
+                          </div>
                           <div className="space-y-2">
                             <Label htmlFor="ville">Ville</Label>
                             <Input
                               id="ville"
                               name="ville"
-                              placeholder="Ville"
+                              placeholder="Ville du client"
                               value={clientData.ville}
                               onChange={handleInputChange}
                             />
@@ -309,87 +305,75 @@ export default function ClientsTab() {
                             <Input
                               id="codePostal"
                               name="codePostal"
-                              placeholder="Code Postal"
+                              placeholder="Code postal"
                               value={clientData.codePostal}
                               onChange={handleInputChange}
                             />
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="complement">Complément d'adresse</Label>
-                          <Textarea
-                            id="complement"
-                            name="complement"
-                            placeholder="Complément d'adresse"
-                            value={clientData.complement}
-                            onChange={handleInputChange}
-                          />
+                          <div className="space-y-2">
+                            <Label htmlFor="complement">Complément</Label>
+                            <Input
+                              id="complement"
+                              name="complement"
+                              placeholder="Complément d'adresse"
+                              value={clientData.complement}
+                              onChange={handleInputChange}
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="remarque">Remarque</Label>
                           <Textarea
                             id="remarque"
                             name="remarque"
-                            placeholder="Remarque"
+                            placeholder="Remarques"
                             value={clientData.remarque}
                             onChange={handleInputChange}
                           />
                         </div>
-                      </div>
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Télécharger une image</h3>
-                        <div
-                          className="border-2 border-dashed border-gray-400 rounded-md p-4 flex flex-col items-center cursor-pointer"
-                          onDrop={handleDrop}
-                          onDragOver={(e) => e.preventDefault()}
-                          onClick={handleClick}
-                        >
-                          {images.length > 0 ? (
-                            <div className="flex flex-col items-center">
-                              <img
-                                src={URL.createObjectURL(images[0])}
-                                alt="Prévisualisation"
-                                className="h-24 w-24 object-cover mb-2"
-                              />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                onClick={() => handleDelete(0)}
-                              >
-                                Supprimer l'image
-                              </Button>
-                            </div>
-                          ) : (
-                            <p className="text-gray-600">
-                              Glissez-déposez une image ici ou cliquez pour télécharger
-                            </p>
-                          )}
+                        <div className="space-y-2">
+                          <Label htmlFor="image">Image du client</Label>
                           <input
                             type="file"
-                            accept="image/*"
-                            onChange={handleFileInputChange}
                             ref={fileInputRef}
-                            className="hidden"
+                            style={{ display: "none" }}
+                            onChange={handleFileInputChange}
                           />
+                          <div
+                            className="border-dashed border-2 p-4 cursor-pointer"
+                            onClick={handleClick}
+                            onDrop={handleDrop}
+                            onDragOver={(e) => e.preventDefault()}
+                          >
+                            {images.length === 0 ? (
+                              <p>Glissez ou cliquez pour ajouter une image</p>
+                            ) : (
+                              <div className="relative">
+                                <img src={URL.createObjectURL(images[0])} alt="Client Image" />
+                                <button
+                                  type="button"
+                                  className="absolute top-0 right-0"
+                                  onClick={() => handleDelete(0)}
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <Button type="submit" className="w-full">
-                        {isSubmitting ? "Ajout en cours..." : "Ajouter un client"}
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "En cours..." : "Ajouter le client"}
                       </Button>
                     </form>
                   </div>
                 </ScrollArea>
-                <DialogClose asChild>
-                  <Button variant="outline" className="mt-4 w-full">
-                    Fermer
-                  </Button>
-                </DialogClose>
+                <DialogClose />
               </DialogContent>
             </Dialog>
           </div>
         </div>
         <ClientsList searchTerm={searchTerm} statusFilter={statusFilter} />
-
       </div>
     </TabsContent>
   );

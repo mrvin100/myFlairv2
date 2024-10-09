@@ -314,7 +314,7 @@ model Subscription {
 
 model Category {
   id         String    @id @default(cuid())
-  title      String
+  title      String    @unique
   imageLogo  String
   imageMinia String
   createdAt  DateTime  @default(now())
