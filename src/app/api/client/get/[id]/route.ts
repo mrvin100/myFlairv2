@@ -5,6 +5,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const segments = url.pathname.split('/');
   const userId = segments[segments.length - 1];
+
   try {
 
     const clients = await prisma.client.findMany({
