@@ -116,7 +116,7 @@ export default function OverviewTab() {
           {reservations.length > 0 ? (
             reservations.map((reservation) => (
               <Reservation
-                key={reservation.id}
+                id={reservation.id}
                 typeClient={reservation.service.typeClient}
                 status={reservation.status}
                 date={reservation.dateOfRdv}
