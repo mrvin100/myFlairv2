@@ -47,21 +47,17 @@ interface Service {
   dureeRDV: string;
   domicile: boolean;
 }
+interface Category {
+  title: string;
+}
 
-const categoryOptions = [
-  "Massage",
-  "Coiffure",
-  "Esthétique",
-  "Bien-être",
-  "Autre",
-];
 
 export default function ServicesTab() {
   const { user } = useUserContext();
   const [services, setServices] = useState<Service[]>([]);
   const [sortOption, setSortOption] = useState<string>("");
   const { toast } = useToast();
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const initialServiceState: Service = {
     id: "",
     title: "",
@@ -76,21 +72,25 @@ export default function ServicesTab() {
   const [showAddServiceDialog, setShowAddServiceDialog] =
     useState<boolean>(false);
   const router = useRouter();
-
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("/api/categories");
-        const data = await response.json();
-        setCategories(data);
-        console.log(categories, "dfghjkjhgfds");
-      } catch (error) {
-        console.error("Erreur lors de la récupération des catégories :", error);
-      }
-    };
-
     fetchCategories();
-  }, [categories]);
+  }, []);
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/category/get");
+      const data = await response.json();
+  
+      
+      const categoriesData = data.map((category: { title: string }) => ({
+        title: category.title,
+      }));
+  
+      setCategories(categoriesData); 
+      console.log(categoriesData, "dfghjkjhgfds");
+    } catch (error) {
+      console.error("Erreur lors de la récupération des catégories :", error);
+    }
+  };
 
   const handleCategoryChange = (value: string) => {
     handleServiceChange("category", value);
@@ -243,18 +243,22 @@ export default function ServicesTab() {
                         <Select onValueChange={handleCategoryChange}>
                           <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="Choisir une catégorie">
-                              {newService.category ||
-                                "Sélectionner une catégorie"}
+                              {newService.category || "Sélectionner une catégorie"}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            {categories.map((category, index) => (
-                              <SelectItem key={index} value={category}>
-                                {category}
+                          {categories.length === 0 ? (
+                            <span>Catégorie Indisponible</span>
+                          ) : (
+                            categories.map((category, index) => (
+                              <SelectItem key={index} value={category.title}>
+                                {category.title}
                               </SelectItem>
-                            ))}
+                            ))
+                          )}
                           </SelectContent>
                         </Select>
+
                       </div>
                       <br />
                       <div>

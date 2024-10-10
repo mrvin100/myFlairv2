@@ -15,6 +15,8 @@ export async function POST(req) {
     image,
     proId, 
   } = await req.json(); 
+
+  console.log(proId, "fetchProId")
   try {
     // Étape 1 : Créer l'utilisateur pour le client
     const clientUser = await prisma.user.create({
@@ -31,7 +33,8 @@ export async function POST(req) {
           },
           role: 'PERSONAL', 
           username: email, 
-          image, 
+          image,
+         
         },
       });
     const newClient = await prisma.client.create({

@@ -131,9 +131,16 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
   };
 
   const filteredClients = clients.filter(client => {
+    const fullName = `${client.clientUser.firstName.toLowerCase()} ${client.clientUser.lastName.toLowerCase()}`;
+    
     const matchesSearchTerm = client.clientUser.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      fullName.includes(searchQuery.toLowerCase()) ||
       client.clientUser.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.clientUser.email.toLowerCase().includes(searchQuery.toLowerCase());
+      client.clientUser.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.clientUser.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.clientUser.address.street.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      client.clientUser.address.city.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      client.clientUser.address.country.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || client.status === statusFilter;
     return matchesSearchTerm && matchesStatus;
   });
