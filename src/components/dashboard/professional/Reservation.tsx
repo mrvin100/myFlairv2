@@ -8,8 +8,26 @@ import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogHeader, Dialo
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+interface ReservationProps {
+  id: string;
+  status: string;
+  typeClient: string;
+  image?: string;
+  date: string;
+  time: string;
+  address?: string;
+  note?: string;
+  service: string;
+  price: number;
+  email: string;
+  dureeRDV: string;
+  phone: string;
+  firstName: string;
+  lastName: string;
+  reason?: string;
+}
+
 export default function Reservation({
-  key,
   id,
   status,
   typeClient,
@@ -27,7 +45,7 @@ export default function Reservation({
   lastName,
   reason, // Raison d'annulation
 }: ReservationProps) {
-  const displayAddress = address && address.trim() !== "" ? address : "Sur le lieu de travail";
+  const displayAddress = typeof address === 'string' && address.trim() !== "" ? address : "Sur le lieu de travail";
   const { user } = useUserContext();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -116,7 +134,7 @@ export default function Reservation({
           Client {typeClient === "boutique" ? "en boutique" : "flair"}
         </div>
         <Image
-          src={image}
+          src={image || "/nail-salon.webp"}
           height={120}
           width={120}
           alt="client profile"

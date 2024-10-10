@@ -84,3 +84,11 @@
   max-width: 1200px;
   margin: 0 auto;
 }
+
+.fc-event {
+  background-color: transparent !important; /* Assurez-vous qu'il est transparent */
+  border: 0px solid black !important;
+}
+.fc .fc-daygrid-event {
+  background-color: transparent !important; /* Empêche l'héritage de styles */
+}
