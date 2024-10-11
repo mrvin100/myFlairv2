@@ -29,8 +29,34 @@ interface User {
 interface Client {
   id: string;
   status: string;
-  clientUser: User;
+  clientUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: {
+      street: string;
+      city: string;
+      country: string;
+    };
+    image: string;
+  };
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: {
+      street: string;
+      city: string;
+      country: string;
+    };
+    image: string;
+  };
 }
+
 
 interface Reservations {
   id: string;
@@ -62,6 +88,7 @@ interface Reservations {
       image: string;
       phone: string;
       email: string;
+      postalCode: string;
     }
   }
 }
@@ -131,42 +158,61 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
   };
 
   const filteredClients = clients.filter(client => {
-    const fullName = `${client.clientUser.firstName.toLowerCase()} ${client.clientUser.lastName.toLowerCase()}`;
+    const fullName = `${client.user.firstName.toLowerCase()} ${client.user.lastName.toLowerCase()}`;
     
-    const matchesSearchTerm = client.clientUser.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearchTerm = client.user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       fullName.includes(searchQuery.toLowerCase()) ||
-      client.clientUser.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.clientUser.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.clientUser.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.clientUser.address.street.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      client.clientUser.address.city.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      client.clientUser.address.country.toLowerCase().includes(searchQuery.toLowerCase());
+      client.user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.user.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.user.address.street.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      client.user.address.city.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      client.user.address.country.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || client.status === statusFilter;
     return matchesSearchTerm && matchesStatus;
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdatedClient(prev => prev ? { ...prev, [name]: value } : null);
+  };
+  
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdatedClient(prev => prev 
+      ? { 
+          ...prev, 
+          address: { ...prev.address, [name]: value } 
+        } 
+      : null
+    );
+  };
+
   const handleUpdateClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (updatedClient?.id) {
+    if (updatedClient) {
       try {
-        const response = await fetch(`/api/client/update/${selectedClientId}`, {
+        const response = await fetch(`/api/client/update/${updatedClient.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(updatedClient),
         });
+
         if (response.ok) {
           fetchClients();
-          setShowDialog(false);
+          setSelectedClientId(null);
+
         } else {
           console.error('Erreur lors de la mise à jour du client');
         }
       } catch (error) {
-        console.error('Erreur lors de la requête de mise à jour :', error);
+        console.error('Erreur lors de la requête PUT:', error);
       }
     }
   };
+
 
   return (
     <div>
@@ -192,7 +238,7 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
           <div key={client.id} className="bg-white w-full border rounded-sm p-4 max-w-4xl mx-auto mb-4">
             <div>
               <Image
-                src={client.clientUser.image || "/default-avatar.png"}
+                src={client.user.image || "/default-avatar.png"}
                 height={120}
                 width={120}
                 alt="client profile"
@@ -212,19 +258,19 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
             <div className="flex flex-auto">
               <ul className="text-sm text-gray-500 my-4 mx-auto flex flex-col gap-3">
                 <li>
-                  <strong>Nom :</strong> {client.clientUser.firstName}
+                  <strong>Nom :</strong> {client.user.firstName}
                 </li>
                 <li>
-                  <strong>Prénom :</strong> {client.clientUser.lastName}
+                  <strong>Prénom :</strong> {client.user.lastName}
                 </li>
                 <li>
-                  <strong>Email :</strong> {client.clientUser.email}
+                  <strong>Email :</strong> {client.user.email}
                 </li>
                 <li>
-                  <strong>Téléphone :</strong> {client.clientUser.phone}
+                  <strong>Téléphone :</strong> {client.user.phone}
                 </li>
                 <li>
-                  <strong>Adresse :</strong> {client.clientUser.address.street}, {client.clientUser.address.city}, {client.clientUser.address.country}
+                  <strong>Adresse :</strong> {client.user.address.street}, {client.user.address.city}, {client.clientUser.address.country}
                 </li>
               </ul>
             </div>
@@ -234,10 +280,10 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
                   <Button variant={"outline"} onClick={() => openDeleteDialog(client.id)}>
                     Supprimer
                   </Button>
-                  <Link href={`/dashboard/professional/Client/${client.clientUser.id}`}>
+                  <Link href={`/dashboard/professional/Client/${client.user.id}`}>
                     <Button variant={"outline"}>Créer une réservation</Button>
                   </Link>
-                  <Button variant={"outline"} onClick={() => handleViewReservations(client.clientUser.id)}>
+                  <Button variant={"outline"} onClick={() => handleViewReservations(client.user.id)}>
                     Consulter ses réservations
                   </Button>
                   {/* Dialog pour modifier le client */}
@@ -249,50 +295,97 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
                       <DialogHeader>
                         <DialogTitle className="font-normal">Modifier un client</DialogTitle>
                       </DialogHeader>
-                      <ScrollArea className="h-[28rem]">
-                        <div className="p-4">
-                          <form className="space-y-4" onSubmit={handleUpdateClient}>
-                            <div>
-                              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                                Prénom
-                              </label>
-                              <Input
-                                id="firstName"
-                                name="firstName"
-                                type="text"
-                                defaultValue={updatedClient?.firstName || ""}
-                                onChange={(e) => setUpdatedClient({ ...updatedClient, firstName: e.target.value } as User)}
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                                Nom
-                              </label>
-                              <Input
-                                id="lastName"
-                                name="lastName"
-                                type="text"
-                                defaultValue={updatedClient?.lastName || ""}
-                                onChange={(e) => setUpdatedClient({ ...updatedClient, lastName: e.target.value } as User)}
-                                required
-                              />
-                            </div>
-                            {/* Autres champs à ajouter ici */}
-                          </form>
-                        </div>
-                      </ScrollArea>
-                      <div className="flex justify-end space-x-4 mt-4">
-                        <DialogClose asChild>
-                          <Button variant="outline">Annuler</Button>
-                        </DialogClose>
-                        <Button type="submit">Ajouter</Button>
-                      </div>
+                     
+                      <form onSubmit={handleUpdateClient}>
+                  <div>
+                    <label htmlFor="firstName">Prénom</label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={updatedClient?.firstName || ""}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName">Nom</label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={updatedClient?.lastName || ""}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="email">Email</label>
+                    <Input
+                      id="email"
+                      name="email"
+                      value={updatedClient?.email || ""}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="phone">Téléphone</label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={updatedClient?.phone || ""}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="street">Adresse - Rue</label>
+                    <Input
+                      id="street"
+                      name="street"
+                      value={updatedClient?.address.street || ""}
+                      onChange={handleAddressChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="city">Ville</label>
+                    <Input
+                      id="city"
+                      name="city"
+                      value={updatedClient?.address.city || ""}
+                      onChange={handleAddressChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="postalCode">Code Postal</label>
+                    <Input
+                      id="postalCode"
+                      name="postalCode"
+                      value={updatedClient?.address.postalCode || ""}
+                      onChange={handleAddressChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="country">Pays</label>
+                    <Input
+                      id="country"
+                      name="country"
+                      value={updatedClient?.address.country || ""}
+                      onChange={handleAddressChange}
+                      required
+                    />
+                  </div>
+                
+                  <Button type="submit">Sauvegarder</Button>
+                </form>
+                      
                     </DialogContent>
                   </Dialog>
                 </>
               ) : (
-                <Button variant={"outline"} onClick={() => handleViewReservations(client.clientUser.id)}>
+                <Button variant={"outline"} onClick={() => handleViewReservations(client.user.id)}>
                   Consulter ses réservations
                 </Button>
               )}

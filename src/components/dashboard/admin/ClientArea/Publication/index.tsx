@@ -20,7 +20,7 @@ import "../Publication/global.css";
 import Link from "next/link";
 
 import "react-quill/dist/quill.snow.css";
-import PublicationActions from "./publicationActions";
+import PublicationActions from "./PublicationActions";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Publication() {

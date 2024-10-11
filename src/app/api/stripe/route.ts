@@ -52,6 +52,21 @@ export async function POST(req: Request) {
 
     const successUrl = `${redirectURL}/success/${session.id}`;
 
+    const cartItemsData = items.map(item => {
+      if (!item.product || !item.product.stripeId) {
+        console.warn('Produit manquant pour l\'article :', item);
+        return null; // ou gérer l'erreur comme vous le souhaitez
+      }
+      return {
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        cart: { connect: { id: item.cartId } },
+        product: { connect: { stripeId: item.product.stripeId } },
+      };
+    })
+
+    
     // Enregistrer la commande dans la base de données
     const order = await prisma.order.create({
       data: {

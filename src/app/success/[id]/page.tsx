@@ -20,6 +20,10 @@ interface CartItem {
   price: number;
   type: string; 
   date?: string; 
+  productId?: string;
+  product: {
+    prodType: string;
+  };
 }
 
 interface OrderDetails {
@@ -32,6 +36,7 @@ const SuccessPage = () => {
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useUserContext();
+  const [orderFetched, setOrderFetched] = useState(false);
 
   useEffect(() => {
     const url = window.location.pathname;
@@ -41,11 +46,9 @@ const SuccessPage = () => {
     const fetchOrderDetails = async () => {
       try {
         const response = await axios.get(`/api/stripe/get/${session_id}`);
-        console.log("Order details fetched successfully:", response.data);
         setOrderDetails(response.data);
-
-        
-        await updateProductQuantities(response.data.cartItems);
+        console.log("Order details fetched successfully:", response.data);
+        setOrderFetched(true);
       } catch (error) {
         console.error("Erreur lors de la récupération des détails de la commande", error);
       } finally {
@@ -56,11 +59,43 @@ const SuccessPage = () => {
     fetchOrderDetails();
   }, []);
 
-  // Fonction pour mettre à jour les quantités des produits
+  useEffect(() => {
+    if (orderFetched && orderDetails) {
+      updateProductQuantities(orderDetails.cartItems);
+      fetchCartData();
+      // clearCart(); // Décommentez si vous voulez vider le panier après la commande
+    }
+  }, [orderFetched, orderDetails]);
+
+  const fetchCartData = async () => {
+    try {
+      const response = await axios.get(`/api/cart/get/${user?.id}`);
+      console.log("Données du panier récupérées avec succès:", response.data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données du panier", error);
+    }
+  };
+
+  const clearCart = async () => {
+    try {
+      await axios.delete(`/api/cart/TruncateCart`, { data: { userId: user?.id } });
+      console.log("Panier vidé avec succès");
+    } catch (error) {
+      console.error("Erreur lors de la vidange du panier", error);
+    }
+  };
+
   const updateProductQuantities = async (cartItems: CartItem[]) => {
     try {
-      await axios.post("/api/commandes/decrementQuantity", { cartItems });
-      console.log("Quantités mises à jour avec succès");
+      const updatePromises = cartItems.map(async (item) => {
+        const response = await axios.post('/api/cart/updateProductQuantity', {
+          productId: item.productId,
+          quantity: item.quantity,
+          type: item.product.prodType.toLowerCase(),
+        });
+        console.log(`Quantité mise à jour pour le produit ${item.productId}`, response.data);
+      });
+      await Promise.all(updatePromises);
     } catch (error) {
       console.error("Erreur lors de la mise à jour des quantités", error);
     }

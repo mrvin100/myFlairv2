@@ -51,7 +51,7 @@ export default function CheckoutButton() {
       ];
 
       const checkoutSession = await axios.post("/api/stripe", {
-        items: items,
+        item: items,
         totalAmount: totalPrice,
       });
 
