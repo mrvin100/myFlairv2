@@ -278,14 +278,7 @@ model Subscription {
 }
 
 model Category {
-<<<<<<< HEAD
-  id         String    @id @default(cuid())
   title      String    @unique
-  imageLogo  String
-  imageMinia String
-=======
-  title      String
->>>>>>> 806030304ccfd1f80181701407af709994945897
   createdAt  DateTime  @default(now())
   updatedAt  DateTime? @updatedAt
   imageLogo  String
