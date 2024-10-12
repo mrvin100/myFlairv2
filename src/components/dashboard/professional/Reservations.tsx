@@ -41,7 +41,9 @@ export default function Reservations() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 12;
-
+  const handleDeleteReservation = (id: string) => {
+    setReservations((prev) => prev.filter((reservation) => reservation.id !== id));
+  };
   useEffect(() => {
     async function fetchReservations() {
       try {
@@ -83,54 +85,53 @@ export default function Reservations() {
 
   return (
     <TabsContent value="listes" className="space-y-4">
-      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
-        <div className="flex items-center justify-between space-y-2 flex-col gap-4">
-          <h2 className="text-2xl font-bold tracking-tight">Réservations</h2>
-          <section className="p-4 mx-auto">
+    <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="flex items-center justify-between space-y-2 flex-col gap-4">
+        <h2 className="text-2xl font-bold tracking-tight">Réservations</h2>
+        <section className="p-4 mx-auto">
           {currentReservations.length > 0 ? (
-  currentReservations.map((reservation) => (
-          <Reservation
-            key={reservation.id} // key reste ici, mais c'est un prop React spécial
-            id={reservation.id}  // Passez l'id explicitement comme prop
-            typeClient={reservation.service.typeClient}
-            status={reservation.status}
-            date={reservation.dateOfRdv}
-            time={reservation.time}
-            address={reservation.address}
-            note={reservation.note}
-            service={reservation.service.title}
-            price={reservation.service.price}
-            email={reservation.user.email}
-            phone={reservation.user.phone}
-            image={reservation.user.image}
-            dureeRDV={reservation.service.dureeRDV}
-          />
-        ))
-      ) : (
-        <p>Aucune réservation récente</p>
-      )}
-          </section>
-          <div>
-            <Pagination>
-              <PaginationContent>
-  
-                {[...Array(totalPages)].map((_, index) => (
-                  <PaginationItem key={index + 1} isActive={index + 1 === currentPage}>
-                    <PaginationLink
-                      href="#"
-                      onClick={() => handlePageChange(index + 1)}
-                      className={index + 1 === currentPage ? "bg-black text-white" : ""}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-               
-              </PaginationContent>
-            </Pagination>
-          </div>
+            currentReservations.map((reservation) => (
+              <Reservation
+                key={reservation.id}
+                id={reservation.id}
+                typeClient={reservation.service.typeClient}
+                status={reservation.status}
+                date={reservation.dateOfRdv}
+                time={reservation.time}
+                address={reservation.address}
+                note={reservation.note}
+                service={reservation.service.title}
+                price={reservation.service.price}
+                email={reservation.user.email}
+                phone={reservation.user.phone}
+                image={reservation.user.image}
+                dureeRDV={reservation.service.dureeRDV}
+                onDelete={handleDeleteReservation} // This should now work
+              />
+            ))
+          ) : (
+            <p>Aucune réservation récente</p>
+          )}
+        </section>
+        <div>
+          <Pagination>
+            <PaginationContent>
+              {[...Array(totalPages)].map((_, index) => (
+                <PaginationItem key={index + 1}>
+                  <PaginationLink
+                    href="#"
+                    onClick={() => handlePageChange(index + 1)}
+                    className={index + 1 === currentPage ? "bg-black text-white" : ""}
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+            </PaginationContent>
+          </Pagination>
         </div>
       </div>
-    </TabsContent>
-  );
+    </div>
+  </TabsContent>
+  )
 }

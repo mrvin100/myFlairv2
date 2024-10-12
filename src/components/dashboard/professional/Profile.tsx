@@ -1,14 +1,13 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
-import { TabsContent } from "@/components/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ReactQuill from "react-quill";
-import { SubmitButton } from "@/components/button";
 import axios from "axios";
 import {
   PlusCircle,
@@ -22,6 +21,27 @@ import {
   Bell,
   CircleMinus,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
   id: string;
@@ -46,7 +66,7 @@ interface User {
   preferencesProWeek?: Record<string, any> | null;
   mark?: number | null;
   numberOfRate?: number | null;
-  socialMedia?: Record<string, any> | null;
+  socialMedia: Record<string, string>;
   biography?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
@@ -57,13 +77,35 @@ interface UserRole {
   name: string;
 }
 
+interface Social {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const socialIcons: Record<string, LucideIcon> = {
+  facebook: Facebook,
+  instagram: Instagram,
+  twitter: Twitter,
+  youtube: Youtube,
+  linkedin: Linkedin,
+};
+
+const socialsList: Social[] = [
+  { value: "facebook", label: "Facebook", icon: Facebook },
+  { value: "instagram", label: "Instagram", icon: Instagram },
+  { value: "twitter", label: "Twitter", icon: Twitter },
+  { value: "youtube", label: "Youtube", icon: Youtube },
+  { value: "linkedin", label: "Linkedin", icon: Linkedin },
+];
+
 export default function ProfileTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUserContext();
   const [images, setImages] = useState<File[]>([]);
   const [userActual, setUserActual] = useState<User | null>(null);
   const [socials, setSocials] = useState<{ network: string; url: string }[]>([]);
-  const [newSocial, setNewSocial] = useState({ network: "", url: "" });
+  const [profileImage, setProfileImage] = useState<File | null>(null); 
 
 
   const handleDelete = () => {
@@ -90,13 +132,16 @@ export default function ProfileTab() {
       email: userActual.email,
       phone: userActual.phone,
       homeServiceOnly: userActual.homeServiceOnly,
-      socialMedia: socials, // Les réseaux sociaux à jour
+      socialMedia: socials.reduce((acc, social) => {
+        acc[social.network.toLowerCase()] = social.url;
+        return acc;
+      }, {} as Record<string, string>),
     };
   
     console.log('Données mises à jour:', updateData);
   
     try {
-      const response = await axios.put(`/api/ProfilPro/update/${user?.id}`, updateData);
+      const response = await axios.put(`/api/utilisateur/updateProfilePro/${user?.id}`, updateData);
       if (response.status === 200) {
         alert("Profile updated successfully!");
       }
@@ -141,16 +186,17 @@ export default function ProfileTab() {
         }
         const data = await response.json();
         setUserActual(data);
-
-        const socialMediaLinks = response.map((item: { network: string; url: unknown }) => ({
-          network: item.network,
-          url: typeof item.url === 'string' ? item.url : '',
+  
+        const socialMediaLinks = Object.entries(data.socialMedia).map(([network, url]) => ({
+          network,
+          url: url as string,
         }));
+        setSocials(socialMediaLinks); 
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
-
+  
     if (user?.id) {
       fetchData();
     }
@@ -171,37 +217,6 @@ export default function ProfileTab() {
       } catch (error) {
         console.error("Error uploading image:", error);
       }
-    }
-  };
-
-  const handleAddSocial = () => {
-    if (!newSocial.network || !newSocial.url) return;
-
-    const updatedSocials = [...socials, newSocial];
-    setSocials(updatedSocials);
-    setNewSocial({ network: "", url: "" });
-
-    if (userActual) {
-      const updatedUser = {
-        ...userActual,
-        socialMedia: {
-          ...userActual.socialMedia,
-          [newSocial.network.toLowerCase()]: newSocial.url,
-        },
-      };
-      setUserActual(updatedUser);
-    }
-  };
-
-  const handleRemoveSocial = (index: number) => {
-    const updatedSocials = socials.filter((_, i) => i !== index);
-    setSocials(updatedSocials);
-
-    if (userActual) {
-      const updatedSocialMedia = { ...userActual.socialMedia };
-      delete updatedSocialMedia[socials[index].network.toLowerCase()];
-
-      setUserActual({ ...userActual, socialMedia: updatedSocialMedia });
     }
   };
 
@@ -226,366 +241,346 @@ export default function ProfileTab() {
     updatedGallery.splice(index, 1);
     setUserActual({ ...userActual, gallery: updatedGallery });
   };
+  const handleProfileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      try {
+        const imageUrl = await uploadImage(file);
+        if (userActual) {
+          setUserActual({ ...userActual, image: imageUrl });
+        }
+        setProfileImage(file);
+      } catch (error) {
+        console.error("Erreur lors de l'upload de l'image:", error);
+      }
+    }
+  };
+  const handleDeleteProfileImage = () => {
+    if (userActual) {
+      setUserActual({ ...userActual, image: "" });
+      setProfileImage(null);
+    }
+  };
 
+  const [isLoadingProfileImage, setIsLoadingProfileImage] = useState(true);
 
+  useEffect(() => {
+    if (userActual?.image) {
+      setIsLoadingProfileImage(false);
+    }
+  }, [userActual?.image]);
+
+  const handleProfileImageLoaded = () => {
+    setIsLoadingProfileImage(false); 
+  };
+
+  const handleProfileInputClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click(); 
+    }
+  };
   return (
-    <TabsContent title="" value="profile">
+    <TabsContent value="profile">
       <div className="max-w-5xl w-full">
-      <h2 className="text-xl font-normal mb-8">Mon Profile</h2>
-        <h2 className="font-normal text-lg my-4">Image profil</h2>
-        <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start ">
-
+        <h2 className="text-xl font-normal mb-8">Mon Profile</h2>
+        <form>
+          <h2 className="font-normal text-lg my-4">Image profil</h2>
+          <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start">
+        
+        {isLoadingProfileImage ? (
+          <Skeleton className="w-24 h-24 rounded-full" />
+        ) : (
           <Image
-            src={userActual?.image || ""}
+            src={userActual?.image || "/default-profile.png"}
             height={120}
             width={120}
             alt="client profile"
             className="rounded-full object-cover h-24 w-24"
+            onLoadingComplete={handleProfileImageLoaded}
           />
-
-
-          <div>
-            <div className="flex gap-4 my-3 justify-center md:justify-start">
-              <Button>Télécharger</Button>
-              <Button variant={"outline"}>Supprimer</Button>
-            </div>
-            <p className="text-sm text-gray-500">
-              *La taille de l'image doit être d'au moins 320px . Fichiers
-              autorisés : .png ou .jpg.
-            </p>
-          </div>
+        )}
+        <div>
+        <div className="flex gap-4 my-3 justify-center md:justify-start">
+      <input
+        type="file"
+        onChange={handleProfileInputChange}
+        style={{ display: "none" }} 
+        ref={fileInputRef} 
+      />
+      <Button onClick={handleProfileInputClick}>Télécharger</Button>
+      <Button onClick={handleDeleteProfileImage} variant="outline">
+        Supprimer
+      </Button>
+    </div>
         </div>
+      </div>
+  
 
-        <h2 className="font-normal text-lg my-8">Informations Public</h2>
-        <div className="px-1">
-          <label htmlFor="entreprise" className="mb-3 inline-block">
-            Nom de votre entreprise
-          </label>
-          <Input
-            type="text"
-            onChange={() => "Lorem"}
-            placeholder="Ex: Milana Beauty"
-            required
-            id="entreprise"
-            value={userActual?.enterprise || ""}
-          />
-        </div>
-        <br />
-        <div className="px-1">
-          <label htmlFor="profession" className="mb-3 inline-block">
-            Profession
-          </label>
-          <div className="flex items-end">
+          <h2 className="font-normal text-lg my-8">Informations Public</h2>
+          <div className="px-1">
+            <label htmlFor="entreprise" className="mb-3 inline-block">
+              Nom de votre entreprise
+            </label>
             <Input
               type="text"
-              onChange={() => "lorem"}
+              onChange={(e) => setUserActual(prev => prev ? {...prev, enterprise: e.target.value} : null)}
+              placeholder="Ex: Milana Beauty"
               required
-              placeholder="Ex: Coiffeuse"
-              id="profession"
-
+              id="entreprise"
+              value={userActual?.enterprise || ""}
             />
           </div>
-        </div>
-        <br />
-        <div
-          style={{ width: "100%", height: "1px", background: "#EAEAEA" }}
-        ></div>
-        <br />
-        <div>
-          <div>Description</div>
           <br />
-          <ReactQuill
-            value={""}
-            onChange={() => "lorem onchange"}
-            placeholder="Décrivez votre entreprise ici..."
-            value={userActual?.biography || ""}
-          />
-        </div>
-        <br />
 
-        <h2 className="font-normal text-lg my-8">Informations Public</h2>
-        <h3 className="text-sm mb-3">Réseaux sociaux</h3>
-        <SocialsProfiles />
-        <h2 className="font-normal text-lg my-8">Contact public</h2>
-
-        <div className="flex gap-3 flex-col md:flex-row px-1">
-          <div className="w-full">
-            <label className="mb-3 inline-block">Email</label>
-            <div className="flex items-end">
-              <Input
-                type="text"
-                onChange={() => "lorem"}
-                placeholder="Ex: myname@myFlair.fr"
-                defaultValue={userActual?.email}
-              />
-            </div>
-          </div>
-          <div className="w-full">
-            <label className="mb-3 inline-block">Numéros de téléphone</label>
-            <div className="flex items-end">
-              <Input
-                type="text"
-                onChange={() => "lorem"}
-                required
-                placeholder="Ex: Coiffeuse"
-                defaultValue={userActual?.phone}
-              />
-            </div>
-          </div>
-        </div>
-        <br />
-        <div className="flex flex-col px-1">
-          <div className="flex flex-col">
-            <span style={{ fontSize: "70%" }}>
-              Mes services sont uniquement à domicile
-            </span>
-            <div style={{ marginTop: "5px" }}>
-              <Switch
-                onCheckedChange={() => "nothing"}
-                className="data-[state=checked]:bg-green-500"
-                value={userActual?.homeServiceOnly || ""}
-              />
-            </div>
-          </div>
-        </div>
-        <br />
-        <div className="px-1">
-          <label htmlFor="entreprise" className="mb-3 inline-block">
-            Adresse
-          </label>
-          <Input
-            type="text"
-            onChange={(e) => "fallback function"}
-            placeholder="Ex: 30 rue Molière"
-            required
-            id="entreprise"
-            value={userActual?.address?.street || ""}
-          />
-        </div>
-        <br />
-
-        <div className="flex gap-3 flex-col md:flex-row px-1">
-          <div className="w-full">
-            <label className="mb-3 inline-block">Ville *</label>
-            <div className="flex items-end">
-              <Input
-                type="text"
-                onChange={() => "lorem"}
-                placeholder="Ex: Marseille"
-                value={userActual?.address?.city || ""}
-              />
-            </div>
-          </div>
-          <div className="w-full">
-            <label className="mb-3 inline-block">Code postal *</label>
-            <div className="flex items-end">
-              <Input
-                type="text"
-                onChange={() => "lorem"}
-                required
-                placeholder="Ex: 12400"
-                value={userActual?.address?.postalCode || ""}
-              />
-            </div>
-          </div>
-        </div>
-        <br />
-        <div className="w-full md:w-[calc(50%-.5rem)] px-1">
-          <label className="mb-3 inline-block">Pays *</label>
-          <div className="flex items-end">
-            <Input
-              type="text"
-              onChange={() => "lorem"}
-              placeholder="Ex: France"
-              required
-              value={userActual?.address?.country || ""}
+          <div
+            style={{ width: "100%", height: "1px", background: "#EAEAEA" }}
+          ></div>
+          <br />
+          <div>
+            <div>Description</div>
+            <br />
+            <ReactQuill
+              value={userActual?.biography || ""}
+              onChange={(content) => setUserActual(prev => prev ? {...prev, biography: content} : null)}
+              placeholder="Décrivez votre entreprise ici..."
             />
           </div>
-        </div>
-        <br />
-        <div className="px-1">
-          <label htmlFor="entreprise" className="mb-3 inline-block">
-            Complément d&apos;adresse
-          </label>
-          <Input
-            type="text"
-            onChange={(e) => "fallback function"}
-            placeholder="Ex: Plus d'infos complementaires sur votre addresse..."
-            id="entreprise"
-            value={userActual?.address?.complementAddress || ""}
-          />
-        </div>
-        <br />
+          <br />
 
-        <div>
-          <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            style={{
-              cursor: "pointer",
-              width: "100%",
-              height: "100px",
-              border: "2px dashed #aaa",
-              borderRadius: "5px",
-              textAlign: "center",
-              padding: "20px",
-              marginBottom: "20px",
-            }}
-          >
-            <p className="flex items-center justify-center">
-              Cliquez ou glissez et déposez des fichiers ici
-            </p>
-            <p className="text-sm">
-              Formats pris en charge: JPEG, PNG, JPG et SVG
-            </p>
-          </div>
+          <h2 className="font-normal text-lg my-8">Informations Public</h2>
+          <h3 className="text-sm mb-3">Réseaux sociaux</h3>
+          <SocialsProfiles socials={socials} setSocials={setSocials} />
+          <h2 className="font-normal text-lg my-8">Contact public</h2>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg, image/png, image/jpg, image/svg"
-            style={{ display: "none" }}
-            onChange={handleFileInputChange}
-          />
-
-          {userActual?.gallery?.length > 0 && (
-            <div>
-              <h3 className="my-4">Sélectionner une image par défaut</h3>
-              <div className="flex flex-wrap">
-                {userActual?.gallery.map((imageUrl, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      marginRight: "10px",
-                    }}
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Image ${index + 1}`}
-                      style={{
-                        width: "100px",
-                        height: "auto",
-                        marginBottom: "5px",
-                      }}
-                      className="rounded-lg"
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "5px",
-                        right: "5px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => handleDeleteImage(index)}
-                    >
-                      <CircleMinus size={24} color="red" />
-                    </div>
-                  </div>
-                ))}
+          <div className="flex gap-3 flex-col md:flex-row px-1">
+            <div className="w-full">
+              <label className="mb-3 inline-block">Email</label>
+              <div className="flex items-end">
+                <Input
+                  type="text"
+                  onChange={(e) => setUserActual(prev => prev ? {...prev, email: e.target.value} : null)}
+                  placeholder="Ex: myname@myFlair.fr"
+                  value={userActual?.email || ""}
+                />
               </div>
             </div>
-          )}
+            <div className="w-full">
+              <label className="mb-3 inline-block">Numéros de téléphone</label>
+              <div className="flex items-end">
+                <Input
+                  type="text"
+                  onChange={(e) => setUserActual(prev => prev ? {...prev, phone: e.target.value} : null)}
+                  required
+                  placeholder="Ex: 0123456789"
+                  value={userActual?.phone || ""}
+                />
+              </div>
+            </div>
+          </div>
+          <br />
+          <div className="flex flex-col px-1">
+            <div className="flex flex-col">
+              <span style={{ fontSize: "70%" }}>
+                Mes services sont uniquement à domicile
+              </span>
+              <div style={{ marginTop: "5px" }}>
+                <Switch
+                  checked={userActual?.homeServiceOnly || false}
+                  onCheckedChange={(checked) => setUserActual(prev => prev ? {...prev, homeServiceOnly: checked} : null)}
+                  className="data-[state=checked]:bg-green-500"
+                />
+              </div>
+            </div>
+          </div>
+          <br />
+          <div className="px-1">
+            <label htmlFor="address" className="mb-3 inline-block">
+              Adresse
+            </label>
+            <Input
+              type="text"
+              onChange={(e) => setUserActual(prev => prev ? {...prev, address: {...prev.address, street: e.target.value}} : null)}
+              placeholder="Ex: 30 rue Molière"
+              required
+              id="address"
+              value={userActual?.address?.street || ""}
+            />
+          </div>
+          <br />
 
+          <div className="flex gap-3 flex-col md:flex-row px-1">
+            <div className="w-full">
+              <label className="mb-3 inline-block">Ville *</label>
+              <div className="flex items-end">
+                <Input
+                  type="text"
+                  onChange={(e) => setUserActual(prev => prev ? {...prev, address: {...prev.address, city: e.target.value}} : null)}
+                  placeholder="Ex: Marseille"
+                  value={userActual?.address?.city || ""}
+                />
+              </div>
+            </div>
+            <div className="w-full">
+              <label className="mb-3 inline-block">Code postal *</label>
+              <div className="flex items-end">
+                <Input
+                  type="text"
+                  onChange={(e) => setUserActual(prev => prev ? {...prev, address: {...prev.address, postalCode: e.target.value}} : null)}
+                  required
+                  placeholder="Ex: 12400"
+                  value={userActual?.address?.postalCode || ""}
+                />
+              </div>
+            </div>
+          </div>
+          <br />
+          <div className="w-full md:w-[calc(50%-.5rem)] px-1">
+            <label className="mb-3 inline-block">Pays *</label>
+            <div className="flex items-end">
+              <Input
+                type="text"
+                onChange={(e) => setUserActual(prev => prev ? {...prev, address: {...prev.address, country: e.target.value}} : null)}
+                placeholder="Ex: France"
+                required
+                value={userActual?.address?.country || ""}
+              />
+            </div>
+          </div>
+          <br />
+          <div className="px-1">
+            <label htmlFor="complementAddress" className="mb-3 inline-block">
+              Complément d&apos;adresse
+            </label>
+            <Input
+              type="text"
+              onChange={(e) => setUserActual(prev => prev ? {...prev, address: {...prev.address, complementAddress: e.target.value}} : null)}
+              placeholder="Ex: Plus d'infos complementaires sur votre addresse..."
+              id="complementAddress"
+              value={userActual?.address?.complementAddress || ""}
+            />
+          </div>
+          <br />
 
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={() => handleSubmit}>
-            Mettre a jour
-          </Button>
-        </div>
+          <div>
+            <h2 className="font-normal text-lg my-8">Galerie d&apos;image</h2>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              style={{
+                cursor: "pointer",
+                width: "100%",
+                height: "100px",
+                border: "2px dashed #aaa",
+                borderRadius: "5px",
+                textAlign: "center",
+                padding: "20px",
+                marginBottom: "20px",
+              }}
+            >
+              <p className="flex items-center justify-center">
+                Cliquez ou glissez et déposez des fichiers ici
+              </p>
+              <p className="text-sm">
+                Formats pris en charge: JPEG, PNG, JPG et SVG
+              </p>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg, image/png, image/jpg, image/svg"
+              style={{ display: "none" }}
+              onChange={handleFileInputChange}
+            />
+
+            {userActual?.gallery && userActual.gallery.length > 0 && (
+              <div>
+                <h3 className="my-4">Sélectionner une image par défaut</h3>
+                <div className="flex flex-wrap">
+                  {userActual.gallery.map((imageUrl, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        marginRight: "10px",
+                      }}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Image ${index + 1}`}
+                        style={{
+                          width: "100px",
+                          height: "auto",
+                          marginBottom: "5px",
+                        }}
+                        className="rounded-lg"
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "5px",
+                          right: "5px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => handleDeleteImage(index)}
+                      >
+                        <CircleMinus size={24} color="red" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end mt-8">
+            <Button type="submit">
+              Mettre a jour
+            </Button>
+          </div>
+        </form>
       </div>
     </TabsContent>
   );
 }
 
-import { Calendar, MoreHorizontal, Tags, User } from "lucide-react";
+interface SocialsProfilesProps {
+  socials: { network: string; url: string }[];
+  setSocials: React.Dispatch<React.SetStateAction<{ network: string; url: string }[]>>;
+}
 
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { userAgent } from "next/server";
-import { AvatarFallback } from "@radix-ui/react-avatar";
-import { Avatar } from "@/components/ui/avatar";
-
-type Social = {
-  value: string;
-  label: string;
-  icon: LucideIcon;
-};
-
-const socials: Social[] = [
-  { value: "facebook", label: "Facebook", icon: Facebook },
-  { value: "instagram", label: "Instagram", icon: Instagram },
-  { value: "twitter", label: "Twitter", icon: Twitter },
-  { value: "youtube", label: "Youtube", icon: Youtube },
-  { value: "linkedin", label: "Linkedin", icon: Linkedin },
-];
-
-type SocialNetwork = {
-  name: string;
-  link: string;
-  icon: LucideIcon;
-};
-
-function SocialsProfiles() {
+function SocialsProfiles({ socials, setSocials }: SocialsProfilesProps) {
   const [open, setOpen] = useState(false);
-  const [selectedSocial, setSelectedSocial] = useState<Social>(socials[0]);
+  const [selectedSocial, setSelectedSocial] = useState<Social>(socialsList[0]);
   const [socialLink, setSocialLink] = useState<string>("");
-  const [socialsNetworks, setSocialsNetworks] = useState<SocialNetwork[]>([]);
-  const handleInputAddSocial = (
-    social: string,
-    value: string,
-    icon: LucideIcon
-  ) => {
-    const updatedSocialsNetworks = [
-      ...socialsNetworks,
-      { name: social, link: value, icon: icon },
-    ];
-    setSocialsNetworks(updatedSocialsNetworks);
+
+  const isValidUrl = (url: string) => {
+    const regex = /^(ftp|http|https):\/\/[^ "]+$/;
+    return regex.test(url);
   };
+
+  const handleAddSocial = () => {
+    if (!selectedSocial.value || !socialLink || !isValidUrl(socialLink)) return;
+
+    const updatedSocials = [...socials, { network: selectedSocial.value, url: socialLink }];
+    setSocials(updatedSocials);
+    setSocialLink("");
+    setSelectedSocial(socialsList[0]);
+  };
+
   const removeSocialNetwork = (index: number) => {
-    const updatedSocialsNetworks = socialsNetworks.filter(
-      (_, i) => i !== index
-    );
-    setSocialsNetworks(updatedSocialsNetworks);
+    const updatedSocials = socials.filter((_, i) => i !== index);
+    setSocials(updatedSocials);
   };
+
   return (
     <div>
       <div className="flex w-full gap-4 flex-col items-start justify-between sm:flex-row sm:items-center px-1">
         <div className="w-full">
           <Input
-            type="text-muted-foreground"
+            type="text"
+            value={socialLink}
             onChange={(e) => setSocialLink(e.target.value)}
             placeholder="Ex: https://www.instagram.com/itsabiconnick/"
           />
@@ -595,7 +590,7 @@ function SocialsProfiles() {
             <DropdownMenu open={open} onOpenChange={setOpen}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <selectedSocial.icon className="h-4 w-4 text-black" />
+                  {React.createElement(selectedSocial.icon, { className: "h-4 w-4 text-black" })}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
@@ -608,20 +603,12 @@ function SocialsProfiles() {
                   <CommandList>
                     <CommandEmpty>No label found.</CommandEmpty>
                     <CommandGroup>
-                      {socials.map((social) => (
+                      {socialsList.map((social) => (
                         <CommandItem
                           key={social.label}
                           value={social.value}
                           onSelect={(value) => {
-                            setSelectedSocial(() => {
-                              const foundedSocial = socials.find(
-                                (social) => social.value === value
-                              );
-                              if (foundedSocial) {
-                                return foundedSocial;
-                              }
-                              return socials[0];
-                            });
+                            setSelectedSocial(socialsList.find(s => s.value === value) || socialsList[0]);
                             setOpen(false);
                           }}
                         >
@@ -637,13 +624,7 @@ function SocialsProfiles() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() =>
-              handleInputAddSocial(
-                selectedSocial.value,
-                socialLink,
-                selectedSocial.icon
-              )
-            }
+            onClick={handleAddSocial}
           >
             <TooltipProvider>
               <Tooltip>
@@ -659,16 +640,21 @@ function SocialsProfiles() {
         </div>
       </div>
       <div>
-        {socialsNetworks && socialsNetworks.length > 0 ? (
-          socialsNetworks.map((socialNetwork, index) => (
-            <div className="my-4 mx-1 flex gap-4 justify-between items-center">
+        {socials && socials.length > 0 ? (
+          socials.map((socialNetwork, index) => (
+            <div key={index} className="my-4 mx-1 flex gap-4 justify-between items-center">
               <Button variant="outline" size="sm">
-                <socialNetwork.icon className="h-4 w-4 text-black" />
+                {React.createElement(socialIcons[socialNetwork.network] || Facebook, { className: "h-4 w-4 text-black" })}
               </Button>
               <Input
-                type="text-muted-foreground"
+                type="text"
                 placeholder="Ex: https://www.instagram.com/itsabiconnick/"
-                value={socialNetwork.link}
+                value={socialNetwork.url}
+                onChange={(e) => {
+                  const updatedSocials = [...socials];
+                  updatedSocials[index].url = e.target.value;
+                  setSocials(updatedSocials);
+                }}
               />
               <Button
                 variant="secondary"

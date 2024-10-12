@@ -25,6 +25,7 @@ interface ReservationProps {
   firstName: string;
   lastName: string;
   reason?: string;
+  onDelete: (id: string) => void;
 }
 
 export default function Reservation({
@@ -44,13 +45,14 @@ export default function Reservation({
   firstName,
   lastName,
   reason, // Raison d'annulation
+  onDelete,
 }: ReservationProps) {
   const displayAddress = typeof address === 'string' && address.trim() !== "" ? address : "Sur le lieu de travail";
   const { user } = useUserContext();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false); // État pour ouvrir/fermer le dialog de raison
+  const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false); 
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -62,6 +64,7 @@ export default function Reservation({
         throw new Error('Erreur lors de la suppression de la réservation');
       }
       alert("Réservation supprimée avec succès !");
+      onDelete(id);
     } catch (error) {
       console.error(error);
       alert("Une erreur est survenue lors de la suppression de la réservation.");
@@ -126,6 +129,18 @@ export default function Reservation({
       setIsDeleting(false);
     }
   };
+
+  const formattedDate = new Date(date).toLocaleDateString('fr-FR', {
+    weekday: 'long', 
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const formattedTime = new Date(date).toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
   return (
     <div className="bg-white flex md:justify-between justify-start md:flex-row flex-col gap-2 mb-4">
       <div className="shadow-md rounded-sm md:max-w-[16rem] w-full p-4 text-center border flex flex-col gap-3 justify-center items-center">
@@ -169,7 +184,7 @@ export default function Reservation({
             </div>
             <ul className="text-sm text-gray-500 my-4">
               <li className="mt-2"><strong>Service réservé :</strong> {service}</li>
-              <li className="mt-2"><strong>Date de réservation :</strong> {date} à partir de {time}</li>
+              <li className="mt-2"><strong>Date de réservation :</strong> {formattedDate} à partir de {formattedTime}</li>
               <li className="mt-2"><strong>Durée :</strong> {dureeRDV}</li>
               <li className="mt-2"><strong>Lieu :</strong> {displayAddress}</li>
               <li className="mt-2"><strong>Tarifs :</strong> {price} €</li>

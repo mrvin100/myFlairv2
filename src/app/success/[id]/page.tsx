@@ -63,7 +63,7 @@ const SuccessPage = () => {
     if (orderFetched && orderDetails) {
       updateProductQuantities(orderDetails.cartItems);
       fetchCartData();
-      // clearCart(); // Décommentez si vous voulez vider le panier après la commande
+      
     }
   }, [orderFetched, orderDetails]);
 

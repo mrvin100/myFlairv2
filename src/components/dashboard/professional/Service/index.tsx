@@ -231,7 +231,7 @@ export default function ServicesTab() {
                       onChange={(e) =>
                         handleServiceChange("title", e.target.value)
                       }
-                      placeholder="Ex: Massage Thai"
+                      placeholder="Ex: Coiffure"
                       required
                     />
                   </div>
