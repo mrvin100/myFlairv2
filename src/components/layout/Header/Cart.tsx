@@ -135,11 +135,11 @@ export default function Cart() {
                 <div className="flex items-center justify-between w-full">
                   <div className="flex flex-col">
                     <span style={{ fontWeight: '700' }}>
-                      {item.product.additionalService?.title || item.product.formation?.[0]?.title || item.product.businessBooster?.title || 'Produit sans titre'}
+                      {item.product.additionalService?.title || item.product.formation?.title || item.product.businessBooster?.title || 'Produit sans titre'}
                     </span>
                     <div className="flex">
                       <span>
-                        {item.product.additionalService?.price || item.product.formation?.[0]?.price || item.product.businessBooster?.price || '0'} € x
+                        {item.product.additionalService?.price || item.product.formation?.price || item.product.businessBooster?.price || '0'} € x
                       </span>
                       {item.quantity}
                     </div>
