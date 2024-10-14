@@ -206,6 +206,7 @@ const CalendarTab = () => {
                   selectedEvent.user.lastName || "Inconnu"
                 }
                 dureeRDV={selectedEvent.service.dureeRDV}
+                
               />
             ) : (
               <p>Aucune réservation précente</p>

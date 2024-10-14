@@ -75,7 +75,7 @@ export default function Comments() {
     }, []);
     
     if (loading) {
-        return <Skeleton active />;
+        return <Skeleton />;
     }
 
     const sortedReviews = reviews.sort((a, b) => {
@@ -229,7 +229,7 @@ function ModelSkeletonPro({ review }: { review: Review }) {
                             <img
                                 style={{ height: '50px', width: '50px', border: 'solid 1px white' }}
                                 className='rounded-full object-cover'
-                                src={review?.professional?.image || '/default-image.png'}
+                                src={review?.professional?.image || '/nail-salon.webp'}
                                 alt={'Image Of The Professional'}
                             />
                             <span style={{ fontSize: '130%' }} className='m-3'>{review?.professional?.firstName || 'Inconnu'}</span>
@@ -287,7 +287,7 @@ function ModelSkeletonClient({ review }: { review: Review }) {
                             <img
                                 style={{ height: '30px', width: '30px', border: 'solid 1px white' }}
                                 className='rounded-full object-cover'
-                                src={review?.author?.image || '/default-image.png'}
+                                src={review?.author?.image || '/nail-salon.webp'}
                                 alt={`Image Of The Client`}
                             />
                             <span style={{ fontSize: '90%' }} className='m-1'>{review?.author?.firstName || 'Inconnu'}</span>

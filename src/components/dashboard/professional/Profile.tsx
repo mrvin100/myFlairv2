@@ -25,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -41,7 +42,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface User {
   id: string;
@@ -106,7 +107,22 @@ export default function ProfileTab() {
   const [userActual, setUserActual] = useState<User | null>(null);
   const [socials, setSocials] = useState<{ network: string; url: string }[]>([]);
   const [profileImage, setProfileImage] = useState<File | null>(null); 
+  const [localSocials, setLocalSocials] = useState<{ network: string; url: string }[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  useEffect(() => {
+    if (userActual?.socialMedia) {
+      const initialSocials = Object.entries(userActual.socialMedia).map(([network, url]) => ({
+        network,
+        url: url as string,
+      }));
+      setLocalSocials(initialSocials);
+    }
+  }, [userActual]);
 
+  const handleSocialsChange = (newSocials: { network: string; url: string }[]) => {
+    setLocalSocials(newSocials);
+    setHasChanges(true);
+  };
 
   const handleDelete = () => {
     setImages([]);
@@ -291,7 +307,7 @@ export default function ProfileTab() {
           <Skeleton className="w-24 h-24 rounded-full" />
         ) : (
           <Image
-            src={userActual?.image || "/default-profile.png"}
+            src={userActual?.image || "/nail-salon.webp"}
             height={120}
             width={120}
             alt="client profile"
@@ -550,133 +566,159 @@ interface SocialsProfilesProps {
   setSocials: React.Dispatch<React.SetStateAction<{ network: string; url: string }[]>>;
 }
 
-function SocialsProfiles({ socials, setSocials }: SocialsProfilesProps) {
-  const [open, setOpen] = useState(false);
+interface Social {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+}
+interface SocialsProfilesProps {
+  socials: { network: string; url: string }[];
+  setSocials: React.Dispatch<React.SetStateAction<{ network: string; url: string }[]>>;
+}
+
+export function SocialsProfiles({ socials, setSocials }: SocialsProfilesProps) {
   const [selectedSocial, setSelectedSocial] = useState<Social>(socialsList[0]);
   const [socialLink, setSocialLink] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedSocial(socialsList[0]);
+    setSocialLink("");
+  }, [socials]);
 
   const isValidUrl = (url: string) => {
-    const regex = /^(ftp|http|https):\/\/[^ "]+$/;
-    return regex.test(url);
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const handleAddSocial = () => {
-    if (!selectedSocial.value || !socialLink || !isValidUrl(socialLink)) return;
+    if (!selectedSocial.value) {
+      setError("Veuillez sélectionner un réseau social.");
+      return;
+    }
+    if (!socialLink) {
+      setError("Veuillez entrer un lien pour le réseau social.");
+      return;
+    }
+    if (!isValidUrl(socialLink)) {
+      setError("Veuillez entrer une URL valide.");
+      return;
+    }
 
-    const updatedSocials = [...socials, { network: selectedSocial.value, url: socialLink }];
-    setSocials(updatedSocials);
+    const existingSocialIndex = socials.findIndex(s => s.network === selectedSocial.value);
+    if (existingSocialIndex !== -1) {
+      const updatedSocials = [...socials];
+      updatedSocials[existingSocialIndex].url = socialLink;
+      setSocials(updatedSocials);
+    } else {
+      setSocials([...socials, { network: selectedSocial.value, url: socialLink }]);
+    }
+
     setSocialLink("");
     setSelectedSocial(socialsList[0]);
+    setError(null);
   };
 
-  const removeSocialNetwork = (index: number) => {
-    const updatedSocials = socials.filter((_, i) => i !== index);
-    setSocials(updatedSocials);
+  const removeSocialNetwork = (network: string) => {
+    setSocials(socials.filter(s => s.network !== network));
   };
 
   return (
-    <div>
-      <div className="flex w-full gap-4 flex-col items-start justify-between sm:flex-row sm:items-center px-1">
-        <div className="w-full">
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto">
+              {React.createElement(selectedSocial.icon, { className: "mr-2 h-4 w-4" })}
+              {selectedSocial.label}
+              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[200px]">
+            {socialsList.map((social) => (
+              <DropdownMenuItem
+                key={social.value}
+                onClick={() => setSelectedSocial(social)}
+              >
+                {React.createElement(social.icon, { className: "mr-2 h-4 w-4" })}
+                {social.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="flex-grow">
           <Input
             type="text"
             value={socialLink}
             onChange={(e) => setSocialLink(e.target.value)}
-            placeholder="Ex: https://www.instagram.com/itsabiconnick/"
+            placeholder={`Ex: https://www.${selectedSocial.value}.com/username`}
           />
         </div>
-        <div className="flex justify-between md:justify-center gap-4">
-          <div className="text-sm font-medium leading-none">
-            <DropdownMenu open={open} onOpenChange={setOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  {React.createElement(selectedSocial.icon, { className: "h-4 w-4 text-black" })}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={handleAddSocial}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Ajouter
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Ajouter un réseau social</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Erreur</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}  
+     {socials.length > 0 ? (
+        <div className="space-y-2">
+          {socials.map((socialNetwork) => {
+            const social = socialsList.find(s => s.value === socialNetwork.network);
+            return (
+              <div key={socialNetwork.network} className="flex items-center gap-2">
+                <Button variant="outline" className="w-10 p-0">
+                  {social && React.createElement(social.icon, { className: "h-4 w-4" })}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px] p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Filter label..."
-                    autoFocus={true}
-                  />
-                  <CommandList>
-                    <CommandEmpty>No label found.</CommandEmpty>
-                    <CommandGroup>
-                      {socialsList.map((social) => (
-                        <CommandItem
-                          key={social.label}
-                          value={social.value}
-                          onSelect={(value) => {
-                            setSelectedSocial(socialsList.find(s => s.value === value) || socialsList[0]);
-                            setOpen(false);
-                          }}
-                        >
-                          {social.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleAddSocial}
-          >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <PlusCircle className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Ajouter un réseau social</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Button>
+                <Input
+                  type="text"
+                  value={socialNetwork.url}
+                  onChange={(e) => {
+                    const updatedSocials = socials.map(s =>
+                      s.network === socialNetwork.network ? { ...s, url: e.target.value } : s
+                    );
+                    setSocials(updatedSocials);
+                  }}
+                  className="flex-grow"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeSocialNetwork(socialNetwork.network)}
+                >
+                  <CircleMinus className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+            );
+          })}
         </div>
-      </div>
-      <div>
-        {socials && socials.length > 0 ? (
-          socials.map((socialNetwork, index) => (
-            <div key={index} className="my-4 mx-1 flex gap-4 justify-between items-center">
-              <Button variant="outline" size="sm">
-                {React.createElement(socialIcons[socialNetwork.network] || Facebook, { className: "h-4 w-4 text-black" })}
-              </Button>
-              <Input
-                type="text"
-                placeholder="Ex: https://www.instagram.com/itsabiconnick/"
-                value={socialNetwork.url}
-                onChange={(e) => {
-                  const updatedSocials = [...socials];
-                  updatedSocials[index].url = e.target.value;
-                  setSocials(updatedSocials);
-                }}
-              />
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => removeSocialNetwork(index)}
-              >
-                <CircleMinus className="h-4 w-4 text-red-500" />
-              </Button>
-            </div>
-          ))
-        ) : (
-          <div>
-            <Alert className="text-center my-4">
-              <Bell className="h-6 w-6 text-muted" />
-              <AlertTitle className="ml-4 mb-2">Oups!</AlertTitle>
-              <AlertDescription className="ml-4">
-                Veuillez configurer vos réseaux soiaux.
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
-      </div>
+      ) : (
+        <Alert>
+          <Bell className="h-4 w-4" />
+          <AlertTitle>Aucun réseau social</AlertTitle>
+          <AlertDescription>
+            Veuillez ajouter vos réseaux sociaux.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

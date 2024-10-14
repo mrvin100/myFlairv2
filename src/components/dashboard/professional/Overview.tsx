@@ -39,7 +39,9 @@ type ReservationType = {
 export default function OverviewTab() {
   const { user } = useUserContext();
   const [reservations, setReservations] = useState<ReservationType[]>([]);
-  console.log(reservations,"g")
+  const handleDeleteReservation = (id: string) => {
+    setReservations(prev => prev.filter(reservation => reservation.id !== id))
+  }
 
   useEffect(() => {
     async function fetchReservations() {
@@ -131,7 +133,7 @@ export default function OverviewTab() {
                 firstName={reservation.client?.clientUser.firstName || 'Inconnu'}
                 lastName={reservation.client?.clientUser?.lastName || 'Inconnu'}
                 dureeRDV={reservation.service.dureeRDV}
-
+                onDelete={handleDeleteReservation}
               />
             ))
           ) : (
