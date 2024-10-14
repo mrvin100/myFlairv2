@@ -3,10 +3,6 @@ import { htmlToText } from 'html-to-text';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 
-export const config = {
-  runtime: 'edge',
-};
-
 export async function POST(req: NextRequest) {
   try {
     // Récupération des données JSON du corps de la requête
