@@ -28,20 +28,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CustomToast, toast } from "@/components/ui/custom-toast";
 
 interface User {
   id: string;
@@ -121,57 +114,50 @@ export default function ProfileTab() {
     setLocalSocials(newSocials);
     setHasChanges(true);
   };
-
   const handleDelete = () => {
     setImages([]);
   };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
+  
     if (!userActual) return;
-
+  
     const updateData = {
       gallery: userActual.gallery,
       enterprise: userActual.enterprise,
       biography: userActual.biography,
-      address: {
-        ...userActual.address,
-        street: userActual.address.street,
-        city: userActual.address.city,
-        postalCode: userActual.address.postalCode,
-        country: userActual.address.country,
-        complementAddress: userActual.address.complementAddress,
-      },
+      address: userActual.address,
       email: userActual.email,
       phone: userActual.phone,
       homeServiceOnly: userActual.homeServiceOnly,
-      socialMedia: localSocials.reduce(
-        (acc, social) => {
-          acc[social.network.toLowerCase()] = social.url;
-          return acc;
-        },
-        {} as Record<string, string>
-      ),
+      socialMedia: localSocials.reduce((acc, social) => {
+        acc[social.network.toLowerCase()] = social.url;
+        return acc;
+      }, {} as Record<string, string>),
     };
-
-    console.log("Données mises à jour:", updateData);
-
+  
     try {
-      const response = await axios.put(
-        `/api/utilisateur/updateProfilePro/${user?.id}`,
-        updateData
-      );
+      const response = await axios.put(`/api/utilisateur/updateProfilePro/${user?.id}`, updateData);
       if (response.status === 200) {
-        alert("Profile updated successfully!");
+        toast.custom((t) => (
+          <CustomToast
+            title="Mise à jour réussie"
+            description="Votre profil a été mis à jour."
+            variant="success"
+          />
+        ));
         setHasChanges(false);
       }
     } catch (error) {
-      console.error("Error updating user profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.custom((t) => (
+        <CustomToast
+          title="Erreur"
+          description="Échec de la mise à jour du profil. Veuillez réessayer."
+          variant="error"
+        />
+      ));
     }
   };
-
   const uploadImage = async (file: File): Promise<string> => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -309,7 +295,7 @@ export default function ProfileTab() {
     <TabsContent value="profile">
       <div className="max-w-5xl w-full">
         <h2 className="text-xl font-normal mb-8">Mon Profile</h2>
-        <form>
+        <form onSubmit={handleSubmit}>
           <h2 className="font-normal text-lg my-4">Image profil</h2>
           <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start">
             {isLoadingProfileImage ? (
@@ -377,7 +363,6 @@ export default function ProfileTab() {
             />
           </div>
           <br />
-          <form onSubmit={handleSubmit}>
             <h2 className="font-normal text-lg my-8">Informations Public</h2>
             <h3 className="text-sm mb-3">Réseaux sociaux</h3>
             <SocialsProfiles
@@ -389,7 +374,6 @@ export default function ProfileTab() {
                 Appliquer les changements
               </Button>
             </div>
-          </form>
           <h2 className="font-normal text-lg my-8">Contact public</h2>
 
           <div className="flex gap-3 flex-col md:flex-row px-1">
@@ -674,7 +658,8 @@ export function SocialsProfiles({
     }
   };
 
-  const handleAddSocial = () => {
+  const handleAddSocial = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (!selectedSocial.value) {
       setError("Veuillez sélectionner un réseau social.");
       return;
