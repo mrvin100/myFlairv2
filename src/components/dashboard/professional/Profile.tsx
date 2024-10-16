@@ -119,9 +119,9 @@ export default function ProfileTab() {
   };
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-  
+
     if (!userActual) return;
-  
+
     const updateData = {
       gallery: userActual.gallery,
       enterprise: userActual.enterprise,
@@ -130,14 +130,20 @@ export default function ProfileTab() {
       email: userActual.email,
       phone: userActual.phone,
       homeServiceOnly: userActual.homeServiceOnly,
-      socialMedia: localSocials.reduce((acc, social) => {
-        acc[social.network.toLowerCase()] = social.url;
-        return acc;
-      }, {} as Record<string, string>),
+      socialMedia: localSocials.reduce(
+        (acc, social) => {
+          acc[social.network.toLowerCase()] = social.url;
+          return acc;
+        },
+        {} as Record<string, string>
+      ),
     };
-  
+
     try {
-      const response = await axios.put(`/api/utilisateur/updateProfilePro/${user?.id}`, updateData);
+      const response = await axios.put(
+        `/api/utilisateur/updateProfilePro/${user?.id}`,
+        updateData
+      );
       if (response.status === 200) {
         toast.custom((t) => (
           <CustomToast
@@ -259,17 +265,27 @@ export default function ProfileTab() {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      setIsLoadingProfileImage(true); // Commence le chargement
       try {
         const imageUrl = await uploadImage(file);
-        if (userActual) {
-          setUserActual({ ...userActual, image: imageUrl });
-        }
-        setProfileImage(file);
+        setProfileImage(file); // Garde la référence au fichier localement
+        setUserActual((prev) => (prev ? { ...prev, image: imageUrl } : null)); // Met à jour userActual
+        setIsLoadingProfileImage(false); // Termine le chargement
       } catch (error) {
         console.error("Erreur lors de l'upload de l'image:", error);
+        setIsLoadingProfileImage(false); // Termine le chargement même en cas d'erreur
       }
     }
   };
+  useEffect(() => {
+    // Révoquer l'URL lorsque le composant est démonté ou que le fichier change
+    return () => {
+      if (profileImage) {
+        URL.revokeObjectURL(URL.createObjectURL(profileImage));
+      }
+    };
+  }, [profileImage]);
+
   const handleDeleteProfileImage = () => {
     if (userActual) {
       setUserActual({ ...userActual, image: "" });
@@ -281,10 +297,6 @@ export default function ProfileTab() {
       setIsLoadingProfileImage(false);
     }
   }, [userActual?.image]);
-
-  const handleProfileImageLoaded = () => {
-    setIsLoadingProfileImage(false);
-  };
 
   const handleProfileInputClick = () => {
     if (fileInputRef.current) {
@@ -302,12 +314,16 @@ export default function ProfileTab() {
               <Skeleton className="w-24 h-24 rounded-full" />
             ) : (
               <Image
-                src={userActual?.image || "/nail-salon.webp"}
+                src={
+                  profileImage
+                    ? URL.createObjectURL(profileImage)
+                    : userActual?.image || "/nail-salon.webp"
+                }
                 height={120}
                 width={120}
                 alt="client profile"
                 className="rounded-full object-cover h-24 w-24"
-                onLoadingComplete={handleProfileImageLoaded}
+                onLoadingComplete={() => setIsLoadingProfileImage(false)} // Assurez-vous de mettre à jour l'état de chargement
               />
             )}
             <div>
@@ -363,17 +379,17 @@ export default function ProfileTab() {
             />
           </div>
           <br />
-            <h2 className="font-normal text-lg my-8">Informations Public</h2>
-            <h3 className="text-sm mb-3">Réseaux sociaux</h3>
-            <SocialsProfiles
-              initialSocials={localSocials}
-              onSocialsChange={handleSocialsChange}
-            />
-            <div className="flex justify-end mt-8">
-              <Button type="submit" disabled={!hasChanges}>
-                Appliquer les changements
-              </Button>
-            </div>
+          <h2 className="font-normal text-lg my-8">Informations Public</h2>
+          <h3 className="text-sm mb-3">Réseaux sociaux</h3>
+          <SocialsProfiles
+            initialSocials={localSocials}
+            onSocialsChange={handleSocialsChange}
+          />
+          <div className="flex justify-end mt-8">
+            <Button type="submit" disabled={!hasChanges}>
+              Appliquer les changements
+            </Button>
+          </div>
           <h2 className="font-normal text-lg my-8">Contact public</h2>
 
           <div className="flex gap-3 flex-col md:flex-row px-1">
