@@ -33,9 +33,6 @@ const daysOfWeek = [
 
 const initialAvailabilities = {
   "Tous les jours": [
-    { from: "09:00", to: "10:00" },
-    { from: "14:00", to: "16:00" },
-    { from: "20:00", to: "21:00" },
   ],
   Lundi: [],
   Mardi: [],
@@ -48,10 +45,10 @@ const initialAvailabilities = {
 
 const initialAvailabilitiesPeriods = [
   {
-    from: "16 janvier 2024",
-    to: "10 fevrier 2024",
-    timeFrom: "00:00",
-    timeTo: "00:00",
+    from: "",
+    to: "",
+    timeFrom: "",
+    timeTo: "",
   },
 ];
 

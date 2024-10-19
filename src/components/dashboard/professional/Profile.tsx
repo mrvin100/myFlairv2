@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, { useRef, useState, useEffect } from "react";
 import { useUserContext } from "@/contexts/user";
 import { TabsContent } from "@/components/ui/tabs";
@@ -27,14 +26,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Tooltip,
   TooltipContent,
@@ -94,8 +85,8 @@ const socialsList: Social[] = [
 export default function ProfileTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUserContext();
-  const [images, setImages] = useState<File[]>([]);
   const [userActual, setUserActual] = useState<User | null>(null);
+  const [localUserData, setLocalUserData] = useState<User | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [localSocials, setLocalSocials] = useState<
     { network: string; url: string }[]
@@ -104,7 +95,8 @@ export default function ProfileTab() {
   const [isLoadingProfileImage, setIsLoadingProfileImage] = useState(true);
 
   useEffect(() => {
-    if (userActual?.socialMedia) {
+    if (userActual) {
+      setLocalUserData(userActual);
       const initialSocials = Object.entries(userActual.socialMedia).map(
         ([network, url]) => ({
           network,
@@ -115,37 +107,32 @@ export default function ProfileTab() {
     }
   }, [userActual]);
 
-  const handleSocialsChange = (
-    newSocials: { network: string; url: string }[]
-  ) => {
+  const handleSocialsChange = (newSocials: { network: string; url: string }[]) => {
     setLocalSocials(newSocials);
-    setHasChanges(true);
+    setHasChanges(true);  
   };
-
-  const handleDelete = () => {
-    setImages([]);
-  };
+  
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!userActual) return;
+    if (!localUserData) return;
 
     const updateData = {
-      gallery: userActual.gallery,
-      enterprise: userActual.enterprise,
-      biography: userActual.biography,
+      gallery: localUserData.gallery,
+      enterprise: localUserData.enterprise,
+      biography: localUserData.biography,
       address: {
-        ...userActual.address,
-        street: userActual.address.street,
-        city: userActual.address.city,
-        postalCode: userActual.address.postalCode,
-        country: userActual.address.country,
-        complementAddress: userActual.address.complementAddress,
+        ...localUserData.address,
+        street: localUserData.address.street,
+        city: localUserData.address.city,
+        postalCode: localUserData.address.postalCode,
+        country: localUserData.address.country,
+        complementAddress: localUserData.address.complementAddress,
       },
-      email: userActual.email,
-      phone: userActual.phone,
-      homeServiceOnly: userActual.homeServiceOnly,
+      email: localUserData.email,
+      phone: localUserData.phone,
+      homeServiceOnly: localUserData.homeServiceOnly,
       socialMedia: localSocials.reduce(
         (acc, social) => {
           acc[social.network.toLowerCase()] = social.url;
@@ -163,8 +150,9 @@ export default function ProfileTab() {
         updateData
       );
       if (response.status === 200) {
-        alert("Profile updated successfully!");
+       
         setHasChanges(false);
+        setUserActual(response.data);
       }
     } catch (error) {
       console.error("Error updating user profile:", error);
@@ -209,14 +197,6 @@ export default function ProfileTab() {
         }
         const data = await response.json();
         setUserActual(data);
-
-        const socialMediaLinks = Object.entries(data.socialMedia).map(
-          ([network, url]) => ({
-            network,
-            url: url as string,
-          })
-        );
-        setLocalSocials(socialMediaLinks);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
@@ -234,12 +214,12 @@ export default function ProfileTab() {
     if (files && files.length > 0) {
       try {
         const imageUrl = await uploadImage(files[0]);
-        setImages([files[0]]);
-        if (userActual) {
-          setUserActual({
-            ...userActual,
-            gallery: [...userActual.gallery, imageUrl],
+        if (localUserData) {
+          setLocalUserData({
+            ...localUserData,
+            gallery: [...localUserData.gallery, imageUrl],
           });
+          setHasChanges(true);
         }
       } catch (error) {
         console.error("Error uploading image:", error);
@@ -256,18 +236,26 @@ export default function ProfileTab() {
     }
     try {
       const imageUrl = await uploadImage(files[0]);
-      setImages(files);
+      if (localUserData) {
+        setLocalUserData({
+          ...localUserData,
+          gallery: [...localUserData.gallery, imageUrl],
+        });
+        setHasChanges(true);
+      }
     } catch (error) {
       console.error("Error uploading image:", error);
     }
   };
 
   const handleDeleteImage = (index: number) => {
-    if (!userActual) return;
-    const updatedGallery = [...userActual.gallery];
+    if (!localUserData) return;
+    const updatedGallery = [...localUserData.gallery];
     updatedGallery.splice(index, 1);
-    setUserActual({ ...userActual, gallery: updatedGallery });
+    setLocalUserData({ ...localUserData, gallery: updatedGallery });
+    setHasChanges(true);
   };
+
   const handleProfileInputChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -275,26 +263,31 @@ export default function ProfileTab() {
     if (file) {
       try {
         const imageUrl = await uploadImage(file);
-        if (userActual) {
-          setUserActual({ ...userActual, image: imageUrl });
+        if (localUserData) {
+          setLocalUserData({ ...localUserData, image: imageUrl });
+          setProfileImage(file);
+          setHasChanges(true);
         }
-        setProfileImage(file);
       } catch (error) {
         console.error("Erreur lors de l'upload de l'image:", error);
       }
     }
   };
-  const handleDeleteProfileImage = () => {
-    if (userActual) {
-      setUserActual({ ...userActual, image: "" });
+
+  const handleDeleteProfileImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (localUserData) {
+      setLocalUserData({ ...localUserData, image: "" });
       setProfileImage(null);
+      setHasChanges(true);
     }
   };
+
   useEffect(() => {
-    if (userActual?.image) {
+    if (localUserData?.image) {
       setIsLoadingProfileImage(false);
     }
-  }, [userActual?.image]);
+  }, [localUserData?.image]);
 
   const handleProfileImageLoaded = () => {
     setIsLoadingProfileImage(false);
@@ -305,18 +298,37 @@ export default function ProfileTab() {
       fileInputRef.current.click();
     }
   };
+
+  const handleInputChange = (
+    field: string,
+    value: string | boolean,
+    nestedField?: string
+  ) => {
+    if (localUserData) {
+      if (nestedField) {
+        setLocalUserData({
+          ...localUserData,
+          [field]: { ...localUserData[field], [nestedField]: value },
+        });
+      } else {
+        setLocalUserData({ ...localUserData, [field]: value });
+      }
+      setHasChanges(true);
+    }
+  };
+
   return (
     <TabsContent value="profile">
       <div className="max-w-5xl w-full">
         <h2 className="text-xl font-normal mb-8">Mon Profile</h2>
-        <form>
+        <form onSubmit={handleSubmit}>
           <h2 className="font-normal text-lg my-4">Image profil</h2>
           <div className="flex gap-3 justify-center items-center flex-col md:flex-row md:justify-start">
             {isLoadingProfileImage ? (
               <Skeleton className="w-24 h-24 rounded-full" />
             ) : (
               <Image
-                src={userActual?.image || "/nail-salon.webp"}
+                src={localUserData?.image || "/nail-salon.webp"}
                 height={120}
                 width={120}
                 alt="client profile"
@@ -332,8 +344,8 @@ export default function ProfileTab() {
                   style={{ display: "none" }}
                   ref={fileInputRef}
                 />
-                <Button onClick={handleProfileInputClick}>Télécharger</Button>
-                <Button onClick={handleDeleteProfileImage} variant="outline">
+                <Button type="button" onClick={handleProfileInputClick}>Télécharger</Button>
+                <Button type="button" onClick={handleDeleteProfileImage} variant="outline">
                   Supprimer
                 </Button>
               </div>
@@ -346,15 +358,11 @@ export default function ProfileTab() {
             </label>
             <Input
               type="text"
-              onChange={(e) =>
-                setUserActual((prev) =>
-                  prev ? { ...prev, enterprise: e.target.value } : null
-                )
-              }
+              onChange={(e) => handleInputChange("enterprise", e.target.value)}
               placeholder="Ex: Milana Beauty"
               required
               id="entreprise"
-              value={userActual?.enterprise || ""}
+              value={localUserData?.enterprise || ""}
             />
           </div>
           <br />
@@ -367,29 +375,18 @@ export default function ProfileTab() {
             <div>Description</div>
             <br />
             <ReactQuill
-              value={userActual?.biography || ""}
-              onChange={(content) =>
-                setUserActual((prev) =>
-                  prev ? { ...prev, biography: content } : null
-                )
-              }
+              value={localUserData?.biography || ""}
+              onChange={(content) => handleInputChange("biography", content)}
               placeholder="Décrivez votre entreprise ici..."
             />
           </div>
           <br />
-          <form onSubmit={handleSubmit}>
-            <h2 className="font-normal text-lg my-8">Informations Public</h2>
-            <h3 className="text-sm mb-3">Réseaux sociaux</h3>
-            <SocialsProfiles
-              initialSocials={localSocials}
-              onSocialsChange={handleSocialsChange}
-            />
-            <div className="flex justify-end mt-8">
-              <Button type="submit" disabled={!hasChanges}>
-                Appliquer les changements
-              </Button>
-            </div>
-          </form>
+          <h2 className="font-normal text-lg my-8">Informations Public</h2>
+          <h3 className="text-sm mb-3">Réseaux sociaux</h3>
+          <SocialsProfiles
+            initialSocials={localSocials}
+            onSocialsChange={handleSocialsChange}
+          />
           <h2 className="font-normal text-lg my-8">Contact public</h2>
 
           <div className="flex gap-3 flex-col md:flex-row px-1">
@@ -398,13 +395,9 @@ export default function ProfileTab() {
               <div className="flex items-end">
                 <Input
                   type="text"
-                  onChange={(e) =>
-                    setUserActual((prev) =>
-                      prev ? { ...prev, email: e.target.value } : null
-                    )
-                  }
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   placeholder="Ex: myname@myFlair.fr"
-                  value={userActual?.email || ""}
+                  value={localUserData?.email || ""}
                 />
               </div>
             </div>
@@ -413,14 +406,10 @@ export default function ProfileTab() {
               <div className="flex items-end">
                 <Input
                   type="text"
-                  onChange={(e) =>
-                    setUserActual((prev) =>
-                      prev ? { ...prev, phone: e.target.value } : null
-                    )
-                  }
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
                   required
                   placeholder="Ex: 0123456789"
-                  value={userActual?.phone || ""}
+                  value={localUserData?.phone || ""}
                 />
               </div>
             </div>
@@ -433,11 +422,9 @@ export default function ProfileTab() {
               </span>
               <div style={{ marginTop: "5px" }}>
                 <Switch
-                  checked={userActual?.homeServiceOnly || false}
+                  checked={localUserData?.homeServiceOnly || false}
                   onCheckedChange={(checked) =>
-                    setUserActual((prev) =>
-                      prev ? { ...prev, homeServiceOnly: checked } : null
-                    )
+                    handleInputChange("homeServiceOnly", checked)
                   }
                   className="data-[state=checked]:bg-green-500"
                 />
@@ -452,19 +439,12 @@ export default function ProfileTab() {
             <Input
               type="text"
               onChange={(e) =>
-                setUserActual((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        address: { ...prev.address, street: e.target.value },
-                      }
-                    : null
-                )
+                handleInputChange("address", e.target.value, "street")
               }
               placeholder="Ex: 30 rue Molière"
               required
               id="address"
-              value={userActual?.address?.street || ""}
+              value={localUserData?.address?.street || ""}
             />
           </div>
           <br />
@@ -476,17 +456,10 @@ export default function ProfileTab() {
                 <Input
                   type="text"
                   onChange={(e) =>
-                    setUserActual((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            address: { ...prev.address, city: e.target.value },
-                          }
-                        : null
-                    )
+                    handleInputChange("address", e.target.value, "city")
                   }
                   placeholder="Ex: Marseille"
-                  value={userActual?.address?.city || ""}
+                  value={localUserData?.address?.city || ""}
                 />
               </div>
             </div>
@@ -496,21 +469,11 @@ export default function ProfileTab() {
                 <Input
                   type="text"
                   onChange={(e) =>
-                    setUserActual((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            address: {
-                              ...prev.address,
-                              postalCode: e.target.value,
-                            },
-                          }
-                        : null
-                    )
+                    handleInputChange("address", e.target.value, "postalCode")
                   }
                   required
                   placeholder="Ex: 12400"
-                  value={userActual?.address?.postalCode || ""}
+                  value={localUserData?.address?.postalCode || ""}
                 />
               </div>
             </div>
@@ -522,18 +485,11 @@ export default function ProfileTab() {
               <Input
                 type="text"
                 onChange={(e) =>
-                  setUserActual((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          address: { ...prev.address, country: e.target.value },
-                        }
-                      : null
-                  )
+                  handleInputChange("address", e.target.value, "country")
                 }
                 placeholder="Ex: France"
                 required
-                value={userActual?.address?.country || ""}
+                value={localUserData?.address?.country || ""}
               />
             </div>
           </div>
@@ -545,21 +501,15 @@ export default function ProfileTab() {
             <Input
               type="text"
               onChange={(e) =>
-                setUserActual((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        address: {
-                          ...prev.address,
-                          complementAddress: e.target.value,
-                        },
-                      }
-                    : null
+                handleInputChange(
+                  "address",
+                  e.target.value,
+                  "complementAddress"
                 )
               }
               placeholder="Ex: Plus d'infos complementaires sur votre addresse..."
               id="complementAddress"
-              value={userActual?.address?.complementAddress || ""}
+              value={localUserData?.address?.complementAddress || ""}
             />
           </div>
           <br />
@@ -597,11 +547,11 @@ export default function ProfileTab() {
               onChange={handleFileInputChange}
             />
 
-            {userActual?.gallery && userActual.gallery.length > 0 && (
+            {localUserData?.gallery && localUserData.gallery.length > 0 && (
               <div>
                 <h3 className="my-4">Sélectionner une image par défaut</h3>
                 <div className="flex flex-wrap">
-                  {userActual.gallery.map((imageUrl, index) => (
+                  {localUserData.gallery.map((imageUrl, index) => (
                     <div
                       key={index}
                       style={{
@@ -638,7 +588,9 @@ export default function ProfileTab() {
             )}
           </div>
           <div className="flex justify-end mt-8">
-            <Button type="submit">Mettre a jour</Button>
+            <Button type="submit" disabled={!hasChanges}>
+              Appliquer les changements
+            </Button>
           </div>
         </form>
       </div>
@@ -655,8 +607,7 @@ export function SocialsProfiles({
   initialSocials,
   onSocialsChange,
 }: SocialsProfilesProps) {
-  const [socials, setSocials] =
-    useState<{ network: string; url: string }[]>(initialSocials);
+  const [socials, setSocials] = useState<{ network: string; url: string }[]>(initialSocials);
   const [selectedSocial, setSelectedSocial] = useState<Social>(socialsList[0]);
   const [socialLink, setSocialLink] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -687,7 +638,7 @@ export function SocialsProfiles({
       setError("Veuillez entrer une URL valide.");
       return;
     }
-
+    console.log('g')
     const existingSocialIndex = socials.findIndex(
       (s) => s.network === selectedSocial.value
     );
@@ -695,17 +646,16 @@ export function SocialsProfiles({
       const updatedSocials = [...socials];
       updatedSocials[existingSocialIndex].url = socialLink;
       setSocials(updatedSocials);
+      onSocialsChange(updatedSocials);
     } else {
-      setSocials([
+      const newSocials = [
         ...socials,
         { network: selectedSocial.value, url: socialLink },
-      ]);
+      ];
+      setSocials(newSocials);
+      onSocialsChange(newSocials);
     }
 
-    onSocialsChange([
-      ...socials,
-      { network: selectedSocial.value, url: socialLink },
-    ]);
     setSocialLink("");
     setSelectedSocial(socialsList[0]);
     setError(null);

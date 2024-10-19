@@ -274,20 +274,30 @@ export default function ClientsList({ searchTerm, statusFilter }: ClientsListPro
               </ul>
             </div>
             <div className="flex gap-4 items-center flex-wrap justify-end">
-              <Button variant="outline" onClick={() => openDeleteDialog(client.id)}>
-                Supprimer
-              </Button>
+            {client.status === 'flair' ? (
+                <Button variant="outline" onClick={() => handleViewReservations(client.clientUser.id)}>
+                  Consulter ses réservations
+                </Button>
+              ) : (
+                <>
+                  {/* Sinon, pour le statut 'boutique', afficher tous les boutons */}
+                  <Button variant="outline" onClick={() => openDeleteDialog(client.id)}>
+                    Supprimer
+                  </Button>
 
-              <Link href={`/dashboard/professional/Client/${client.clientUser.id}`}>
-                <Button variant="outline">Créer une réservation</Button>
-              </Link>
-              <Button variant="outline" onClick={() => handleViewReservations(client.clientUser.id)}>
-                Consulter ses réservations
-              </Button>
+                  <Link href={`/dashboard/professional/Client/${client.clientUser.id}`}>
+                    <Button variant="outline">Créer une réservation</Button>
+                  </Link>
 
-              <Button onClick={() => handleOpenEditDialog(client)}>
-                Modifier
-              </Button>
+                  <Button variant="outline" onClick={() => handleViewReservations(client.clientUser.id)}>
+                    Consulter ses réservations
+                  </Button>
+
+                  <Button onClick={() => handleOpenEditDialog(client)}>
+                    Modifier
+                  </Button>
+                </>
+              )}
 
               <Dialog open={isReservationsDialogOpen} onOpenChange={setIsReservationsDialogOpen}>
                 <DialogContent className="max-w-5xl max-h-[80vh] overflow-auto">
