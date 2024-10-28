@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CustomToast, toast } from "@/components/ui/custom-toast";
 
 interface User {
   id: string;
@@ -111,7 +112,10 @@ export default function ProfileTab() {
     setLocalSocials(newSocials);
     setHasChanges(true);  
   };
-  
+
+  const handleDelete = () => {
+    setImages([]);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -119,20 +123,20 @@ export default function ProfileTab() {
     if (!localUserData) return;
 
     const updateData = {
-      gallery: localUserData.gallery,
-      enterprise: localUserData.enterprise,
-      biography: localUserData.biography,
+      gallery: userActual.gallery,
+      enterprise: userActual.enterprise,
+      biography: userActual.biography,
       address: {
-        ...localUserData.address,
-        street: localUserData.address.street,
-        city: localUserData.address.city,
-        postalCode: localUserData.address.postalCode,
-        country: localUserData.address.country,
-        complementAddress: localUserData.address.complementAddress,
+        ...userActual.address,
+        street: userActual.address.street,
+        city: userActual.address.city,
+        postalCode: userActual.address.postalCode,
+        country: userActual.address.country,
+        complementAddress: userActual.address.complementAddress,
       },
-      email: localUserData.email,
-      phone: localUserData.phone,
-      homeServiceOnly: localUserData.homeServiceOnly,
+      email: userActual.email,
+      phone: userActual.phone,
+      homeServiceOnly: userActual.homeServiceOnly,
       socialMedia: localSocials.reduce(
         (acc, social) => {
           acc[social.network.toLowerCase()] = social.url;
@@ -142,24 +146,26 @@ export default function ProfileTab() {
       ),
     };
 
-    console.log("Données mises à jour:", updateData);
-
     try {
       const response = await axios.put(
         `/api/utilisateur/updateProfilePro/${user?.id}`,
         updateData
       );
       if (response.status === 200) {
-       
+        alert("Profile updated successfully!");
         setHasChanges(false);
         setUserActual(response.data);
       }
     } catch (error) {
-      console.error("Error updating user profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.custom((t) => (
+        <CustomToast
+          title="Erreur"
+          description="Échec de la mise à jour du profil. Veuillez réessayer."
+          variant="error"
+        />
+      ));
     }
   };
-
   const uploadImage = async (file: File): Promise<string> => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -261,23 +267,22 @@ export default function ProfileTab() {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      setIsLoadingProfileImage(true); // Commence le chargement
       try {
         const imageUrl = await uploadImage(file);
-        if (localUserData) {
-          setLocalUserData({ ...localUserData, image: imageUrl });
-          setProfileImage(file);
-          setHasChanges(true);
+        if (userActual) {
+          setUserActual({ ...userActual, image: imageUrl });
         }
+        setProfileImage(file);
       } catch (error) {
         console.error("Erreur lors de l'upload de l'image:", error);
+        setIsLoadingProfileImage(false); // Termine le chargement même en cas d'erreur
       }
     }
   };
-
-  const handleDeleteProfileImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (localUserData) {
-      setLocalUserData({ ...localUserData, image: "" });
+  const handleDeleteProfileImage = () => {
+    if (userActual) {
+      setUserActual({ ...userActual, image: "" });
       setProfileImage(null);
       setHasChanges(true);
     }
@@ -287,7 +292,7 @@ export default function ProfileTab() {
     if (localUserData?.image) {
       setIsLoadingProfileImage(false);
     }
-  }, [localUserData?.image]);
+  }, [userActual?.image]);
 
   const handleProfileImageLoaded = () => {
     setIsLoadingProfileImage(false);
@@ -328,12 +333,12 @@ export default function ProfileTab() {
               <Skeleton className="w-24 h-24 rounded-full" />
             ) : (
               <Image
-                src={localUserData?.image || "/nail-salon.webp"}
+                src={userActual?.image || "/nail-salon.webp"}
                 height={120}
                 width={120}
                 alt="client profile"
                 className="rounded-full object-cover h-24 w-24"
-                onLoadingComplete={handleProfileImageLoaded}
+                onLoadingComplete={() => setIsLoadingProfileImage(false)} // Assurez-vous de mettre à jour l'état de chargement
               />
             )}
             <div>
@@ -381,12 +386,19 @@ export default function ProfileTab() {
             />
           </div>
           <br />
-          <h2 className="font-normal text-lg my-8">Informations Public</h2>
-          <h3 className="text-sm mb-3">Réseaux sociaux</h3>
-          <SocialsProfiles
-            initialSocials={localSocials}
-            onSocialsChange={handleSocialsChange}
-          />
+          <form onSubmit={handleSubmit}>
+            <h2 className="font-normal text-lg my-8">Informations Public</h2>
+            <h3 className="text-sm mb-3">Réseaux sociaux</h3>
+            <SocialsProfiles
+              initialSocials={localSocials}
+              onSocialsChange={handleSocialsChange}
+            />
+            <div className="flex justify-end mt-8">
+              <Button type="submit" disabled={!hasChanges}>
+                Appliquer les changements
+              </Button>
+            </div>
+          </form>
           <h2 className="font-normal text-lg my-8">Contact public</h2>
 
           <div className="flex gap-3 flex-col md:flex-row px-1">
@@ -625,7 +637,8 @@ export function SocialsProfiles({
     }
   };
 
-  const handleAddSocial = () => {
+  const handleAddSocial = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (!selectedSocial.value) {
       setError("Veuillez sélectionner un réseau social.");
       return;
