@@ -9,7 +9,7 @@ import { getUserByEmail } from '@/data/user';
 const authConfig = {
   providers: [
     CredentialsProvider({
-      /* @ts-ignore */
+
       async authorize(credentials) {
         const parsedCredentials = signInSchema.safeParse(credentials);
 

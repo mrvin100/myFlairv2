@@ -10,8 +10,8 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    await prisma.service.delete({
-      where: { id },
+    await prisma.additionalService.delete({
+      where: { id: id },
     });
     return NextResponse.json({ message: 'Service deleted successfully' }, { status: 200 });
   } catch (error) {

@@ -1,13 +1,12 @@
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+
 
 export async function PUT(req: NextRequest, { params }: { params: { workPlaceId: string } }) {
   try {
     const body = await req.json();
 
-    // Destructure to get all fields from body
     const {
       id,
       title,

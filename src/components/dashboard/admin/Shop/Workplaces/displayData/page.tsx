@@ -115,25 +115,25 @@ const DisplayWorkPlace = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/post/${id}`, {
+      const response = await fetch(`/api/post/delete/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
-
+  
       if (!response.ok) {
         throw new Error('Erreur lors de la suppression du poste de travail');
       }
-
+  
       const data = await response.json();
       console.log(data.message);
       setWorkplaces(prevState => prevState.filter(item => item.id !== id));
+      setShowDeleteDialog(false);
     } catch (error) {
       console.error('Erreur lors de la suppression du poste de travail:', error);
     }
   };
-
+  
+  
+  
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
@@ -208,9 +208,7 @@ const DisplayWorkPlace = () => {
             <div className="flex">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <img
-                    src="/iconWorkPlace/edit.svg"
-                    alt=""
+                  <Edit
                     onClick={() => handleEditClick(workplace)}
                   />
                 </AlertDialogTrigger>
@@ -413,9 +411,12 @@ const DisplayWorkPlace = () => {
               </AlertDialog>
               
               <div style={{ marginLeft: '20px' }}>
-                <Trash2 onClick={() => handleDeleteClick(workplace)} />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Trash2 onClick={() => handleDeleteClick(workplace)} />
+                </AlertDialogTrigger> 
                 {showDeleteDialog && selectedWorkplace?.id === workplace.id && (
-                  <AlertDialog>
+                  
                     <AlertDialogContent key={workplace.id}>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Voulez-vous vraiment supprimer ce Poste ?</AlertDialogTitle>
@@ -435,8 +436,9 @@ const DisplayWorkPlace = () => {
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
-                  </AlertDialog>
+                  
                 )}
+                </AlertDialog>
               </div>
                 </div>
                 </TableCell>

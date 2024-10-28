@@ -210,7 +210,7 @@ const AddPost = () => {
             </DialogTrigger>
        
        
-            <DialogContent className="max-h-screen overflow-y-scroll">
+            <DialogContent className="">
               <DialogHeader>
                 <DialogTitle>Poste</DialogTitle>
                 <br />

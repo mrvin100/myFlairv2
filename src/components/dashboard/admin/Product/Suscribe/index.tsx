@@ -44,6 +44,21 @@ interface CreateSuscribe {
   period: string;
   functions: string[];
 }
+interface Client {
+  // Define your Client interface according to your data structure
+  id: string;
+  name: string; // or other relevant fields
+}
+
+interface Subscription {
+  id: string;
+  status: string;
+  date_debut: string;
+  date_expiration: string;
+  prochain_prelement: string;
+  client: Client; // Adjust this according to your Client type
+  type: string; // Or an enum if you have predefined types
+}
 
 export default function SuscribeTab() {
   const [createSuscribe, setCreateSuscribe] = useState<CreateSuscribe>({
@@ -195,9 +210,7 @@ export default function SuscribeTab() {
             Gestion des Abonnements
           </h2>
           <Dialog onOpenChange={resetForm}>
-            <DialogTrigger asChild>
-              <Button>Ajouter</Button>
-            </DialogTrigger>
+            
             <DialogContent className="max-h-screen overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>Ajouter un abonnement</DialogTitle>
@@ -442,56 +455,46 @@ export default function SuscribeTab() {
 }
 
 function ListeAbonnements() {
-  const initialSubscriptions = [
-    {
-      id: "1",
-      client: "Séraphine Manille",
-      type: "Gestion planning mensuel",
-      date_debut: "01 Janvier 2024",
-      date_expiration: "01 février 2024",
-      prochain_prelement: "-",
-      status: "annule",
-    },
-    {
-      id: "2",
-      client: "Lili  Dilialt",
-      type: "Gestion planning mensuel",
-      date_debut: "01 février 2024",
-      date_expiration: "01 Mars 2024",
-      prochain_prelement: "01 Mars 2024",
-      status: "expire",
-    },
-    {
-      id: "3",
-      client: "Michel Vierra",
-      type: "Gestion planning annuel",
-      date_debut: "01 avril 2024",
-      date_expiration: "01 avril 2025",
-      prochain_prelement: "01 avril 2025",
-      status: "en-cours",
-    },
-  ];
-  const [subscriptions, setSubscriptions] = React.useState(
-    initialSubscriptions
-  );
-  const [selectedStatus, setSelectedStatus] = React.useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
-  function handleDeleteSubsciption(id: string){
-    const filteredDatas = subscriptions.filter(
-      (subscription) => subscription.id !== id
-    )
-    setSubscriptions(filteredDatas)
-  }
+  // Fonction pour supprimer un abonnement
+  const handleDeleteSubscription = (id: string) => {
+    const filteredDatas = subscriptions.filter(subscription => subscription.id !== id);
+    setSubscriptions(filteredDatas);
+  };
+
+  // Récupération des abonnements
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        const response = await fetch('/api/subscriptions');
+        if (!response.ok) throw new Error('Erreur de réseau');
+        const data = await response.json();
+        setSubscriptions(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubscriptions();
+  }, []);
+
+  // Gestion de l'affichage lors du chargement ou d'une erreur
+  if (loading) return <div>Chargement des abonnements...</div>;
+  if (error) return <div>Erreur: {error}</div>;
 
   return (
     <div>
-      <h3 className="text-lg font-semibold my-8 text-center">
-        Abonements Clients
-      </h3>
+      <h3 className="text-lg font-semibold my-8 text-center">Abonnements Clients</h3>
       <div className="my-6 flex justify-between items-center gap-3">
-        <Select onValueChange={(value) => setSelectedStatus(value)}>
+        <Select onValueChange={setSelectedStatus}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Selectionez un status" />
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="tous">Tous</SelectItem>
@@ -501,10 +504,9 @@ function ListeAbonnements() {
           </SelectContent>
         </Select>
         <div className="relative ml-auto flex-1 md:grow-0">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search..."
+            placeholder="Rechercher..."
             className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
           />
         </div>
@@ -518,54 +520,40 @@ function ListeAbonnements() {
           <TableRow className="bg-gray-100">
             <TableHead className="font-semibold">#</TableHead>
             <TableHead className="font-semibold">Client</TableHead>
-            <TableHead className="font-semibold">
-              Type d&apos;abonnement
-            </TableHead>
+            <TableHead className="font-semibold">Type d&apos;abonnement</TableHead>
             <TableHead className="font-semibold">Date de début</TableHead>
-            <TableHead className="font-semibold">
-              Date d&apos;expiration
-            </TableHead>
-            <TableHead className="font-semibold">
-              Prochain prélèvement
-            </TableHead>
+            <TableHead className="font-semibold">Date d&apos;expiration</TableHead>
+            <TableHead className="font-semibold">Prochain prélèvement</TableHead>
             <TableHead className="font-semibold">Statut</TableHead>
             <TableHead className="font-semibold">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {subscriptions && subscriptions.length > 0 ? (
-            ((selectedStatus === "tous" || selectedStatus === "") ? subscriptions : subscriptions.filter((subscription) => subscription.status === selectedStatus)).map((subscription) => (
-              <TableRow key={subscription?.id}>
-                <TableCell className="font-semibold">
-                  {subscription?.id}
-                </TableCell>
-                <TableCell className="font-semibold">
-                  {subscription?.client}
-                </TableCell>
-                <TableCell>{subscription?.type}</TableCell>
-                <TableCell>{subscription?.date_debut}</TableCell>
-                <TableCell>{subscription?.date_expiration}</TableCell>
-                <TableCell className="text-center">
-                  {subscription?.prochain_prelement}
-                </TableCell>
-                <TableCell>
-                  {subscription?.status === "annule"
-                    ? "Annulé"
-                    : subscription?.status === "expire"
-                      ? "Expiré"
-                      : "En cours"}
-                </TableCell>
-                <TableCell>
-                  <Button variant={"ghost"} size={"icon"}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  &nbsp;
-                  <Button variant={"ghost"} size={"icon"} onClick={() => handleDeleteSubsciption(subscription?.id)}>
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+          {subscriptions.length > 0 ? (
+            (selectedStatus === "tous" || selectedStatus === "" 
+              ? subscriptions 
+              : subscriptions.filter(subscription => subscription.status === selectedStatus)).map(subscription => (
+                <TableRow key={subscription.id}>
+                  <TableCell className="font-semibold">{subscription.id}</TableCell>
+                  <TableCell className="font-semibold">{subscription.client.name}</TableCell>
+                  <TableCell>{subscription.type}</TableCell>
+                  <TableCell>{subscription.date_debut}</TableCell>
+                  <TableCell>{subscription.date_expiration}</TableCell>
+                  <TableCell className="text-center">{subscription.prochain_prelement}</TableCell>
+                  <TableCell>
+                    {subscription.status === "annule" ? "Annulé" : subscription.status === "expire" ? "Expiré" : "En cours"}
+                  </TableCell>
+                  <TableCell>
+                    <Button variant={"ghost"} size={"icon"}>
+                      <Edit />
+                    </Button>
+                    &nbsp;
+                    <Button variant={"ghost"} size={"icon"} onClick={() => handleDeleteSubscription(subscription.id)}>
+                      <Trash />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
           ) : (
             <TableRow>
               <TableCell className="text-center border" colSpan={8}>
@@ -577,4 +565,4 @@ function ListeAbonnements() {
       </Table>
     </div>
   );
-}
+};

@@ -62,25 +62,24 @@ export default function Subscriptions() {
   }, []);
 
 
-const handleCheckout = async (subscriptionId: number) => {
-  try {
-    const response = await fetch('/api/stripeAbonnement', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ subscriptionId }),
-    });
+  const handleCheckout = async (subscriptionId: number) => {
+    try {
+      const response = await fetch('/api/stripe/stripeAbonnement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: subscriptionId }),
+      });
 
-    const session = await response.json();
+      const session = await response.json();
 
-    const stripe = await stripePromise;
-    await stripe?.redirectToCheckout({ sessionId: session.id });
-  } catch (err) {
-    console.error('Error redirecting to checkout:', err);
-  }
-};
-
+      const stripe = await stripePromise;
+      await stripe?.redirectToCheckout({ sessionId: session.id });
+    } catch (err) {
+      console.error('Error redirecting to checkout:', err);
+    }
+  };
 
   return (
     <section className="px-6 py-8 text-center lg:px-24">
@@ -104,20 +103,19 @@ const handleCheckout = async (subscriptionId: number) => {
                   </CardTitle>
                   <h2 className="text-3xl font-bold tracking-tight">
                     <b>
-                      {subscription.price} €/ {subscription.period === "month" && (
-                        <b>Mois</b>
-                      ) || subscription.period === "year" && (
-                        <b>Année</b>
-                      ) || subscription.period === "week" && (
-                        <b>Semaine</b>
-                      ) || subscription.period === "day" && (
-                        <b>Jours</b>
-                      )}
+                      {subscription.price} € / Mois
                     </b>
                   </h2>
                  
-                
-
+          
+                <span className="text-xs">{subscription.period === "month" && (
+                        <b>{subscription.price} € facturés chaque mois</b>
+                      ) || subscription.period === "year" && (
+                        <span>{subscription.price * 12} € facturés à l'année</span>
+                      )
+                      }</span>
+<div className="flex flex-col justify-between">
+  <br />
                 <CardContent>
                   <ul>
                     {subscription.functions.map((func: string) => (
@@ -125,51 +123,28 @@ const handleCheckout = async (subscriptionId: number) => {
                         className="flex items-center gap-4 max-w-64 w-full mx-auto"
                         key={func}
                       >
-                        <CheckIcon className="mr-2 h-4 w-4 text-green-500" />
-                        {func} {/* Display the function directly */}
+                        <CheckIcon className="mr-2 h-6 w-6 text-black" />
+                        {func} 
                       </li>
                     ))}
                   </ul>
                   <br />
 
-                  {subscription.nbrEssaisGratuit ? (
-                    <span>Vous avez le droit à {subscription.nbrEssaisGratuit} {subscription.period === "month" && (
-                      <b>Mois</b>
-                    ) || subscription.period === "year" && (
-                      <b>Année</b>
-                    ) || subscription.period === "week" && (
-                      <b>Semaine</b>
-                    ) || subscription.period === "day" && (
-                      <b>Jours</b>
-                    )} de forfait offert</span>
-                  ): ""}
+                 
                 </CardContent>
 
                 <CardFooter className="flex flex-col space-y-2">
-                {subscription.nbrEssaisGratuit ? (
-                  <Link
-                    className="w-full"
-                    href={`/back-up/subscriptions/payment?type=${subscription.period.toLowerCase()}`}
-                    aria-label={`Try the ${subscription.title} subscription for free`}
-                  >
-                    <Button onClick={() => handleCheckout(subscription.id)} className="w-full" role="link" size="lg">
-                      J'essaye Gratuitement
-                    </Button>
-                  </Link>
-                ) : <Link
-                className="w-full"
-                href={`/back-up/subscriptions/payment?type=${subscription.period.toLowerCase()}`}
-                aria-label={`Try the ${subscription.title} subscription for free`}
-              >
-                <Button className="w-full" role="link" size="lg">
-                  Acheter
-                </Button>
-              </Link>
-              }
+                  {subscription.nbrEssaisGratuit && (
+                    <span>Vous avez le droit à 1 Mois de forfait offert</span>
+                  )}
+                  <Button onClick={() => handleCheckout(subscription.id)} className="w-full" role="link" size="lg">
+                    {subscription.nbrEssaisGratuit ? "J'essaye Gratuitement" : "Acheter"}
+                  </Button>
                   <div className="text-sm text-muted-foreground">
                     Abonnement sans engagement et résiliable sans frais
                   </div>
                 </CardFooter>
+                </div>
               </Card>
             ))}
           </div>

@@ -14,11 +14,11 @@ export const {
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
   callbacks: {
-    /* @ts-ignore */
+
     async session({ session }) {
       if (!session) return;
 
-      /* @ts-ignore */
+  
       session.user = await getUserByEmail(session.user.email);
 
       return session;
