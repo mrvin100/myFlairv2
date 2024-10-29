@@ -34,6 +34,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TableLoader } from "@/components/dashboard/table-loader";
 
 interface NewClient {
   id: string;
@@ -192,111 +193,91 @@ const DisplayClients = () => {
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {isPending ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-32" />
-              </TableCell>
-            </TableRow>
-          ) : filteredClients && filteredClients.length > 0 ? (
-            filteredClients.map((client) => (
-              <TableRow key={client.id}>
-                <TableCell className="w-min-[300px] text-center whitespace-nowrap overflow-hidden text-ellipsis">{`${client.firstName} ${client.lastName}`}</TableCell>
-                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{`${client.address.street}, ${client.address.city}, ${client.address.postalCode}`}</TableCell>
-                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  {client.phone}
-                </TableCell>
-                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  {client.email}
-                </TableCell>
-                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  <span className="flex justify-center">
-                    {client.role || "-"}
-                  </span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  {client.createdAt
-                    ? format(parseISO(client.createdAt), "eeee d MMMM yyyy", {
-                        locale: fr,
-                      })
-                    : "-"}
-                </TableCell>
-                <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  <div className="flex">
-                    <Link
-                      href={`/dashboard/administrator/client/${encodeURIComponent(client.id)}`}
-                    >
-                      <img src="/iconWorkPlace/edit.svg" alt="Edit" />
-                    </Link>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <img
-                          className="ml-5"
-                          src="/iconWorkPlace/trash-2.svg"
-                          alt="Delete"
-                          onClick={() => {
-                            setSelectedClientId(client.id);
-                          }}
-                        />
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Voulez-vous vraiment supprimer ce client ?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action est irréversible, voulez-vous vraiment
-                            le supprimer ?
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel
-                            onClick={() => setSelectedClientId(null)}
-                          >
-                            Annuler
-                          </AlertDialogCancel>
-                          <AlertDialogAction
+        {isPending ? (
+          <TableLoader rows={4} cols={6} />
+        ) : (
+          <TableBody>
+            {filteredClients && filteredClients.length > 0 ? (
+              filteredClients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell className="w-min-[300px] text-center whitespace-nowrap overflow-hidden text-ellipsis">{`${client.firstName} ${client.lastName}`}</TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{`${client.address.street}, ${client.address.city}, ${client.address.postalCode}`}</TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    {client.phone}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    {client.email}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    <span className="flex justify-center">
+                      {client.role || "-"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    {client.createdAt
+                      ? format(parseISO(client.createdAt), "eeee d MMMM yyyy", {
+                          locale: fr,
+                        })
+                      : "-"}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    <div className="flex">
+                      <Link
+                        href={`/dashboard/administrator/client/${encodeURIComponent(client.id)}`}
+                      >
+                        <img src="/iconWorkPlace/edit.svg" alt="Edit" />
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <img
+                            className="ml-5"
+                            src="/iconWorkPlace/trash-2.svg"
+                            alt="Delete"
                             onClick={() => {
-                              handleDelete(client.id);
-                              setSelectedClientId(null);
+                              setSelectedClientId(client.id);
                             }}
-                          >
-                            Valider
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+                          />
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Voulez-vous vraiment supprimer ce client ?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible, voulez-vous
+                              vraiment le supprimer ?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel
+                              onClick={() => setSelectedClientId(null)}
+                            >
+                              Annuler
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                handleDelete(client.id);
+                                setSelectedClientId(null);
+                              }}
+                            >
+                              Valider
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center p-5">
+                  Aucun client présent
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center p-5">
-                Aucun client présent
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            )}
+          </TableBody>
+        )}
       </Table>
     </div>
   );

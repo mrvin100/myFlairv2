@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { EmptyContent } from "@/components/empty-content";
 
 interface AdditionalService {
   id: string;
@@ -171,7 +172,7 @@ const DisplayServices = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="text-center p-5">
-                  Aucun service présent
+                  <EmptyContent text={"Aucun service présent"} />
                 </TableCell>
               </TableRow>
             )}

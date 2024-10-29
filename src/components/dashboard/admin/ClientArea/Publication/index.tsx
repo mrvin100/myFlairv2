@@ -22,6 +22,7 @@ import Link from "next/link";
 import "react-quill/dist/quill.snow.css";
 import PublicationActions from "./PublicationActions";
 import { toast } from "@/components/ui/use-toast";
+import { EmptyContent } from "@/components/empty-content";
 
 export default function Publication() {
   const mark = {
@@ -374,7 +375,8 @@ export default function Publication() {
               {(filteredPublications &&  filteredPublications.length > 0) ? filteredPublications.map((pub) => (
                 <ModelPublication key={pub.id} publication={pub} />
               )): (
-                <div className="text-center p-5 rounded-sm bg-muted">Aucune publication présente</div>
+                <EmptyContent text={"Aucune publication présente"} />
+                // <div className="text-center p-5 rounded-sm bg-muted"></div>
               )}
             </div>
           </div>

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import axios from "axios";
+import { EmptyContent } from "@/components/empty-content";
 
 interface Category {
   id: string;
@@ -143,7 +144,7 @@ const DisplayCategory = () => {
           ) : (
             <TableRow>
               <TableCell colSpan={5} className="p-5 text-center">
-                Aucune cathegorie présente
+                <EmptyContent text={"Aucune cathegorie présente"} />
               </TableCell>
             </TableRow>
           )}

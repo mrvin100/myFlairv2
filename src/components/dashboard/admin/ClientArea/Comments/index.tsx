@@ -16,6 +16,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { EmptyContent } from "@/components/empty-content";
 
 // Définir les types
 interface User {
@@ -122,7 +123,7 @@ export default function Comments() {
             Gestion des Avis
           </h2>
         </div>
-        {sortedReviews.map((review) => (
+        {(sortedReviews && sortedReviews.length > 0) ? sortedReviews.map((review) => (
           <ModelComment
             key={review.id}
             review={review}
@@ -130,7 +131,9 @@ export default function Comments() {
             setAlertOpen={setAlertOpen}
             setDeleteReviewId={setDeleteReviewId}
           />
-        ))}
+        )) : (
+          <EmptyContent text={"Aucun Avis présent."} />
+        )}
       </div>
       {/* Alert Dialog for deletion confirmation */}
       <AlertDialog open={isAlertOpen} onOpenChange={setAlertOpen}>

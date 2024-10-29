@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { EmptyContent } from "@/components/empty-content";
 
 interface Formation {
   id: string;
@@ -194,7 +195,7 @@ const DisplayFormations = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="text-center p-5">
-                  Aucune formation présente
+                  <EmptyContent text={"Aucune formation présente"} />
                 </TableCell>
               </TableRow>
             )}
