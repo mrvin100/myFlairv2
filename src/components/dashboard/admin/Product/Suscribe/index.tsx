@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CreateSuscribe {
   title: string;
@@ -73,6 +74,7 @@ export default function SuscribeTab() {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [newFunction, setNewFunction] = useState<string>("");
+  const [isPending, setIspending] = useState(false)
 
   const handleAbonnementChange = (field: string, value: any) => {
     setCreateSuscribe((prev) => ({
@@ -128,9 +130,13 @@ export default function SuscribeTab() {
 
   // Fonction pour récupérer les abonnements existants
   const fetchAbonnements = async () => {
+    setIspending(true)
     const response = await fetch("/api/abonnement/get");
     const abonnements = await response.json();
-    setAbonnement(abonnements); // Mettre à jour l'état avec les abonnements récupérés
+    if(abonnement){
+      setAbonnement(abonnements); // Mettre à jour l'état avec les abonnements récupérés
+      setIspending(false)
+    }
   };
 
   useEffect(() => {
@@ -310,7 +316,13 @@ export default function SuscribeTab() {
         </div>
 
         {/* Liste des abonnements */}
-        {abonnement && abonnement.length > 0 ? (
+        {isPending ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Skeleton className="h-24 w-48 rounded-sm" />
+            <Skeleton className="h-24 w-48 rounded-sm" />
+            <Skeleton className="h-24 w-48 rounded-sm" />
+            </div>
+        ): (abonnement && abonnement.length > 0) ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {abonnement.map((ab, index) => (
               <Card key={index}>
@@ -352,7 +364,7 @@ export default function SuscribeTab() {
             ))}
           </div>
         ) : (
-          <div className="text-center">Aucun abonnement présent.</div>
+          <div className="p-5 text-center">Aucun abonnement présent.</div>
         )}
 
         {/* Dialog pour modifier un abonnement */}

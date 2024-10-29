@@ -371,9 +371,11 @@ export default function Publication() {
           </div>
           <div style={{ marginLeft: "2%" }}>
             <div className="grid grid-cols-custom gap-7">
-              {filteredPublications.map((pub) => (
+              {(filteredPublications &&  filteredPublications.length > 0) ? filteredPublications.map((pub) => (
                 <ModelPublication key={pub.id} publication={pub} />
-              ))}
+              )): (
+                <div className="text-center p-5 rounded-sm bg-muted">Aucune publication présente</div>
+              )}
             </div>
           </div>
         </div>

@@ -218,7 +218,7 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {businessBoosters.map((booster, index) => (
+          {(businessBoosters &&  businessBoosters.length > 0)? businessBoosters.map((booster, index) => (
             <TableRow key={booster.id}>
               <TableCell>n° {index + 1}</TableCell>
               <TableCell>{booster.title}</TableCell>
@@ -358,7 +358,11 @@ const DisplayBusinessBoosters: React.FC<DisplayBusinessBoostersProps> = ({
                 </div>
               </TableCell>
             </TableRow>
-          ))}
+          )) : (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center p-5">Aucun business boosters présent</TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

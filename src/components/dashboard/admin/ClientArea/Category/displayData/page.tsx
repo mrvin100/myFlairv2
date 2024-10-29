@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -33,13 +33,15 @@ interface Category {
 const DisplayCategory = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/api/category/get');
-        console.log(response)
+        const response = await axios.get("/api/category/get");
+        console.log(response);
         setCategories(response.data);
       } catch (error) {
         console.error("Erreur lors de la récupération des catégories :", error);
@@ -52,7 +54,9 @@ const DisplayCategory = () => {
     if (!selectedCategoryId) return;
     try {
       await axios.delete(`/api/categories/${selectedCategoryId}`);
-      setCategories(categories.filter(category => category.id !== selectedCategoryId));
+      setCategories(
+        categories.filter((category) => category.id !== selectedCategoryId)
+      );
       setShowDialog(false);
       setSelectedCategoryId(null);
     } catch (error) {
@@ -73,49 +77,76 @@ const DisplayCategory = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.map((category, index) => (
-            <TableRow key={category.id}>
-              <TableCell>{index + 1}</TableCell>
-              <TableCell>{category.title}</TableCell>
-              <TableCell>
-                <img src={category.imageMinia} alt={category.title} style={{ width: '100px', height: 'auto' }} />
-              </TableCell>
-              <TableCell>
-                <img src={category.imageLogo} alt={`${category.title} Logo`} style={{ width: '100px', height: 'auto' }} />
-              </TableCell>
-              <TableCell>
-                <div className="flex">
-                  <Link href={`/dashboard/administrator/client/${encodeURIComponent(category.id)}`}>
-                    <img src="/iconWorkPlace/edit.svg" alt="Edit" />
-                  </Link>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <img
-                        src="/iconWorkPlace/trash-2.svg"
-                        alt="Delete"
-                        onClick={() => {
-                          setSelectedCategoryId(category.id);
-                          setShowDialog(true);
-                        }}
-                      />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Voulez-vous vraiment supprimer cette catégorie ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Cette action est irréversible, voulez-vous vraiment la supprimer ?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteCategory}>Valider</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+          {categories && categories.length > 0 ? (
+            categories.map((category, index) => (
+              <TableRow key={category.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{category.title}</TableCell>
+                <TableCell>
+                  <img
+                    src={category.imageMinia}
+                    alt={category.title}
+                    style={{ width: "100px", height: "auto" }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <img
+                    src={category.imageLogo}
+                    alt={`${category.title} Logo`}
+                    style={{ width: "100px", height: "auto" }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className="flex">
+                    <Link
+                      href={`/dashboard/administrator/client/${encodeURIComponent(category.id)}`}
+                    >
+                      <img src="/iconWorkPlace/edit.svg" alt="Edit" />
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <img
+                          src="/iconWorkPlace/trash-2.svg"
+                          alt="Delete"
+                          onClick={() => {
+                            setSelectedCategoryId(category.id);
+                            setShowDialog(true);
+                          }}
+                        />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Voulez-vous vraiment supprimer cette catégorie ?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible, voulez-vous vraiment
+                            la supprimer ?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel
+                            onClick={() => setShowDialog(false)}
+                          >
+                            Annuler
+                          </AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteCategory}>
+                            Valider
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={5} className="p-5 text-center">
+                Aucune cathegorie présente
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </div>

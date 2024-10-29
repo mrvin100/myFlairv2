@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { fr } from 'date-fns/locale';  
+import { fr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,38 +32,44 @@ interface Formation {
   price: number;
   quantity: number;
   alt?: string;
-  dates: { date: string; available: string; quantity: number }[]; 
+  dates: { date: string; available: string; quantity: number }[];
 }
 
 const formatDates = (dates: { date: string; available: string }[]) => {
-  if (!dates || dates.length === 0) return 'Aucune date disponible';
+  if (!dates || dates.length === 0) return "Aucune date disponible";
 
   try {
     const sortedDates = dates
       .map(({ date }) => parseISO(date))
       .sort((a, b) => a.getTime() - b.getTime());
 
-    const startDate = format(sortedDates[0], 'dd MMMM yyyy', { locale: fr });
-    const endDate = format(sortedDates[sortedDates.length - 1], 'dd MMMM yyyy', { locale: fr });
+    const startDate = format(sortedDates[0], "dd MMMM yyyy", { locale: fr });
+    const endDate = format(
+      sortedDates[sortedDates.length - 1],
+      "dd MMMM yyyy",
+      { locale: fr }
+    );
 
     return `Du ${startDate} au ${endDate}`;
   } catch (error) {
-    console.error('Erreur lors du formatage des dates:', error);
-    return 'Date invalide';
+    console.error("Erreur lors du formatage des dates:", error);
+    return "Date invalide";
   }
 };
 
 const DisplayFormations = () => {
   const [formations, setFormations] = useState<Formation[]>([]);
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedFormationId, setSelectedFormationId] = useState<string | null>(null);
+  const [selectedFormationId, setSelectedFormationId] = useState<string | null>(
+    null
+  );
   const router = useRouter();
 
   useEffect(() => {
     fetch(`/api/formation/get`, {
-      method: 'GET',
+      method: "GET",
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error status: ${response.status}`);
         }
@@ -72,23 +78,25 @@ const DisplayFormations = () => {
       .then((data: Formation[]) => {
         setFormations(data);
       })
-      .catch(error => console.error('Error fetching formations', error));
+      .catch((error) => console.error("Error fetching formations", error));
   }, []);
 
   const handleDelete = async (id: string) => {
     try {
       await deleteFormationById(id);
       // Update the state by filtering out the deleted formation
-      setFormations(prevFormations => prevFormations.filter(formation => formation.id !== id));
+      setFormations((prevFormations) =>
+        prevFormations.filter((formation) => formation.id !== id)
+      );
       setShowDialog(false); // Close the dialog
     } catch (error) {
-      console.error('Erreur lors de la suppression de la formation:', error);
+      console.error("Erreur lors de la suppression de la formation:", error);
     }
   };
 
   async function deleteFormationById(id: string) {
     const response = await fetch(`/api/formation/delete/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     if (!response.ok) {
@@ -114,56 +122,82 @@ const DisplayFormations = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {formations.map((formation, index) => (
-              <TableRow key={formation.id}>
-                <TableCell>n° {index+1}</TableCell>
-                <TableCell>{formation.title}</TableCell>
-                <TableCell>{formatDates(formation.dates)}</TableCell>
-                <TableCell>
-                  <img
-                    src={formation.image}
-                    alt={formation.alt || formation.title}
-                    style={{ width: '100px', height: 'auto', marginBottom: '5px' }}
-                    className="rounded-lg"
-                  />
-                </TableCell>
-                <TableCell>{formation.price} €</TableCell>
-                <TableCell>{formation.quantity}</TableCell>
-                <TableCell>
-                  <div className="flex">
-                    <Link href={`/dashboard/administrator/formation/${encodeURIComponent(formation.id)}`}>
-                      <img src="/iconWorkPlace/edit.svg" alt="" />
-                    </Link>
-                    <AlertDialogTrigger asChild style={{ marginLeft: '20px' }}>
-                      <img
-                        src="/iconWorkPlace/trash-2.svg"
-                        alt=""
-                        onClick={() => {
-                          setShowDialog(true);
-                          setSelectedFormationId(formation.id);
-                        }}
-                      />
-                    </AlertDialogTrigger>
-                    {showDialog && selectedFormationId === formation.id && (
-                      <AlertDialogContent key={formation.id}>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Voulez-vous vraiment supprimer cette formation ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action est irréversible, voulez-vous vraiment la supprimer ?
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel onClick={() => setShowDialog(false)}>Annuler</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(formation.id)}>
-                            Valider
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    )}
-                  </div>
+            {formations && formations.length > 0 ? (
+              formations.map((formation, index) => (
+                <TableRow key={formation.id}>
+                  <TableCell>n° {index + 1}</TableCell>
+                  <TableCell>{formation.title}</TableCell>
+                  <TableCell>{formatDates(formation.dates)}</TableCell>
+                  <TableCell>
+                    <img
+                      src={formation.image}
+                      alt={formation.alt || formation.title}
+                      style={{
+                        width: "100px",
+                        height: "auto",
+                        marginBottom: "5px",
+                      }}
+                      className="rounded-lg"
+                    />
+                  </TableCell>
+                  <TableCell>{formation.price} €</TableCell>
+                  <TableCell>{formation.quantity}</TableCell>
+                  <TableCell>
+                    <div className="flex">
+                      <Link
+                        href={`/dashboard/administrator/formation/${encodeURIComponent(formation.id)}`}
+                      >
+                        <img src="/iconWorkPlace/edit.svg" alt="" />
+                      </Link>
+                      <AlertDialogTrigger
+                        asChild
+                        style={{ marginLeft: "20px" }}
+                      >
+                        <img
+                          src="/iconWorkPlace/trash-2.svg"
+                          alt=""
+                          onClick={() => {
+                            setShowDialog(true);
+                            setSelectedFormationId(formation.id);
+                          }}
+                        />
+                      </AlertDialogTrigger>
+                      {showDialog && selectedFormationId === formation.id && (
+                        <AlertDialogContent key={formation.id}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Voulez-vous vraiment supprimer cette formation ?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible, voulez-vous
+                              vraiment la supprimer ?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel
+                              onClick={() => setShowDialog(false)}
+                            >
+                              Annuler
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(formation.id)}
+                            >
+                              Valider
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center p-5">
+                  Aucune formation présente
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </AlertDialog>
