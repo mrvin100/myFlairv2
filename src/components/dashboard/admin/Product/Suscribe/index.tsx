@@ -36,6 +36,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableLoader } from "@/components/dashboard/table-loader";
+import { EmptyContent } from "@/components/empty-content";
 
 interface CreateSuscribe {
   title: string;
@@ -73,6 +76,7 @@ export default function SuscribeTab() {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [newFunction, setNewFunction] = useState<string>("");
+  const [isPending, setIspending] = useState(false);
 
   const handleAbonnementChange = (field: string, value: any) => {
     setCreateSuscribe((prev) => ({
@@ -128,9 +132,13 @@ export default function SuscribeTab() {
 
   // Fonction pour récupérer les abonnements existants
   const fetchAbonnements = async () => {
+    setIspending(true);
     const response = await fetch("/api/abonnement/get");
     const abonnements = await response.json();
-    setAbonnement(abonnements); // Mettre à jour l'état avec les abonnements récupérés
+    if (abonnement) {
+      setAbonnement(abonnements); // Mettre à jour l'état avec les abonnements récupérés
+      setIspending(false);
+    }
   };
 
   useEffect(() => {
@@ -204,16 +212,13 @@ export default function SuscribeTab() {
 
   return (
     <TabsContent value="suscribe" className="space-y-4">
-    <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Gestion des Abonnements
-        </h2>
-        
-        <Dialog onOpenChange={resetForm}>
-          <DialogTrigger asChild>
-            <Button>Ajouter un abonnement</Button>
-          </DialogTrigger>
+      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Gestion des Abonnements
+          </h2>
+          <Dialog onOpenChange={resetForm}>
+            
             <DialogContent className="max-h-screen overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>Ajouter un abonnement</DialogTitle>
@@ -271,9 +276,9 @@ export default function SuscribeTab() {
                     </SelectContent>
                   </Select>
                   <br />
-               
+
                   <label className="mt-4">Points forts</label>
-                 
+
                   <div className="mt-4">
                     {createSuscribe.functions.map((func, index) => (
                       <div
@@ -313,29 +318,43 @@ export default function SuscribeTab() {
         </div>
 
         {/* Liste des abonnements */}
-        {abonnement && abonnement.length > 0 ? (
+        {isPending ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Skeleton className="h-60 w-full rounded-sm" />
+            <Skeleton className="h-60 w-full rounded-sm" />
+            <Skeleton className="h-60 w-full rounded-sm" />
+          </div>
+        ) : abonnement && abonnement.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {abonnement.map((ab, index) => (
               <Card key={index}>
                 <CardHeader>
-                  <CardTitle className="text-center text-2xl">{ab.title}</CardTitle>
+                  <CardTitle className="text-center text-2xl">
+                    {ab.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center ">
                   <b className="text-5xl">{ab.price}€</b>
                   <br />
                   <span>
                     {ab.nbrEssaisGratuit}{" "}
-                    {ab.period === "day" ? (
-                      ab.nbrEssaisGratuit === 1 ? "Jour " : "Jours "
-                    ) : ab.period === "week" ? (
-                      ab.nbrEssaisGratuit === 1 ? "Semaine " : "Semaines "
-                    ) : ab.period === "month" ? (
-                      "Mois "
-                    ) : ab.period === "year" ? (
-                      ab.nbrEssaisGratuit === 1 ? "Année " : "Années "
-                    ) : null}
-                    de forfait offert</span>
-
+                    {ab.period === "day"
+                      ? ab.nbrEssaisGratuit === 1
+                        ? "Jour "
+                        : "Jours "
+                      : ab.period === "week"
+                        ? ab.nbrEssaisGratuit === 1
+                          ? "Semaine "
+                          : "Semaines "
+                        : ab.period === "month"
+                          ? "Mois "
+                          : ab.period === "year"
+                            ? ab.nbrEssaisGratuit === 1
+                              ? "Année "
+                              : "Années "
+                            : null}
+                    de forfait offert
+                  </span>
                 </CardContent>
                 <CardFooter>
                   <Button
@@ -355,7 +374,7 @@ export default function SuscribeTab() {
             ))}
           </div>
         ) : (
-          <div className="text-center">Aucun abonnement présent.</div>
+          <EmptyContent text={'Aucun abonnement présent.'} />
         )}
 
         {/* Dialog pour modifier un abonnement */}
@@ -461,11 +480,13 @@ function ListeAbonnements() {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   // Fonction pour supprimer un abonnement
   const handleDeleteSubscription = (id: string) => {
-    const filteredDatas = subscriptions.filter(subscription => subscription.id !== id);
+    const filteredDatas = subscriptions.filter(
+      (subscription) => subscription.id !== id
+    );
     setSubscriptions(filteredDatas);
   };
 
@@ -473,8 +494,8 @@ function ListeAbonnements() {
   useEffect(() => {
     const fetchSubscriptions = async () => {
       try {
-        const response = await fetch('/api/subscriptions');
-        if (!response.ok) throw new Error('Erreur de réseau');
+        const response = await fetch("/api/subscriptions");
+        if (!response.ok) throw new Error("Erreur de réseau");
         const data = await response.json();
         setSubscriptions(data);
       } catch (err: any) {
@@ -488,12 +509,14 @@ function ListeAbonnements() {
   }, []);
 
   // Gestion de l'affichage lors du chargement ou d'une erreur
-  if (loading) return <div>Chargement des abonnements...</div>;
-  if (error) return <div>Erreur: {error}</div>;
+  // if (loading) return <div>Chargement des abonnements...</div>;
+  // if (error) return <div>Erreur: {error}</div>;
 
   return (
     <div>
-      <h3 className="text-lg font-semibold my-8 text-center">Abonnements Clients</h3>
+      <h3 className="text-lg font-semibold my-8 text-center">
+        Abonnements Clients
+      </h3>
       <div className="my-6 flex justify-between items-center gap-3">
         <Select onValueChange={setSelectedStatus}>
           <SelectTrigger className="w-[180px]">
@@ -523,49 +546,76 @@ function ListeAbonnements() {
           <TableRow className="bg-gray-100">
             <TableHead className="font-semibold">#</TableHead>
             <TableHead className="font-semibold">Client</TableHead>
-            <TableHead className="font-semibold">Type d&apos;abonnement</TableHead>
+            <TableHead className="font-semibold">
+              Type d&apos;abonnement
+            </TableHead>
             <TableHead className="font-semibold">Date de début</TableHead>
-            <TableHead className="font-semibold">Date d&apos;expiration</TableHead>
-            <TableHead className="font-semibold">Prochain prélèvement</TableHead>
+            <TableHead className="font-semibold">
+              Date d&apos;expiration
+            </TableHead>
+            <TableHead className="font-semibold">
+              Prochain prélèvement
+            </TableHead>
             <TableHead className="font-semibold">Statut</TableHead>
             <TableHead className="font-semibold">Action</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {subscriptions.length > 0 ? (
-            (selectedStatus === "tous" || selectedStatus === "" 
-              ? subscriptions 
-              : subscriptions.filter(subscription => subscription.status === selectedStatus)).map(subscription => (
+        {loading ? (
+          <TableLoader rows={4} cols={7} />
+        ) : (
+          <TableBody>
+            {subscriptions && subscriptions.length > 0 ? (
+              (selectedStatus === "tous" || selectedStatus === ""
+                ? subscriptions
+                : subscriptions.filter(
+                    (subscription) => subscription.status === selectedStatus
+                  )
+              ).map((subscription) => (
                 <TableRow key={subscription.id}>
-                  <TableCell className="font-semibold">{subscription.id}</TableCell>
-                  <TableCell className="font-semibold">{subscription.client.name}</TableCell>
+                  <TableCell className="font-semibold">
+                    {subscription.id}
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    {subscription.client.name}
+                  </TableCell>
                   <TableCell>{subscription.type}</TableCell>
                   <TableCell>{subscription.date_debut}</TableCell>
                   <TableCell>{subscription.date_expiration}</TableCell>
-                  <TableCell className="text-center">{subscription.prochain_prelement}</TableCell>
+                  <TableCell className="text-center">
+                    {subscription.prochain_prelement}
+                  </TableCell>
                   <TableCell>
-                    {subscription.status === "annule" ? "Annulé" : subscription.status === "expire" ? "Expiré" : "En cours"}
+                    {subscription.status === "annule"
+                      ? "Annulé"
+                      : subscription.status === "expire"
+                        ? "Expiré"
+                        : "En cours"}
                   </TableCell>
                   <TableCell>
                     <Button variant={"ghost"} size={"icon"}>
                       <Edit />
                     </Button>
                     &nbsp;
-                    <Button variant={"ghost"} size={"icon"} onClick={() => handleDeleteSubscription(subscription.id)}>
+                    <Button
+                      variant={"ghost"}
+                      size={"icon"}
+                      onClick={() => handleDeleteSubscription(subscription.id)}
+                    >
                       <Trash />
                     </Button>
                   </TableCell>
                 </TableRow>
               ))
-          ) : (
-            <TableRow>
-              <TableCell className="text-center border" colSpan={8}>
-                Aucun abonnement client présent.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            ) : (
+              <TableRow>
+                <TableCell className="text-center border" colSpan={8}>
+                  <EmptyContent text={"Aucun abonnement client présent."} />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        )}
       </Table>
     </div>
   );
-};
+}

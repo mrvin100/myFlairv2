@@ -8,11 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Edit,
-  Search,
-  Trash,
-} from "lucide-react";
+import { Edit, Search, Trash } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -29,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import OrderDetails from "./order-details";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TableLoader } from "@/components/dashboard/table-loader";
+import { EmptyContent } from "@/components/empty-content";
 
 export default function OrderList() {
   enum OrderStatus {
@@ -74,6 +72,7 @@ export default function OrderList() {
   ];
   const [orders, setOrders] = React.useState(initialOrders);
   const [selectedStatus, setSelectedStatus] = React.useState("");
+  const [isLoading, setISLoading] = React.useState(false);
 
   function handleDeleteSubsciption(id: string) {
     const filteredDatas = orders.filter((order) => order.id !== id);
@@ -121,56 +120,64 @@ export default function OrderList() {
             <TableHead className="font-semibold">Action</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {orders && orders.length > 0 ? (
-            (selectedStatus === "tous" || selectedStatus === ""
-              ? orders
-              : orders.filter((order) => order.etat === selectedStatus)
-            ).map((order) => (
-              <TableRow key={order?.id}>
-                <TableCell className="font-semibold">
-                  {order?.order_number}
-                </TableCell>
-                <TableCell className="font-semibold">{order?.client}</TableCell>
-                <TableCell>{order?.order_date}</TableCell>
-                <TableCell>{order?.total}</TableCell>
-                <TableCell>{order?.etat}</TableCell>
-                <TableCell>
-                  <Button variant={"ghost"} size={"icon"}>
-                    <Edit className="h-4 w-4 mr-2" />
-                  </Button>
-                  &nbsp;
-                  <Button
-                    variant={"ghost"}
-                    size={"icon"}
-                    onClick={() => handleDeleteSubsciption(order?.id)}
-                  >
-                    <Trash className="h-4 w-4 mr-2" />
-                  </Button>
-                  <Dialog>
-                    <DialogTrigger>
-                      <Button variant={"outline"} className="rounded-full">
-                        voir
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent  className="max-w-2xl md:max-w-5xl w-full">
-                      <DialogTitle>Détails Commande {order.order_number}</DialogTitle>
-                      <ScrollArea className="max-h-[28rem] md:max-h-[36rem] rounded-md">
-                        <OrderDetails order={order} />
-                      </ScrollArea>
-                    </DialogContent>
-                  </Dialog>
+        {isLoading ? (
+          <TableLoader cols={5} />
+        ) : (
+          <TableBody>
+            {orders && orders.length > 0 ? (
+              (selectedStatus === "tous" || selectedStatus === ""
+                ? orders
+                : orders.filter((order) => order.etat === selectedStatus)
+              ).map((order) => (
+                <TableRow key={order?.id}>
+                  <TableCell className="font-semibold">
+                    {order?.order_number}
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    {order?.client}
+                  </TableCell>
+                  <TableCell>{order?.order_date}</TableCell>
+                  <TableCell>{order?.total}</TableCell>
+                  <TableCell>{order?.etat}</TableCell>
+                  <TableCell>
+                    <Button variant={"ghost"} size={"icon"}>
+                      <Edit className="h-4 w-4 mr-2" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      variant={"ghost"}
+                      size={"icon"}
+                      onClick={() => handleDeleteSubsciption(order?.id)}
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                    </Button>
+                    <Dialog>
+                      <DialogTrigger>
+                        <Button variant={"outline"} className="rounded-full">
+                          voir
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl md:max-w-5xl w-full">
+                        <DialogTitle>
+                          Détails Commande {order.order_number}
+                        </DialogTitle>
+                        <ScrollArea className="max-h-[28rem] md:max-h-[36rem] rounded-md">
+                          <OrderDetails order={order} />
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell className="text-center border" colSpan={8}>
+                  <EmptyContent text={"Aucune commande client présente."} />
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell className="text-center border" colSpan={8}>
-                Aucune commande client présente.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            )}
+          </TableBody>
+        )}
       </Table>
     </div>
   );

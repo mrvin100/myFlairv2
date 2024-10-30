@@ -1,24 +1,31 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { ArrowRightLeftIcon } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { ArrowRightLeftIcon } from "lucide-react";
 
-import { getTransactionCountByDateRange } from '@/data/dashboard/admin';
-import { useUserContext } from '@/contexts/user';
+import { getTransactionCountByDateRange } from "@/data/dashboard/admin";
+import { useUserContext } from "@/contexts/user";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TransactionsCount() {
   const { user } = useUserContext();
 
   const [transactionsCount, setTransactionsCount] = useState(0);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
-    (async () =>
-      setTransactionsCount(
-        await getTransactionCountByDateRange(user?.preferences?.dateRange),
-      ))();
-  });
+    const fetchCount = async () => {
+      setIsPending(true);
+      const count = await getTransactionCountByDateRange(
+        user?.preferences?.dateRange
+      );
+      setTransactionsCount(count);
+      setIsPending(false);
+    };
+    fetchCount();
+  }, [user?.preferences?.dateRange]);
 
   return (
     <Card>
@@ -29,7 +36,11 @@ export default function TransactionsCount() {
         <ArrowRightLeftIcon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{transactionsCount}</div>
+        {isPending ? (
+          <Skeleton className="h-6 w-16 rounded-sm" />
+        ) : (
+          <div className="text-2xl font-bold">{transactionsCount}</div>
+        )}
       </CardContent>
     </Card>
   );
