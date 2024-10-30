@@ -64,22 +64,24 @@ export default function Subscriptions() {
 
   const handleCheckout = async (subscriptionId: number) => {
     try {
-      const response = await fetch('/api/stripe/stripeAbonnement', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: subscriptionId }),
-      });
+        const response = await fetch('/api/stripe/stripeAbonnement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: subscriptionId }),
+        });
 
-      const session = await response.json();
+        const session = await response.json();
 
-      const stripe = await stripePromise;
-      await stripe?.redirectToCheckout({ sessionId: session.id });
+        const stripe = await stripePromise;
+        await stripe?.redirectToCheckout({ sessionId: session.id });
+        window.location.href = `/success/abonnement/${subscriptionId}`;
     } catch (err) {
-      console.error('Error redirecting to checkout:', err);
+        console.error('Error redirecting to checkout:', err);
     }
-  };
+};
+
 
   return (
     <section className="px-6 py-8 text-center lg:px-24">

@@ -204,13 +204,16 @@ export default function SuscribeTab() {
 
   return (
     <TabsContent value="suscribe" className="space-y-4">
-      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Gestion des Abonnements
-          </h2>
-          <Dialog onOpenChange={resetForm}>
-            
+    <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-2xl font-bold tracking-tight">
+          Gestion des Abonnements
+        </h2>
+        
+        <Dialog onOpenChange={resetForm}>
+          <DialogTrigger asChild>
+            <Button>Ajouter un abonnement</Button>
+          </DialogTrigger>
             <DialogContent className="max-h-screen overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>Ajouter un abonnement</DialogTitle>

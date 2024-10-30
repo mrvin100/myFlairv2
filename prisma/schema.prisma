@@ -24,10 +24,14 @@ model User {
   password                     String?
   forgotPassword               String                  @unique @default(uuid())
   phone                        String
+  subscription       String?
+  purchaseDate       DateTime?               // Nouvelle date d'achat
+  nextBillingDate    DateTime?               // Date du prochain prélèvement
+  subscriptionStatus String?                 // Statut de l'abonnement (par exemple, "inWork")
+
   website                      String?
   preferences                  Json?
-  subscription                 SubscriptionType?
-  createdAt                    DateTime                @default(now())
+    createdAt                    DateTime                @default(now())
   updatedAt                    DateTime?               @updatedAt
   biography                    String?
   mark                         Float?
@@ -347,8 +351,14 @@ enum SubscriptionArgumentType {
 }
 
 enum SubscriptionType {
-  MONTHLY
-  YEARLY
+  MONTH
+  YEAR
+}
+
+enum SubscriptionStatus {
+  inWork
+  active
+  canceled
 }
 
 enum ReservationStatus {
