@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Fetch all users and all available fields
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -43,8 +42,6 @@ export async function GET() {
         clientUsers: true,
       },
     });
-
-    // Return the users as JSON
     return NextResponse.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

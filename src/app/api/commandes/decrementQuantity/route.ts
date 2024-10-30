@@ -9,8 +9,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     try {
       for (const item of cartItems) {
-        const product = await prisma.formation.findUnique({
-          where: { id: item.id },
+        const product = await prisma.product.findUnique({
+          where: { stripeId: item.id },
         });
         if (product && (product.prodType === 'ADDITIONAL_SERVICE' || product.prodType === 'FORMATION')) {
           await prisma.formation.updateMany({
