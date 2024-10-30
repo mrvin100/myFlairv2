@@ -1,6 +1,7 @@
 // File: /api/stripe/stripeAbonnement.ts
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import { floor } from 'lodash';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, res: NextResponse) {
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
           price_data: {
             currency: 'eur',
             product_data: { name: subscription.title },
-            unit_amount: subscription.price * 100,
+            unit_amount: floor(subscription.price*12) * 100,
             recurring: { interval: period },
           },
           quantity: 1,
