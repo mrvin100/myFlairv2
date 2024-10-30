@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"; // Assurez-vous d'importer votre instance Prisma
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -18,7 +18,6 @@ export async function POST(req) {
 
   console.log(proId, "fetchProId")
   try {
-    // Étape 1 : Créer l'utilisateur pour le client
     const clientUser = await prisma.user.create({
         data: {
           firstName: nom,

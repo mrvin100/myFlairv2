@@ -1,15 +1,12 @@
-import type { NextAuthConfig } from 'next-auth';
-
+import type { NextAuthConfig, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-
 import { compare } from '@/lib/utils';
 import { signInSchema } from '@/schemas';
 import { getUserByEmail } from '@/data/user';
 
-const authConfig = {
+const authConfig: NextAuthConfig = {
   providers: [
     CredentialsProvider({
-
       async authorize(credentials) {
         const parsedCredentials = signInSchema.safeParse(credentials);
 
@@ -21,14 +18,23 @@ const authConfig = {
 
             if (!user?.password) return null;
 
-            if (compare(password, user.password)) return user;
-          } catch (_) {}
+            if (compare(password, user.password)) {
+              return {
+                id: user.id,
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`, 
+                image: user.image,
+                role: user.role, 
+              } as User;
+            }
+          } catch (error) {
+            console.error("Authorization error:", error);
+          }
         }
-
         return null;
       },
     }),
   ],
-} satisfies NextAuthConfig;
+};
 
 export default authConfig;

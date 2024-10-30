@@ -1,6 +1,5 @@
-import NextAuth from 'next-auth';
+import NextAuth, { Session, DefaultSession } from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
-
 import { prisma } from '@/lib/prisma';
 import authConfig from '@/auth.config';
 import { getUserByEmail } from '@/data/user';
@@ -12,14 +11,12 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as any,
   callbacks: {
-
-    async session({ session }) {
-      if (!session) return;
-
-  
-      session.user = await getUserByEmail(session.user.email);
+    async session({ session }): Promise<Session | DefaultSession> {
+      if (!session?.user?.email) return session;
+      const user = await getUserByEmail(session.user.email);
+      if (user) session.user = { ...session.user, ...user } as unknown as typeof session.user;
 
       return session;
     },
@@ -33,25 +30,15 @@ export const {
   },
   events: {
     createUser: async (message) => {
-      const userId = message.user.id;
-      const email = message.user.email;
+      const { id: userId, email } = message.user;
 
-      if (!userId || !email) {
-          return;
-      }
-      const StripeCustomer = await stripe.customers.create({
-        email
-      })
+      if (!userId || !email) return;
+      const StripeCustomer = await stripe.customers.create({ email });
       await prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          stripeCustomerId: StripeCustomer.id,
-        }
-      })
-    }
-
+        where: { id: userId },
+        data: { stripeCustomerId: StripeCustomer.id },
+      });
+    },
   },
   ...authConfig,
 });

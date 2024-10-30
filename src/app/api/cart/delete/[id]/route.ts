@@ -1,8 +1,6 @@
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from "@prisma/client/edge";
-import { withAccelerate } from "@prisma/extension-accelerate";
 
-export const prisma = new PrismaClient().$extends(withAccelerate());
 
 export async function DELETE(req: NextRequest, res: NextResponse) {
     const url = new URL(req.url);

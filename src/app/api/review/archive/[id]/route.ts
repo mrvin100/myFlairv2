@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
+import { prisma } from '@/lib/prisma';
 
-export const prisma = new PrismaClient().$extends(withAccelerate());
 
 export async function PUT(req: NextRequest, res: NextResponse) {
     if (req.method === 'PUT') {
