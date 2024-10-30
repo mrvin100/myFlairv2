@@ -13,8 +13,6 @@ const SuccessResponse = () => {
     const [active, setActive] = useState(false); 
     const router = useRouter();
     const { user } = useUserContext()
-
-    // Function to get the last part of the URL
     const getLastUrlSegment = () => window.location.pathname.split('/').pop();
 
     useEffect(() => {
@@ -31,9 +29,7 @@ const SuccessResponse = () => {
   
                 if (result.error) {
                     console.error(result.error);
-                    // Handle error state here (e.g., redirect to an error page)
                 } else {
-                    // Optionally, handle success (e.g., display subscription details)
                 }
             } catch (error) {
                 console.error("Error validating subscription:", error);
@@ -41,7 +37,7 @@ const SuccessResponse = () => {
         };
   
         validateSubscription();
-    }, []); // Removed dependency array for the URL segment retrieval
+    }, []);
 
     const config = {
         angle: 360,
@@ -59,10 +55,10 @@ const SuccessResponse = () => {
 
     return (
         <div className="w-max-[75%]">
-            <Confetti active={active} config={config} />
             <div className="flex justify-center items-center h-screen w-min-[500px] w-max-[75%]">
                 <Card className="pl-8 pr-8 pt-8">
                     <CardContent className="flex flex-col justify-center items-center">
+                    <Confetti active={active} config={config} />
                         <CheckCircle className="text-green-500 w-32 h-32" />
                         <b className="text-[200%] mt-4">Félicitations</b>
                         <span className="mt-4">L'achat de votre abonnement a bien été réalisé</span>

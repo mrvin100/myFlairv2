@@ -375,7 +375,8 @@ export default function Publication() {
               {(filteredPublications &&  filteredPublications.length > 0) ? filteredPublications.map((pub) => (
                 <ModelPublication key={pub.id} publication={pub} />
               )): (
-                <EmptyContent text={"Aucune publication présente"} />
+              <div className="flex justify center items-center"><EmptyContent text={"Aucune publication présente"} /></div>
+                
                 // <div className="text-center p-5 rounded-sm bg-muted"></div>
               )}
             </div>
