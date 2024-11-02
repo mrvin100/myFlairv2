@@ -59,8 +59,8 @@ interface Subscription {
   date_debut: string;
   date_expiration: string;
   prochain_prelement: string;
-  client: Client; // Adjust this according to your Client type
-  type: string; // Or an enum if you have predefined types
+  client: Client;
+  type: string;
 }
 
 export default function SuscribeTab() {
